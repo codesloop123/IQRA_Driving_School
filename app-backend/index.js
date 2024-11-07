@@ -23,5 +23,8 @@ app.use("/api/cars", require("./routes/car")); // Instructor routes
 app.use("/api/admissions", require("./routes/admission")); // General admission routes, if applicable
 app.use("/api/attendance", require("./routes/attendance")); // Attendance routes
 app.use("/api/alerts", require("./routes/alerts"));
+app.get('/', async(req,res)=>{
+  res.json("Hello DB");
+  });
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
