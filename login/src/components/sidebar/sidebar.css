@@ -1,0 +1,151 @@
+/* Existing styles */
+body {
+    background: white;
+}
+.sidebar {
+    margin: 0;
+    padding: 0;
+    text-decoration: none;
+    transition: width 0.5s ease;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000000;
+}
+
+.sidebar-container {
+    display: flex;
+    z-index: 1000;
+    
+
+}
+
+.main {
+    width: 100%;
+    padding: 20px;
+    
+}
+
+.side-bar {
+    background: black;
+    height: 100vh;
+    color: white;
+    width: 50px; /* Default width when sidebar is closed */
+    transition: width 0.5s ease; /* Ensure transition for width */
+}
+
+.side-bar.open {
+    width: 200px; /* Expanded width */
+}
+
+.top-section {
+    display: flex;
+    align-items: center;
+    padding: 20px 15px;
+}
+
+.Logo {
+    height: 140px;
+    width: 150px;
+    color: white;
+    white-space: nowrap; /* Prevent text from wrapping */
+    overflow: hidden;
+    transition: opacity 0.5s ease;
+    opacity: 1; /* Ensure it's visible */
+    margin-right: auto; /* Ensure the logo is to the left */
+    padding-left: 10px;
+}
+
+
+
+.top-section {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+}
+
+.Bars {
+    font-size: 25px;
+    cursor: pointer;
+    margin-left: -7px; /* Moves the icon left before the sidebar opens */
+    transition: margin-left 0.5s ease; /* Smooth transition */}
+
+.link {
+    display: flex;
+    align-items: center;
+    color: white;
+    padding: 10px 15px;
+    transition: all 0.5s;
+    gap: 15px;
+}
+
+.link:hover {
+    background: skyblue;
+    color: black;
+    transition: all 0.5s;
+}
+
+.active {
+    background: skyblue;
+    color: black;
+}
+
+.icon {
+    font-size: 20px;
+}
+
+.link_text {
+    display: none; /* Initially hidden */
+    font-size: 20px;
+    transition: opacity 0.5s ease;
+}
+
+.side-bar.open .link_text {
+    display: block; /* Display when sidebar is open */
+    opacity: 1;
+}
+
+.side-bar.open .Logo {
+    opacity: 1; /* Show logo when sidebar is open */
+}
+
+/* Additional styles to ensure the main content appears to the right of the sidebar */
+.sidebar-container {
+    display: flex;
+}
+
+.main {
+    flex-grow: 1;
+    padding: 20px;
+    transition: margin-left 0.5s ease;
+}
+
+.side-bar {
+    width: 50px; /* Default width when sidebar is closed */
+}
+
+.side-bar.open {
+    width: 200px; /* Expanded width */
+}
+
+.sidebar-container .main {
+    margin-left: 50px; /* Default margin when sidebar is closed */
+}
+
+.sidebar-container .side-bar.open + .main {
+    margin-left: 200px; /* Adjust margin when sidebar is open */
+}
+
+/* New styles to ensure the main content appears to the right of the sidebar */
+.side-bar {
+    position: fixed; /* Fix it to the left side */
+    top: 0;
+    left: 0;
+    overflow: hidden;
+}
+
+main {
+    margin-left: 200px; /* Same as the expanded sidebar width */
+    padding: 20px;
+    flex-grow: 1;
+    transition: margin-left 0.3s;
+}
