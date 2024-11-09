@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import './finances.css';
-import DateFilter from './datefilter';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import "./finances.css";
+import DateFilter from "./datefilter";
 
 const FinancesAli = () => {
-  const branch = 'alipur'; // Define the branch name here
+  const branch = "alipur"; // Define the branch name here
   const [finances, setFinances] = useState([]);
   const [filteredFinances, setFilteredFinances] = useState([]);
 
@@ -20,12 +20,17 @@ const FinancesAli = () => {
 
     const fetchFinances = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/admissions/${branch}/finances`);
+        const response = await axios.get(
+          `http://62.72.57.154:5000/api/admissions/${branch}/finances`
+        );
         setFinances(response.data);
         setFilteredFinances(response.data);
-        localStorage.setItem(`finances_${branch}`, JSON.stringify(response.data)); // Save to local storage
+        localStorage.setItem(
+          `finances_${branch}`,
+          JSON.stringify(response.data)
+        ); // Save to local storage
       } catch (error) {
-        console.error('Error fetching financial data:', error);
+        console.error("Error fetching financial data:", error);
         loadFromLocalStorage(); // Load from local storage if API fails
       }
     };
@@ -39,8 +44,14 @@ const FinancesAli = () => {
   }, [branch]);
 
   // Calculate total paid and balance
-  const totalPaid = filteredFinances.reduce((sum, item) => sum + item.paymentDetails.amountReceived, 0);
-  const totalBalance = filteredFinances.reduce((sum, item) => sum + item.remainingAmount, 0);
+  const totalPaid = filteredFinances.reduce(
+    (sum, item) => sum + item.paymentDetails.amountReceived,
+    0
+  );
+  const totalBalance = filteredFinances.reduce(
+    (sum, item) => sum + item.remainingAmount,
+    0
+  );
 
   // Handle printing the page
   const handlePrint = () => {
@@ -63,7 +74,9 @@ const FinancesAli = () => {
   return (
     <div className="finances-container">
       <div className="finances-header">
-        <h1>Finances for {branch.charAt(0).toUpperCase() + branch.slice(1)} Branch</h1>
+        <h1>
+          Finances for {branch.charAt(0).toUpperCase() + branch.slice(1)} Branch
+        </h1>
         <div className="finances-buttons">
           <button className="print-button" onClick={handlePrint}>
             Print
@@ -92,7 +105,9 @@ const FinancesAli = () => {
             </tr>
           ))}
           <tr className="total-row">
-            <td colSpan="3" className="total-label">Total Amount</td>
+            <td colSpan="3" className="total-label">
+              Total Amount
+            </td>
             <td>{totalPaid}</td>
             <td>{totalBalance}</td>
           </tr>

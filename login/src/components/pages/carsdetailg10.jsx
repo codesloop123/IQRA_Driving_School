@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import './carsdetail.css';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import "./carsdetail.css";
 
 const CarsDetailsG10 = () => {
   const [cars, setCars] = useState([]);
-  const [newCar, setNewCar] = useState({ name: '', number: '', AutoMan: '' });
-  const branch = 'g10';
+  const [newCar, setNewCar] = useState({ name: "", number: "", AutoMan: "" });
+  const branch = "g10";
 
   useEffect(() => {
     const loadFromLocalStorage = () => {
@@ -15,12 +15,14 @@ const CarsDetailsG10 = () => {
 
     const fetchCars = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/cars/${branch}`);
+        const response = await axios.get(
+          `http://62.72.57.154:5000/api/cars/${branch}`
+        );
         setCars(response.data);
         localStorage.setItem(`cars_${branch}`, JSON.stringify(response.data)); // Save to local storage
       } catch (error) {
-        console.error('Error fetching cars:', error);
-        alert('Failed to fetch cars. Loading data from local storage.');
+        console.error("Error fetching cars:", error);
+        alert("Failed to fetch cars. Loading data from local storage.");
         loadFromLocalStorage(); // Load from local storage if API fails
       }
     };
@@ -44,69 +46,80 @@ const CarsDetailsG10 = () => {
     if (newCar.name && newCar.number && newCar.AutoMan) {
       if (navigator.onLine) {
         try {
-          const response = await axios.post(`http://localhost:5000/api/cars/${branch}/add`, newCar);
+          const response = await axios.post(
+            `http://62.72.57.154:5000/api/cars/${branch}/add`,
+            newCar
+          );
           if (response.status === 201) {
             const updatedCars = [...cars, response.data];
             setCars(updatedCars);
             localStorage.setItem(`cars_${branch}`, JSON.stringify(updatedCars)); // Update local storage
-            setNewCar({ name: '', number: '', AutoMan: '' });
+            setNewCar({ name: "", number: "", AutoMan: "" });
           }
         } catch (error) {
-          console.error('Error adding car:', error);
-          alert('Failed to add car. Please try again.');
+          console.error("Error adding car:", error);
+          alert("Failed to add car. Please try again.");
         }
       } else {
         // Save new car to local storage if offline
-        const unsyncedCars = JSON.parse(localStorage.getItem(`unsynced_cars_${branch}`)) || [];
+        const unsyncedCars =
+          JSON.parse(localStorage.getItem(`unsynced_cars_${branch}`)) || [];
         unsyncedCars.push(newCar);
-        localStorage.setItem(`unsynced_cars_${branch}`, JSON.stringify(unsyncedCars));
-        
+        localStorage.setItem(
+          `unsynced_cars_${branch}`,
+          JSON.stringify(unsyncedCars)
+        );
+
         const updatedCars = [...cars, newCar];
         setCars(updatedCars);
         localStorage.setItem(`cars_${branch}`, JSON.stringify(updatedCars)); // Update local storage
 
-        alert('Car added offline and will be synced when online.');
-        setNewCar({ name: '', number: '', AutoMan: '' });
+        alert("Car added offline and will be synced when online.");
+        setNewCar({ name: "", number: "", AutoMan: "" });
       }
     } else {
-      alert('Please fill in all fields before adding a new car.');
+      alert("Please fill in all fields before adding a new car.");
     }
   };
 
   // Sync unsynced cars when coming online
   useEffect(() => {
     const syncUnsyncedCars = async () => {
-      const unsyncedCars = JSON.parse(localStorage.getItem(`unsynced_cars_${branch}`)) || [];
+      const unsyncedCars =
+        JSON.parse(localStorage.getItem(`unsynced_cars_${branch}`)) || [];
       if (unsyncedCars.length > 0) {
         for (const car of unsyncedCars) {
           try {
-            await axios.post(`http://localhost:5000/api/cars/${branch}/add`, car);
+            await axios.post(
+              `http://62.72.57.154:5000/api/cars/${branch}/add`,
+              car
+            );
             console.log(`Car ${car.name} synced successfully.`);
           } catch (error) {
             console.error(`Error syncing car ${car.name}:`, error);
           }
         }
         localStorage.removeItem(`unsynced_cars_${branch}`);
-        alert('Unsynced cars have been successfully synced with the server.');
+        alert("Unsynced cars have been successfully synced with the server.");
       }
     };
 
-    window.addEventListener('online', syncUnsyncedCars);
+    window.addEventListener("online", syncUnsyncedCars);
     return () => {
-      window.removeEventListener('online', syncUnsyncedCars);
+      window.removeEventListener("online", syncUnsyncedCars);
     };
   }, [branch]);
 
   // Delete a car from the list and the database
   const deleteCar = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/cars/${branch}/${id}`);
+      await axios.delete(`http://62.72.57.154:5000/api/cars/${branch}/${id}`);
       const updatedCars = cars.filter((car) => car._id !== id);
       setCars(updatedCars);
       localStorage.setItem(`cars_${branch}`, JSON.stringify(updatedCars)); // Update local storage
     } catch (error) {
-      console.error('Error deleting car:', error);
-      alert('Failed to delete car. Please try again.');
+      console.error("Error deleting car:", error);
+      alert("Failed to delete car. Please try again.");
     }
   };
 
@@ -131,7 +144,10 @@ const CarsDetailsG10 = () => {
               <td>{car.number}</td>
               <td>{car.AutoMan}</td>
               <td>
-                <button className="delete-button" onClick={() => deleteCar(car._id)}>
+                <button
+                  className="delete-button"
+                  onClick={() => deleteCar(car._id)}
+                >
                   Delete
                 </button>
               </td>

@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react'; 
-import './sadar.css';
-import DateFilter from './datefilter';
-import axios from 'axios';
-import StudentDetailsModal from './StudentDetailsModal'; 
+import React, { useState, useEffect } from "react";
+import "./sadar.css";
+import DateFilter from "./datefilter";
+import axios from "axios";
+import StudentDetailsModal from "./StudentDetailsModal";
 
 const Alipurdash = () => {
-  const branch = 'alipur'; 
+  const branch = "alipur";
 
   const [students, setStudents] = useState([]);
   const [filteredStudents, setFilteredStudents] = useState([]);
@@ -13,7 +13,7 @@ const Alipurdash = () => {
 
   useEffect(() => {
     const loadFromLocalStorage = () => {
-      const storedStudents = localStorage.getItem('sadarStudents');
+      const storedStudents = localStorage.getItem("sadarStudents");
       if (storedStudents) {
         const parsedStudents = JSON.parse(storedStudents);
         setStudents(parsedStudents);
@@ -23,13 +23,15 @@ const Alipurdash = () => {
 
     const fetchStudents = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/admissions/${branch}`);
+        const response = await axios.get(
+          `http://62.72.57.154:5000/api/admissions/${branch}`
+        );
         setStudents(response.data);
         setFilteredStudents(response.data);
-        localStorage.setItem('sadarStudents', JSON.stringify(response.data)); // Save to local storage
+        localStorage.setItem("sadarStudents", JSON.stringify(response.data)); // Save to local storage
       } catch (error) {
-        console.error('Error fetching students:', error);
-        alert('Failed to fetch Students. Loading data from local storage.');
+        console.error("Error fetching students:", error);
+        alert("Failed to fetch Students. Loading data from local storage.");
         loadFromLocalStorage(); // Load from local storage if API fails
       }
     };
@@ -69,7 +71,9 @@ const Alipurdash = () => {
       </div>
 
       <div className="sadar-content">
-        <h3 className="sadar-title"><b>STUDENT DETAILS</b></h3>
+        <h3 className="sadar-title">
+          <b>STUDENT DETAILS</b>
+        </h3>
 
         <DateFilter onFilter={filterStudentsByDate} />
 
@@ -92,15 +96,19 @@ const Alipurdash = () => {
                 <td>{new Date(student.dateRegistered).toLocaleDateString()}</td>
                 <td>{student.remainingAmount}</td>
                 <td>{student.cellNumber}</td>
-                <td>{student.paymentDetails.paymentType}</td> {/* Display Payment Type */}
+                <td>{student.paymentDetails.paymentType}</td>{" "}
+                {/* Display Payment Type */}
               </tr>
             ))}
           </tbody>
-        </table> 
+        </table>
       </div>
 
       {selectedStudent && (
-        <StudentDetailsModal student={selectedStudent} onClose={handleCloseModal} />
+        <StudentDetailsModal
+          student={selectedStudent}
+          onClose={handleCloseModal}
+        />
       )}
     </div>
   );

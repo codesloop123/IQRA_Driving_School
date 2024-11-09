@@ -1,12 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import './instructors.css'; 
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import "./instructors.css";
 
 const InstructorsG10 = () => {
   const [instructors, setInstructors] = useState([]);
-  const [newInstructor, setNewInstructor] = useState({ name: '', id: '', car: '' });
+  const [newInstructor, setNewInstructor] = useState({
+    name: "",
+    id: "",
+    car: "",
+  });
   const [cars, setCars] = useState([]);
-  const branch = 'g10';
+  const branch = "g10";
 
   // Fetch instructors and cars for the specific branch when the component mounts
   useEffect(() => {
@@ -19,24 +23,31 @@ const InstructorsG10 = () => {
 
     const fetchInstructors = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/instructors/${branch}`);
+        const response = await axios.get(
+          `http://62.72.57.154:5000/api/instructors/${branch}`
+        );
         setInstructors(response.data);
-        localStorage.setItem(`instructors_${branch}`, JSON.stringify(response.data)); // Save to local storage
+        localStorage.setItem(
+          `instructors_${branch}`,
+          JSON.stringify(response.data)
+        ); // Save to local storage
       } catch (error) {
-        console.error('Error fetching instructors:', error);
-        alert('Failed to fetch instructors. Loading data from local storage.');
+        console.error("Error fetching instructors:", error);
+        alert("Failed to fetch instructors. Loading data from local storage.");
         loadFromLocalStorage(); // Load from local storage if API fails
       }
     };
 
     const fetchCars = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/cars/${branch}`);
+        const response = await axios.get(
+          `http://62.72.57.154:5000/api/cars/${branch}`
+        );
         setCars(response.data);
         localStorage.setItem(`cars_${branch}`, JSON.stringify(response.data)); // Save to local storage
       } catch (error) {
-        console.error('Error fetching cars:', error);
-        alert('Failed to fetch car options. Loading data from local storage.');
+        console.error("Error fetching cars:", error);
+        alert("Failed to fetch car options. Loading data from local storage.");
         loadFromLocalStorage(); // Load from local storage if API fails
       }
     };
@@ -61,69 +72,100 @@ const InstructorsG10 = () => {
     if (newInstructor.name && newInstructor.id && newInstructor.car) {
       if (navigator.onLine) {
         try {
-          const response = await axios.post(`http://localhost:5000/api/instructors/${branch}/add`, newInstructor);
+          const response = await axios.post(
+            `hhttp://62.72.57.154:5000/api/instructors/${branch}/add`,
+            newInstructor
+          );
           if (response.status === 201) {
             const updatedInstructors = [...instructors, response.data];
             setInstructors(updatedInstructors);
-            localStorage.setItem(`instructors_${branch}`, JSON.stringify(updatedInstructors)); // Update local storage
-            setNewInstructor({ name: '', id: '', car: '' });
+            localStorage.setItem(
+              `instructors_${branch}`,
+              JSON.stringify(updatedInstructors)
+            ); // Update local storage
+            setNewInstructor({ name: "", id: "", car: "" });
           }
         } catch (error) {
-          console.error('Error adding instructor:', error);
-          alert('Failed to add instructor. Please try again.');
+          console.error("Error adding instructor:", error);
+          alert("Failed to add instructor. Please try again.");
         }
       } else {
         // Save new instructor to local storage if offline
-        const unsyncedInstructors = JSON.parse(localStorage.getItem(`unsynced_instructors_${branch}`)) || [];
+        const unsyncedInstructors =
+          JSON.parse(localStorage.getItem(`unsynced_instructors_${branch}`)) ||
+          [];
         unsyncedInstructors.push(newInstructor);
-        localStorage.setItem(`unsynced_instructors_${branch}`, JSON.stringify(unsyncedInstructors));
-        
+        localStorage.setItem(
+          `unsynced_instructors_${branch}`,
+          JSON.stringify(unsyncedInstructors)
+        );
+
         const updatedInstructors = [...instructors, newInstructor];
         setInstructors(updatedInstructors);
-        localStorage.setItem(`instructors_${branch}`, JSON.stringify(updatedInstructors)); // Update local storage
+        localStorage.setItem(
+          `instructors_${branch}`,
+          JSON.stringify(updatedInstructors)
+        ); // Update local storage
 
-        alert('Instructor added offline and will be synced when online.');
-        setNewInstructor({ name: '', id: '', car: '' });
+        alert("Instructor added offline and will be synced when online.");
+        setNewInstructor({ name: "", id: "", car: "" });
       }
     } else {
-      alert('Please fill in all fields before adding a new instructor.');
+      alert("Please fill in all fields before adding a new instructor.");
     }
   };
 
   // Sync unsynced instructors when coming online
   useEffect(() => {
     const syncUnsyncedInstructors = async () => {
-      const unsyncedInstructors = JSON.parse(localStorage.getItem(`unsynced_instructors_${branch}`)) || [];
+      const unsyncedInstructors =
+        JSON.parse(localStorage.getItem(`unsynced_instructors_${branch}`)) ||
+        [];
       if (unsyncedInstructors.length > 0) {
         for (const instructor of unsyncedInstructors) {
           try {
-            await axios.post(`http://localhost:5000/api/instructors/${branch}/add`, instructor);
+            await axios.post(
+              `hhttp://62.72.57.154:5000/api/instructors/${branch}/add`,
+              instructor
+            );
             console.log(`Instructor ${instructor.name} synced successfully.`);
           } catch (error) {
-            console.error(`Error syncing instructor ${instructor.name}:`, error);
+            console.error(
+              `Error syncing instructor ${instructor.name}:`,
+              error
+            );
           }
         }
         localStorage.removeItem(`unsynced_instructors_${branch}`);
-        alert('Unsynced instructors have been successfully synced with the server.');
+        alert(
+          "Unsynced instructors have been successfully synced with the server."
+        );
       }
     };
 
-    window.addEventListener('online', syncUnsyncedInstructors);
+    window.addEventListener("online", syncUnsyncedInstructors);
     return () => {
-      window.removeEventListener('online', syncUnsyncedInstructors);
+      window.removeEventListener("online", syncUnsyncedInstructors);
     };
   }, [branch]);
 
   // Delete an instructor from the list and the database
   const deleteInstructor = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/instructors/${branch}/${id}`);
-      const updatedInstructors = instructors.filter((instructor) => instructor._id !== id);
+      await axios.delete(
+        `http://62.72.57.154:5000/api/instructors/${branch}/${id}`
+      );
+      const updatedInstructors = instructors.filter(
+        (instructor) => instructor._id !== id
+      );
       setInstructors(updatedInstructors);
-      localStorage.setItem(`instructors_${branch}`, JSON.stringify(updatedInstructors)); // Update local storage
+      localStorage.setItem(
+        `instructors_${branch}`,
+        JSON.stringify(updatedInstructors)
+      ); // Update local storage
     } catch (error) {
-      console.error('Error deleting instructor:', error);
-      alert('Failed to delete instructor. Please try again.');
+      console.error("Error deleting instructor:", error);
+      alert("Failed to delete instructor. Please try again.");
     }
   };
 
@@ -148,7 +190,10 @@ const InstructorsG10 = () => {
               <td>{instructor.id}</td>
               <td>{instructor.car}</td>
               <td>
-                <button className="delete-button" onClick={() => deleteInstructor(instructor._id)}>
+                <button
+                  className="delete-button"
+                  onClick={() => deleteInstructor(instructor._id)}
+                >
                   Delete
                 </button>
               </td>
@@ -174,7 +219,13 @@ const InstructorsG10 = () => {
         />
 
         {/* Car Selection Dropdown */}
-        <select className="dropdown" name="car" value={newInstructor.car} onChange={handleChange} required>
+        <select
+          className="dropdown"
+          name="car"
+          value={newInstructor.car}
+          onChange={handleChange}
+          required
+        >
           <option value="">Select Car</option>
           {cars.map((car) => (
             <option key={car._id} value={car.name}>
