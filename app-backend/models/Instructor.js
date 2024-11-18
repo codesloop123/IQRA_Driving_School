@@ -1,12 +1,20 @@
 // models/Instructor.js
 
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const InstructorSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  id: { type: String, required: true, unique: true },
-  car: { type: String, required: true },
-  branch: { type: String, required: true } // Add branch to the schema
+  vehicle_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Car",
+    required: true,
+  },
+  email: { type: String, required: true },
+  branch_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Branch",
+    required: true,
+  },
 });
 
-module.exports = mongoose.model('Instructor', InstructorSchema);
+module.exports = mongoose.model("Instructor", InstructorSchema);

@@ -20,11 +20,11 @@ export default function CardVehicle() {
         <div className="flex-auto px-4 lg:px-10 py-10 pt-0">
           <form>
             <div className="flex flex-wrap mt-6">
-              <div className="w-full px-4">
+              <div className="w-full lg:w-6/12 px-4">
                 <div className="relative w-full mb-3">
                   <label
                     className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
-                    htmlFor="grid-password"
+                    htmlFor="name"
                   >
                     Name
                   </label>
@@ -32,22 +32,22 @@ export default function CardVehicle() {
                     type="text"
                     placeholder="Enter vehicle name"
                     className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
-                   
                   />
                 </div>
               </div>
-              {/* <div className="w-full lg:w-6/12 px-4">
+              <div className="w-full lg:w-6/12 px-4">
                 <div className="relative w-full mb-3">
                   <label
                     className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
-                    htmlFor="grid-password"
+                    htmlFor="vehicle-number"
                   >
-                    Email
+                    Number
                   </label>
                   <input
-                    type="email"
-                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
-                    defaultValue="jesse@example.com"
+                    id="name"
+                    type="number"
+                    placeholder="Enter vehicle number"
+                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
                   />
                 </div>
               </div>
@@ -61,9 +61,12 @@ export default function CardVehicle() {
                   </label>
                   <select
                     id="branch-select"
-                    className="border-0 px-3 py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
-                    defaultValue="Golra"
+                    className="border-0 px-3 py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                    defaultValue=""
                   >
+                    <option value="" disabled>
+                      Select Branch
+                    </option>
                     <option value="Golra">Golra</option>
                     <option value="G10">G10</option>
                     <option value="Saddar">Saddar</option>
@@ -75,21 +78,23 @@ export default function CardVehicle() {
                 <div className="relative w-full mb-3">
                   <label
                     className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
-                    htmlFor="car-select"
+                    htmlFor="vehicle-select"
                   >
-                    Vehicle
+                    Type
                   </label>
                   <select
-                    id="car-select"
+                    id="vehicle-select"
                     className="border-0 px-3 py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none  w-full ease-linear transition-all duration-150"
-                    defaultValue="Alto"
+                    defaultValue=""
                   >
-                    <option value="Alto">Alto</option>
-                    <option value="Civic">Civic</option>
-                    <option value="Toyota">Toyota</option>
+                    <option value="" disabled>
+                      Select Type
+                    </option>
+                    <option value="Auto">Auto</option>
+                    <option value="Manual">Manual</option>
                   </select>
                 </div>
-              </div> */}
+              </div>
             </div>
             <div className="flex justify-end items-center px-4 py-3">
               <button class="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none">

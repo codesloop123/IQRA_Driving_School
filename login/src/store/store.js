@@ -4,8 +4,10 @@ import { persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import { thunk } from "redux-thunk";
 import authSlice from "./auth/authSlice";
+import branchSlice from "./branch/branchSlice";
 const reducers = combineReducers({
   auth: authSlice,
+  branch: branchSlice,
 });
 
 const persistConfig = {

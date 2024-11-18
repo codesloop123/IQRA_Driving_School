@@ -9,7 +9,7 @@ export const signInUser = createAsyncThunk(
   async ({ email, password }, { dispatch }) => {
     try {
       dispatch(setSignInLoader(true));
-      const response = await axiosInstance.post("/auth/login", {
+      const response = await axiosInstance.post("/user/login", {
         email,
         password,
       });
