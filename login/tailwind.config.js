@@ -15,7 +15,7 @@ module.exports = {
       "./public/*.js",
     ],
     options: {
-      safelist: [],
+      safelist: [/^w-/, /^h-/, /^bg-/, /^text-/, /^border-/],
     },
   },
   theme: {

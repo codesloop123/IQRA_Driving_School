@@ -6,6 +6,7 @@ import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchBranches } from "store/branch/actions";
 import { deleteBranch } from "store/branch/actions";
+import { Spinner } from "reactstrap";
 export default function BranchesTable({ color, title }) {
   const history = useHistory();
   const dispatch = useDispatch();
@@ -52,7 +53,7 @@ export default function BranchesTable({ color, title }) {
           <div className="flex justify-center items-center py-10">
             <svg
               aria-hidden="true"
-              className="w-5 h-5 text-gray animate-spin dark:text-lime fill-light"
+              className="w-8 h-8 text-gray animate-spin dark:text-gray fill-lightBlue-600 "
               viewBox="0 0 100 101"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"

@@ -5,9 +5,11 @@ import storage from "redux-persist/lib/storage";
 import { thunk } from "redux-thunk";
 import authSlice from "./auth/authSlice";
 import branchSlice from "./branch/branchSlice";
+import vehicleSlice from "./vehicle/vehicleSlice";
 const reducers = combineReducers({
   auth: authSlice,
   branch: branchSlice,
+  vehicle: vehicleSlice,
 });
 
 const persistConfig = {

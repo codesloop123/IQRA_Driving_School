@@ -6,16 +6,20 @@ const router = express.Router();
 
 // POST route to add a new car for a specific branch
 router.post("/add_vehicle", async (req, res) => {
-  const { name, number, AutoMan, branch_id } = req.body;
+  const { name, number, type, branch } = req.body;
 
-  if (!name || !number || !AutoMan || !branch_id) {
+  if (!name || !number || !type || !branch) {
     return res.status(400).json({ msg: "Please enter all fields" });
   }
 
   try {
-    const newVehicle = new Vehicle({ name, number, AutoMan, branch_id });
+    const newVehicle = new Vehicle({ name, number, type, branch });
     const savedVehicle = await newVehicle.save();
-    res.status(201).json(savedVehicle);
+    if (savedVehicle) {
+      res
+        .status(200)
+        .json({ status: true, message: "Vehicle added successfully" });
+    }
   } catch (error) {
     console.error(error);
     res.status(500).json({ msg: "Server error" });
@@ -24,8 +28,8 @@ router.post("/add_vehicle", async (req, res) => {
 
 router.get("/get_vehicles", async (req, res) => {
   try {
-    const vehicle = await Vehicle.find();
-    res.status(200).json(vehicle);
+    const vehicles = await Vehicle.find();
+    res.status(200).json({ status: true, vehicles: vehicles });
   } catch (error) {
     console.error(error);
     res.status(500).json({ msg: "Server error" });
