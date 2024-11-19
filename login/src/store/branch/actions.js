@@ -40,3 +40,21 @@ export const fetchBranches = createAsyncThunk(
     }
   }
 );
+export const deleteBranch = createAsyncThunk(
+  "branch/delete",
+  async ({ id }, { dispatch }) => {
+    try {
+      dispatch(setBranchLoader(true));
+      const response = await axiosInstance.delete(`/branch/${id}`);
+
+      if (response.status) {
+        console.log(response, "response data");
+        toast.success(response.data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      dispatch(setBranchLoader(false));
+    }
+  }
+);

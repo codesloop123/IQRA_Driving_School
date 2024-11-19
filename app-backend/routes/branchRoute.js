@@ -44,10 +44,10 @@ router.delete("/:id", async (req, res) => {
     if (!branch) {
       return res.status(404).json({ msg: "branch not found" });
     }
-    res.status(200).json({ msg: "branch deleted successfully" });
+    res.status(200).json({ message: "Branch deleted successfully" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ msg: "Server error" });
+    res.status(500).json({ message: "Server error" });
   }
 });
 
