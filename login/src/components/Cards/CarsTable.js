@@ -7,6 +7,7 @@ import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchBranches } from "store/branch/actions";
 import { fetchVehicles } from "store/vehicle/actions";
+import { deleteVehicle } from "store/vehicle/actions";
 export default function CarsTable({ color, title }) {
   const history = useHistory();
   const dispatch = useDispatch();
@@ -15,11 +16,11 @@ export default function CarsTable({ color, title }) {
     dispatch(fetchBranches());
     dispatch(fetchVehicles());
   }, []);
-  const branchesData = [
-    { branch: "Golra", name: "Alto", number: "123", type: "Manual" },
-    { branch: "G10", name: "Civic", number: "123", type: "Auto" },
-    { branch: "G10", name: "Toyota Yaris", number: "123", type: "Manual" },
-  ];
+  const handleDelete = (id) => {
+    dispatch(deleteVehicle({ id })).then(() => {
+      dispatch(fetchVehicles());
+    });
+  };
   return (
     <>
       <div
@@ -143,7 +144,10 @@ export default function CarsTable({ color, title }) {
                       {vehicle?.type}
                     </td>
                     <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                      <MdDelete className="w-5 h-5 text-red-500 cursor-pointer" />
+                      <MdDelete
+                        onClick={() => handleDelete(vehicle?._id)}
+                        className="w-5 h-5 text-red-500 cursor-pointer"
+                      />
                     </td>
                   </tr>
                 ))}

@@ -6,7 +6,7 @@ const User = require("../models/User");
 const router = express.Router();
 
 router.post("/add_User", async (req, res) => {
-  const { name, email, password, role, branchId } = req.body;
+  const { name, email, password, role, branch } = req.body;
 
   try {
     let user = await User.findOne({ email });
@@ -18,11 +18,13 @@ router.post("/add_User", async (req, res) => {
       email,
       password: await bcrypt.hash(password, 10),
       role,
-      branch_id: branchId,
+      branch,
     });
 
     await user.save();
-    res.status(201).json({ msg: "Manager registered successfully" });
+    res
+      .status(200)
+      .json({ status: true, message: "Manager registered successfully" });
   } catch (error) {
     console.error(error.message);
     res.status(500).send("Server error");
@@ -55,6 +57,16 @@ router.post("/login", async (req, res) => {
   } catch (error) {
     console.error(error.message);
     res.status(500).send("Server error");
+  }
+});
+router.post("/managers", async (req, res) => {
+  const { role } = req.body;
+  try {
+    const users = await User.find({ role });
+    res.status(200).json({ status: true, users: users });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Server error" });
   }
 });
 
