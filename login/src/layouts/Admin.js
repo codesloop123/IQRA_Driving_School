@@ -10,7 +10,7 @@ export default function Admin(props) {
   const { uid } = useSelector((state) => state.auth);
   const history = useHistory();
   useEffect(() => {
-    if (uid==='') {
+    if (!uid) {
       history.push("/login");
     }
   }, [uid]);
