@@ -13,7 +13,7 @@ export default function Admin(props) {
     if (!uid) {
       history.push("/login");
     }
-  }, [uid]);
+  }, []);
   return (
     <>
       <Sidebar />
