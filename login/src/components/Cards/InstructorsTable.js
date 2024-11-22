@@ -7,6 +7,8 @@ import { useEffect } from "react";
 import { fetchVehicles } from "store/vehicle/actions";
 import { fetchInstructors } from "store/instructor/action";
 import { deleteInstructor } from "store/instructor/action";
+import { FaRegCheckCircle } from "react-icons/fa";
+import { ImCancelCircle } from "react-icons/im";
 export default function InstructorsTable({ color, title }) {
   const history = useHistory();
   const dispatch = useDispatch();
@@ -184,11 +186,23 @@ export default function InstructorsTable({ color, title }) {
                     <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                       {instructor?.status ? "Active" : "InActive"}
                     </td>
-                    <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                    <td className="flex items-center gap-7 border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                       <MdDelete
                         onClick={() => handleDelete(instructor?._id)}
                         className="w-5 h-5 text-red-500 cursor-pointer"
                       />
+                      {instructor?.status ? (
+                        <ImCancelCircle
+                          className={`w-5 h-5 text-red-500 cursor-pointer
+                      `}
+                        />
+                      ) : (
+                        <FaRegCheckCircle
+                          className={`mr-1 w-5 h-5 
+                    bg-emerald-400  cursor-pointer
+                    `}
+                        />
+                      )}
                     </td>
                   </tr>
                 ))}
