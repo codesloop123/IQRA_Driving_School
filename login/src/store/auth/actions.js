@@ -83,3 +83,22 @@ export const fetchUsers = createAsyncThunk(
     }
   }
 );
+
+export const deleteManager = createAsyncThunk(
+  "auth/delete",
+  async ({ id }, { dispatch }) => {
+    try {
+      dispatch(setRegisterLoader(true));
+      const response = await axiosInstance.delete(`/user/${id}`);
+
+      if (response.status) {
+        console.log(response, "response data");
+        toast.success(response.data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      dispatch(setRegisterLoader(false));
+    }
+  }
+);

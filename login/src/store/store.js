@@ -6,10 +6,12 @@ import { thunk } from "redux-thunk";
 import authSlice from "./auth/authSlice";
 import branchSlice from "./branch/branchSlice";
 import vehicleSlice from "./vehicle/vehicleSlice";
+import instructorSlice from "./instructor/instructorSlice";
 const reducers = combineReducers({
   auth: authSlice,
   branch: branchSlice,
   vehicle: vehicleSlice,
+  instructor: instructorSlice,
 });
 
 const persistConfig = {

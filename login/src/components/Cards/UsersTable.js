@@ -1,7 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import PropTypes from "prop-types";
 import TableDropdown from "components/Dropdowns/TableDropdown.js";
+import Example from "components/Modals/InstructorModal";
 export default function UsersTable({ color, title }) {
+  const [open, setOpen] = useState(false);
+  console.log(open,"open modal state>>>>>>>>");
   const users = [
     {
       name: "Fatima",
@@ -140,21 +143,23 @@ export default function UsersTable({ color, title }) {
                     {user.branch}
                   </td>
                   <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-start">
-                    {user.status==="Active"?
-                    <button
-                      className={`py-2 px-4 rounded text-white font-bold
+                    {user.status === "Active" ? (
+                      <button
+                        className={`py-2 px-4 rounded text-white font-bold
                       bg-red-400  
                       `}
-                    >
-                      Deactivate
-                    </button>
-                    : <button
-                    className={`py-2 px-4 rounded text-white font-bold
+                      >
+                        Deactivate
+                      </button>
+                    ) : (
+                      <button
+                        className={`py-2 px-4 rounded text-white font-bold
                     bg-emerald-400  
                     `}
-                  >
-                    Activate
-                  </button>}
+                      >
+                        Activate
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -162,6 +167,7 @@ export default function UsersTable({ color, title }) {
           </table>
         </div>
       </div>
+      <Example open={open} setOpen={setOpen} />
     </>
   );
 }

@@ -11,7 +11,7 @@ router.post("/add_User", async (req, res) => {
   try {
     let user = await User.findOne({ email });
     if (user) {
-      return res.status(400).json({ msg: "Manager already exists" });
+      return res.status(400).json({ message: "Manager already exists" });
     }
     user = new User({
       name,
@@ -64,6 +64,20 @@ router.post("/managers", async (req, res) => {
   try {
     const users = await User.find({ role });
     res.status(200).json({ status: true, users: users });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Server error" });
+  }
+});
+router.delete("/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const user = await User.findOneAndDelete({ _id: id });
+    if (!user) {
+      return res.status(404).json({ message: "Manager not found" });
+    }
+    res.status(200).json({ message: "Manager deleted successfully" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ msg: "Server error" });

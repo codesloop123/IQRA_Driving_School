@@ -124,7 +124,7 @@ export default function CardManger() {
                   <select
                     id="branch-select"
                     name="branch"
-                    value={JSON.stringify(formData.branch) || ""}
+                    value={formData?.branch?.name || ""}
                     onChange={handleChange}
                     className="border-0 px-3 py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
                   >

@@ -1,18 +1,18 @@
 // models/Instructor.js
-
+const { BranchSchema } = require("./Branch");
+const { VehicleSchema } = require("./Vehicle");
 const mongoose = require("mongoose");
 
 const InstructorSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  vehicle_id: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Car",
+  email: { type: String, required: true },
+  status: { type: Boolean, required: true },
+  branch: {
+    type: BranchSchema,
     required: true,
   },
-  email: { type: String, required: true },
-  branch_id: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Branch",
+  vehicle: {
+    type: VehicleSchema,
     required: true,
   },
 });

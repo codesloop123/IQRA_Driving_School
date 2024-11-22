@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { fetchBranches } from "store/branch/actions";
 import { fetchUsers } from "store/auth/actions";
+import { deleteManager } from "store/auth/actions";
 export default function ManagersTable({ color, title }) {
   const history = useHistory();
   const { users, fetchLoading } = useSelector((state) => state.auth);
@@ -36,6 +37,11 @@ export default function ManagersTable({ color, title }) {
       branch: "G-12",
     },
   ];
+  const handleDelete = (id) => {
+    dispatch(deleteManager({ id })).then(() => {
+      dispatch(fetchUsers());
+    });
+  };
   return (
     <>
       <div
@@ -144,27 +150,31 @@ export default function ManagersTable({ color, title }) {
                 </tr>
               </thead>
               <tbody>
-                {users?.length>0 && users.map((manager, index) => (
-                  <tr key={index}>
-                    <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                      {manager?.email}
-                    </td>
-                    <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                      {manager?.name}
-                    </td>
-                    <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                      {manager?.branch?.name}
-                    </td>
-                    <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                      <button className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none">
-                        Change
-                      </button>
-                    </td>
-                    <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                      <MdDelete className="w-5 h-5 text-red-500 cursor-pointer" />
-                    </td>
-                  </tr>
-                ))}
+                {users?.length > 0 &&
+                  users.map((manager, index) => (
+                    <tr key={index}>
+                      <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        {manager?.email}
+                      </td>
+                      <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        {manager?.name}
+                      </td>
+                      <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        {manager?.branch?.name}
+                      </td>
+                      <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        <button className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none">
+                          Change
+                        </button>
+                      </td>
+                      <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        <MdDelete
+                          onClick={() => handleDelete(manager?._id)}
+                          className="w-5 h-5 text-red-500 cursor-pointer"
+                        />
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
