@@ -176,7 +176,7 @@ export default function InstructorsTable({ color, title }) {
                 </tr>
               </thead>
               <tbody>
-                {instructors.map((instructor, index) => (
+                {instructors?.length>0 && instructors.map((instructor, index) => (
                   <tr key={index}>
                     <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                       {instructor?.name}

@@ -129,7 +129,7 @@ export default function CarsTable({ color, title }) {
                 </tr>
               </thead>
               <tbody>
-                {vehicles.map((vehicle, index) => (
+                {vehicles?.length>0 && vehicles.map((vehicle, index) => (
                   <tr key={index}>
                     <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                       {vehicle?.branch?.name}
