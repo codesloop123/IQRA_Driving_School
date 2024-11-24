@@ -102,3 +102,22 @@ export const deleteManager = createAsyncThunk(
     }
   }
 );
+export const updateManagerStatus = createAsyncThunk(
+  "auth/update",
+  async ({ id, status }, { dispatch }) => {
+    try {
+      dispatch(setRegisterLoader(true));
+      const response = await axiosInstance.put(`/user/${id}`, {
+        status,
+      });
+      if (response.status) {
+        console.log(response, "response data");
+        toast.success(response.data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      dispatch(setRegisterLoader(false));
+    }
+  }
+);

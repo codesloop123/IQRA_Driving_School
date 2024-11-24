@@ -1,12 +1,10 @@
 import React, { useEffect } from "react";
 import PropTypes from "prop-types";
 import { FaEye } from "react-icons/fa";
-import { MdDelete } from "react-icons/md";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchBranches } from "store/branch/actions";
 import { deleteBranch } from "store/branch/actions";
-import { Spinner } from "reactstrap";
 export default function BranchesTable({ color, title }) {
   const history = useHistory();
   const dispatch = useDispatch();
@@ -129,10 +127,14 @@ export default function BranchesTable({ color, title }) {
                       <FaEye className="w-5 h-5 text-lightBlue-600 cursor-pointer" />
                     </td>
                     <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                      <MdDelete
+                      <button
                         onClick={() => handleDelete(branch?._id)}
-                        className="w-5 h-5 text-red-500 cursor-pointer"
-                      />
+                        className={`py-2 px-4 rounded text-white font-bold 
+                      bg-red-400  
+                      `}
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}

@@ -144,10 +144,18 @@ export default function CarsTable({ color, title }) {
                       {vehicle?.type}
                     </td>
                     <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                      <MdDelete
+                      {/* <MdDelete
                         onClick={() => handleDelete(vehicle?._id)}
                         className="w-5 h-5 text-red-500 cursor-pointer"
-                      />
+                      /> */}
+                      <button
+                        onClick={() => handleDelete(vehicle?._id)}
+                        className={`py-2 px-4 rounded text-white font-bold
+                      bg-red-400  
+                      `}
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}

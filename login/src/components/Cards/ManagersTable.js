@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { fetchBranches } from "store/branch/actions";
 import { fetchUsers } from "store/auth/actions";
 import { deleteManager } from "store/auth/actions";
+import { updateManagerStatus } from "store/auth/actions";
 export default function ManagersTable({ color, title }) {
   const history = useHistory();
   const { users, fetchLoading } = useSelector((state) => state.auth);
@@ -39,6 +40,12 @@ export default function ManagersTable({ color, title }) {
   ];
   const handleDelete = (id) => {
     dispatch(deleteManager({ id })).then(() => {
+      dispatch(fetchUsers());
+    });
+  };
+  const handleUpdate = (id, status) => {
+    console.log(status, "status>>>>>>>>>>>.");
+    dispatch(updateManagerStatus({ id, status })).then(() => {
       dispatch(fetchUsers());
     });
   };
@@ -135,6 +142,16 @@ export default function ManagersTable({ color, title }) {
                         : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
                     }
                   >
+                    Status
+                  </th>
+                  <th
+                    className={
+                      "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
+                      (color === "light"
+                        ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                        : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
+                    }
+                  >
                     Change Password
                   </th>
                   <th
@@ -163,15 +180,41 @@ export default function ManagersTable({ color, title }) {
                         {manager?.branch?.name}
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        {manager?.status ? "Active" : "InActive"}
+                      </td>
+                      <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                         <button className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none">
                           Change
                         </button>
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        <MdDelete
+                        <button
                           onClick={() => handleDelete(manager?._id)}
-                          className="w-5 h-5 text-red-500 cursor-pointer"
-                        />
+                          className={`py-2 px-4 rounded text-white font-bold mr-1
+                      bg-red-400  
+                      `}
+                        >
+                          Delete
+                        </button>
+                        {manager.status ? (
+                          <button
+                            onClick={() => handleUpdate(manager?._id, false)}
+                            className={`py-2 px-4 rounded text-white font-bold
+                      bg-red-400  
+                      `}
+                          >
+                            Deactivate
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleUpdate(manager?._id, true)}
+                            className={`py-2 px-4 rounded text-white font-bold
+                    bg-emerald-400  
+                    `}
+                          >
+                            Activate
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}

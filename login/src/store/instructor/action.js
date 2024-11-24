@@ -58,3 +58,22 @@ export const deleteInstructor = createAsyncThunk(
     }
   }
 );
+export const updateInstructorStatus = createAsyncThunk(
+  "instructor/update",
+  async ({ id, status }, { dispatch }) => {
+    try {
+      dispatch(setInstructorLoader(true));
+      const response = await axiosInstance.put(`/instructors/${id}`, {
+        status
+      });
+      if (response.status) {
+        console.log(response, "response data");
+        toast.success(response.data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      dispatch(setInstructorLoader(false));
+    }
+  }
+);

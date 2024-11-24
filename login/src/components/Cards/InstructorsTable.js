@@ -9,6 +9,7 @@ import { fetchInstructors } from "store/instructor/action";
 import { deleteInstructor } from "store/instructor/action";
 import { FaRegCheckCircle } from "react-icons/fa";
 import { ImCancelCircle } from "react-icons/im";
+import { updateInstructorStatus } from "store/instructor/action";
 export default function InstructorsTable({ color, title }) {
   const history = useHistory();
   const dispatch = useDispatch();
@@ -48,6 +49,12 @@ export default function InstructorsTable({ color, title }) {
   ];
   const handleDelete = (id) => {
     dispatch(deleteInstructor({ id })).then(() => {
+      dispatch(fetchInstructors());
+    });
+  };
+  const handleUpdate = (id, status) => {
+    console.log(status,"status>>>>>>>>>>>.");
+    dispatch(updateInstructorStatus({ id, status })).then(() => {
       dispatch(fetchInstructors());
     });
   };
@@ -187,21 +194,32 @@ export default function InstructorsTable({ color, title }) {
                       {instructor?.status ? "Active" : "InActive"}
                     </td>
                     <td className="flex items-center gap-7 border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                      <MdDelete
+                      <button
                         onClick={() => handleDelete(instructor?._id)}
-                        className="w-5 h-5 text-red-500 cursor-pointer"
-                      />
-                      {instructor?.status ? (
-                        <ImCancelCircle
-                          className={`w-5 h-5 text-red-500 cursor-pointer
+                        className={`py-2 px-4 rounded text-white font-bold mr-1
+                      bg-red-400  
                       `}
-                        />
+                      >
+                        Delete
+                      </button>
+                      {instructor.status ? (
+                        <button
+                          onClick={() => handleUpdate(instructor?._id, false)}
+                          className={`py-2 px-4 rounded text-white font-bold
+                      bg-red-400  
+                      `}
+                        >
+                          Deactivate
+                        </button>
                       ) : (
-                        <FaRegCheckCircle
-                          className={`mr-1 w-5 h-5 
-                    bg-emerald-400  cursor-pointer
+                        <button
+                          onClick={() => handleUpdate(instructor?._id, true)}
+                          className={`py-2 px-4 rounded text-white font-bold
+                    bg-emerald-400  
                     `}
-                        />
+                        >
+                          Activate
+                        </button>
                       )}
                     </td>
                   </tr>

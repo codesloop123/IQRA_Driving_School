@@ -17,6 +17,7 @@ export default function CardManger() {
     role: "manager",
     password: "",
     branch: null,
+    status: true,
   });
   console.log(formData, "formData>>>>>>>>>>>>>>");
   const handleChange = (e) => {
@@ -41,6 +42,7 @@ export default function CardManger() {
         email: "",
         password: "",
         branch: null,
+        status: true,
       });
     });
   };
