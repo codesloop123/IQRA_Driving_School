@@ -1,10 +1,6 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import TableDropdown from "components/Dropdowns/TableDropdown.js";
-import Example from "components/Modals/InstructorModal";
-export default function UsersTable({ color, title }) {
-  const [open, setOpen] = useState(false);
-  console.log(open,"open modal state>>>>>>>>");
+export default function UsersTable({ color, title, handleOpen }) {
   const users = [
     {
       name: "Fatima",
@@ -50,6 +46,7 @@ export default function UsersTable({ color, title }) {
             </div>
           </div>
         </div>
+        <button onClick={() => handleOpen()}>Add</button>
         <div className="block w-full overflow-x-auto">
           {/* Projects table */}
           <table className="items-center w-full bg-transparent border-collapse">
@@ -167,7 +164,6 @@ export default function UsersTable({ color, title }) {
           </table>
         </div>
       </div>
-      <Example open={open} setOpen={setOpen} />
     </>
   );
 }

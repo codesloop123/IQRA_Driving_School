@@ -1,5 +1,4 @@
 import PropTypes from "prop-types";
-import { MdDelete } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { fetchBranches } from "store/branch/actions";
@@ -7,8 +6,6 @@ import { useEffect } from "react";
 import { fetchVehicles } from "store/vehicle/actions";
 import { fetchInstructors } from "store/instructor/action";
 import { deleteInstructor } from "store/instructor/action";
-import { FaRegCheckCircle } from "react-icons/fa";
-import { ImCancelCircle } from "react-icons/im";
 import { updateInstructorStatus } from "store/instructor/action";
 export default function InstructorsTable({ color, title }) {
   const history = useHistory();
@@ -53,7 +50,7 @@ export default function InstructorsTable({ color, title }) {
     });
   };
   const handleUpdate = (id, status) => {
-    console.log(status,"status>>>>>>>>>>>.");
+    console.log(status, "status>>>>>>>>>>>.");
     dispatch(updateInstructorStatus({ id, status })).then(() => {
       dispatch(fetchInstructors());
     });
@@ -176,54 +173,55 @@ export default function InstructorsTable({ color, title }) {
                 </tr>
               </thead>
               <tbody>
-                {instructors?.length>0 && instructors.map((instructor, index) => (
-                  <tr key={index}>
-                    <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                      {instructor?.name}
-                    </td>
-                    <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                      {instructor?.email}
-                    </td>
-                    <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                      {instructor?.branch?.name}
-                    </td>
-                    <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                      {instructor?.vehicle?.name}
-                    </td>
-                    <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                      {instructor?.status ? "Active" : "InActive"}
-                    </td>
-                    <td className="flex items-center gap-7 border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                      <button
-                        onClick={() => handleDelete(instructor?._id)}
-                        className={`py-2 px-4 rounded text-white font-bold mr-1
-                      bg-red-400  
-                      `}
-                      >
-                        Delete
-                      </button>
-                      {instructor.status ? (
+                {instructors?.length > 0 &&
+                  instructors.map((instructor, index) => (
+                    <tr key={index}>
+                      <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        {instructor?.name}
+                      </td>
+                      <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        {instructor?.email}
+                      </td>
+                      <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        {instructor?.branch?.name}
+                      </td>
+                      <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        {instructor?.vehicle?.name}
+                      </td>
+                      <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        {instructor?.status ? "Active" : "InActive"}
+                      </td>
+                      <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                         <button
-                          onClick={() => handleUpdate(instructor?._id, false)}
-                          className={`py-2 px-4 rounded text-white font-bold
+                          onClick={() => handleDelete(instructor?._id)}
+                          className={`py-2 px-4 rounded text-white font-bold mr-1
                       bg-red-400  
                       `}
                         >
-                          Deactivate
+                          Delete
                         </button>
-                      ) : (
-                        <button
-                          onClick={() => handleUpdate(instructor?._id, true)}
-                          className={`py-2 px-4 rounded text-white font-bold
+                        {instructor.status ? (
+                          <button
+                            onClick={() => handleUpdate(instructor?._id, false)}
+                            className={`py-2 px-4 rounded text-white font-bold
+                      bg-red-400  
+                      `}
+                          >
+                            Deactivate
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleUpdate(instructor?._id, true)}
+                            className={`py-2 px-4 rounded text-white font-bold
                     bg-emerald-400  
                     `}
-                        >
-                          Activate
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                          >
+                            Activate
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
