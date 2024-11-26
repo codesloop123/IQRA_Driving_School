@@ -152,7 +152,7 @@ export default function CardInstructor() {
                     </option>
                     {vehicles.map((vehicle) => (
                       <option key={vehicle.id} value={JSON.stringify(vehicle)}>
-                        {vehicle.name}
+                        {vehicle.name}-{vehicle.number}
                       </option>
                     ))}
                   </select>

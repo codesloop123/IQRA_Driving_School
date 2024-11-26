@@ -7,7 +7,6 @@ const router = express.Router();
 
 router.post("/add_User", async (req, res) => {
   const { name, email, password, role, branch, status } = req.body;
-
   try {
     let user = await User.findOne({ email });
     if (user) {
@@ -38,7 +37,12 @@ router.post("/login", async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ msg: "Invalid email or password" });
+      return res.status(500).json({ message: "Invalid email or password" });
+    }
+    if (!user.status) {
+      return res
+        .status(500)
+        .json({ message: "Account is Inactive. Contact admin." });
     }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
@@ -60,6 +64,7 @@ router.post("/login", async (req, res) => {
     res.status(500).send("Server error");
   }
 });
+
 router.post("/managers", async (req, res) => {
   const { role } = req.body;
   try {

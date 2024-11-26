@@ -46,13 +46,17 @@ export const deleteBranch = createAsyncThunk(
     try {
       dispatch(setBranchLoader(true));
       const response = await axiosInstance.delete(`/branch/${id}`);
-
-      if (response.status) {
-        console.log(response, "response data");
+      if (response.status === 200) {
         toast.success(response.data.message);
+        console.log(response.data, "Response data");
       }
     } catch (error) {
-      toast.error(error.message);
+      if (error.response && error.response.data) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error(error.message || "Something went wrong");
+      }
+      console.error(error);
     } finally {
       dispatch(setBranchLoader(false));
     }

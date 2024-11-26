@@ -1,5 +1,8 @@
 const express = require("express");
 const Branch = require("../models/Branch");
+const User = require("../models/User");
+const Instructor = require("../models/Instructor");
+const Vehicle = require("../models/Vehicle");
 const router = express.Router();
 
 // POST route to add a new instructor for a specific branch
@@ -40,6 +43,15 @@ router.delete("/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
+    const instructors = await Instructor.findOne({ "branch._id": id });
+    const managers = await User.findOne({ "branch._id": id });
+    const vehicles = await Vehicle.findOne({ "branch._id": id });
+
+    if (instructors || managers || vehicles) {
+      return res.status(400).json({
+        message: "Branch cannot be deleted as it has associated instructors, managers, or vehicles.",
+      });
+    }
     const branch = await Branch.findOneAndDelete({ _id: id });
     if (!branch) {
       return res.status(404).json({ msg: "branch not found" });

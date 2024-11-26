@@ -186,7 +186,7 @@ export default function InstructorsTable({ color, title }) {
                         {instructor?.branch?.name}
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        {instructor?.vehicle?.name}
+                        {instructor?.vehicle?.name}-{instructor?.vehicle?.number}
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                         {instructor?.status ? "Active" : "InActive"}

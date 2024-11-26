@@ -21,13 +21,30 @@ export const signInUser = createAsyncThunk(
         password,
       });
 
-      if (response.status === 200 && response.data) {
-        toast.success("Login successfull");
+      if (response.status) {
+        toast.success(response.data.message);
         console.log(response.data.user, "response data");
         dispatch(setUserCredentials(response.data.user));
       }
     } catch (error) {
-      toast.error(error.message);
+      // Check if response exists
+      if (error.response) {
+        // API responded with a status other than 2xx
+        const errorMessage =
+          error.response.data?.msg ||
+          error.response.data?.message ||
+          "Something went wrong!";
+        toast.error(errorMessage);
+        console.error("API Error:", error.response.data);
+      } else if (error.request) {
+        // No response received from the server
+        toast.error("No response from the server. Please try again later.");
+        console.error("Request Error:", error.request);
+      } else {
+        // Some other error occurred while setting up the request
+        toast.error(error.message || "An unexpected error occurred.");
+        console.error("Unexpected Error:", error.message);
+      }
     } finally {
       dispatch(setSignInLoader(false));
     }
