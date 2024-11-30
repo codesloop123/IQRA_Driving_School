@@ -6,9 +6,16 @@ const router = express.Router();
 
 // POST route to add a new instructor for a specific branch
 router.post("/add", async (req, res) => {
-  const { name, email, branch, vehicle, status } = req.body;
+  const { name, email, branch, vehicle, status, timeSlots } = req.body;
 
-  if (!name || !email || !branch || !vehicle || !status) {
+  if (
+    !name ||
+    !email ||
+    !branch ||
+    !vehicle ||
+    !status ||
+    timeSlots?.length < 0
+  ) {
     return res.status(400).json({ msg: "Please enter all fields" });
   }
 
@@ -22,6 +29,7 @@ router.post("/add", async (req, res) => {
       email,
       branch,
       vehicle,
+      timeSlots,
       status,
     });
     const savedInstructor = await newInstructor.save();

@@ -1,53 +1,140 @@
 import React from "react";
-import { IoArrowBackOutline } from "react-icons/io5";
-import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { useDispatch, useSelector } from "react-redux";
-import { useState } from "react";
-import { postInstructor } from "store/instructor/action";
+import { useState, useEffect } from "react";
+import { fetchInstructors } from "store/instructor/action";
+import { format, parse } from "date-fns";
 // components
 
 export default function AdmissionCard() {
-  const history = useHistory();
   const dispatch = useDispatch();
-  const { branches } = useSelector((state) => state.branch);
-  const { vehicles } = useSelector((state) => state.vehicle);
-  const { isInstructorLoading } = useSelector((state) => state.instructor);
+  const { user } = useSelector((state) => state.auth);
+  const { isInstructorLoading, instructors } = useSelector(
+    (state) => state.instructor
+  );
+  const [error, setError] = useState("");
+  const [timeError, setTimeError] = useState("");
+  const [dobError, setDobError] = useState("");
   const [formData, setFormData] = useState({
     firstName: "",
-    lastName:"",
+    lastName: "",
     fatherName: "",
-    cnic:"",
-    gender:"",
-    dob:"",
-    cellNumber:"",
-    fullAddress:"",
-    vehicle:"",
-    instructor:"",
-    course:"",
-    startDate:"",
-    paymentType:"",
-    totalPayment:"",
-    paymentReceived:"",
-    paymentInInstallments:"",
-    remainingPayment:''
+    cnic: "",
+    gender: "",
+    dob: "",
+    cellNumber: "",
+    address: "",
+    instructor: "",
+    courseduration: "",
+    courseTimeDuration: "",
+    startDate: "",
+    startTime: "",
+    paymentMethod: "",
+    totalPayment: "",
+    paymentReceived: "",
+    paymentInInstallments: "",
+    remainingPayment: "",
+    manager: user,
+    status: true,
   });
+  console.log(formData, "formData>>>>>>>>>>>>>");
+  useEffect(() => {
+    dispatch(fetchInstructors());
+  }, []);
+  useEffect(() => {
+    const remaining =
+      parseFloat(formData.totalPayment || 0) -
+      parseFloat(formData.paymentReceived || 0);
+    setFormData((prev) => ({
+      ...prev,
+      remainingPayment: remaining >= 0 ? remaining : 0,
+    }));
+  }, [formData.totalPayment, formData.paymentReceived]);
   console.log(formData, "vehicle formdata>>>>>>>>>>>>>");
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (name === "vehicle") {
+    const { name, type, value, checked } = e.target;
+    if (name === "instructor") {
+      const selectedInstructor = JSON.parse(value);
       setFormData({
         ...formData,
-        vehicle: JSON.parse(value),
+        instructor: selectedInstructor,
+      });
+    } else if (name === "startTime") {
+      const [hours, minutes] = value.split(":").map(Number);
+      if (minutes !== 0 && minutes !== 30) {
+        setTimeError("Please select a time ending in 00 or 30 minutes.");
+        return;
+      }
+      if (hours < 9 || hours > 16 || (hours === 17 && minutes > 0)) {
+        setTimeError("Time must be between 9:00 AM and 5:00 PM.");
+        return;
+      }
+      setTimeError("");
+      const selectedTime = format(parse(value, "HH:mm", new Date()), "hh:mm");
+      console.log(selectedTime, "selectedTime>>>>>>>>>>>>>");
+      const { instructor } = formData;
+      if (instructor) {
+        const isAvailable = checkInstructorAvailability(
+          instructor,
+          selectedTime
+        );
+        if (!isAvailable) {
+          setTimeError("Instructor is not available at this time.");
+          return;
+        }
+      }
+      setFormData({
+        ...formData,
+        startTime: value,
+      });
+    } else if (name === "startDate") {
+      const selectedDate = new Date(value);
+      const day = selectedDate.getDay();
+      if (day === 0) {
+        setError("Sunday is a holiday. Please select another date.");
+      } else {
+        setError("");
+      }
+      setFormData({
+        ...formData,
+        startDate: value,
+      });
+    }else if (name === "dob") {
+      const birthDate = new Date(value);
+      const today = new Date();
+      const age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      const isBeforeBirthday =
+        monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate());
+      const calculatedAge = isBeforeBirthday ? age - 1 : age;
+      if (calculatedAge < 15) {
+        setDobError("Age must be at least 15 years.");
+        return;
+      }
+      setDobError("");
+      setFormData({
+        ...formData,
+        dob: value,
       });
     } else {
       setFormData({
         ...formData,
-        [name]: value,
+        [name]: type === "checkbox" ? checked : value,
       });
     }
   };
+  const checkInstructorAvailability = (instructor, selectedTime) => {
+    console.log(instructor, selectedTime, "parameters>>>>>>>>>");
+    // Look for the selected time slot in the instructor's available slots
+    const timeSlot = instructor.timeSlots.find(
+      (slot) => slot.time === selectedTime
+    );
+    console.log(timeSlot, "timeSlot>>>>>>>>>>>>>");
+
+    return timeSlot ? timeSlot.status === "free" : false; // Return true if available, false otherwise
+  };
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log(formData,"submitted Data>>>>>>>>>");
     // dispatch(postInstructor({ formData })).then(() => {
     //   setFormData({
     //     name: "",
@@ -80,12 +167,13 @@ export default function AdmissionCard() {
                     First Name
                   </label>
                   <input
+                  required
                     type="text"
                     name="firstName"
                     value={formData.firstName}
                     onChange={handleChange}
-                    placeholder="Enter instructor name"
-                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
+                    placeholder="Enter First Name"
+                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
                   />
                 </div>
               </div>
@@ -98,12 +186,13 @@ export default function AdmissionCard() {
                     Last Name
                   </label>
                   <input
+                  required
                     type="text"
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleChange}
-                    placeholder="Enter instructor email"
-                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
+                    placeholder="Enter Last Name"
+                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
                   />
                 </div>
               </div>
@@ -111,54 +200,351 @@ export default function AdmissionCard() {
                 <div className="relative w-full mb-3">
                   <label
                     className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
-                    htmlFor="branch-select"
+                    htmlFor="fatherName"
                   >
-                    Branch
+                    Father Name
+                  </label>
+                  <input
+                  required
+                    id="fatherName"
+                    type="text"
+                    name="fatherName"
+                    value={formData.fatherName}
+                    onChange={handleChange}
+                    placeholder="Enter Father Name"
+                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                  />
+                </div>
+              </div>
+              <div className="w-full lg:w-6/12 px-4">
+                <div className="relative w-full mb-3">
+                  <label
+                    className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                    htmlFor="cnic"
+                  >
+                    CNIC
+                  </label>
+                  <input
+                  required
+                    id="cnic"
+                    type="text"
+                    name="cnic"
+                    value={formData.cnic}
+                    onChange={handleChange}
+                    placeholder="Enter CNIC"
+                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                  />
+                </div>
+              </div>
+              <div className="w-full lg:w-4/12 px-4">
+                <div className="relative w-full mb-3">
+                  <label
+                    className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                    htmlFor="cellNumber"
+                  >
+                    Phone Number
+                  </label>
+                  <input
+                  required
+                    type="text"
+                    name="cellNumber"
+                    value={formData.cellNumber}
+                    onChange={handleChange}
+                    placeholder="Enter Phone Number"
+                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                  />
+                </div>
+              </div>
+              <div className="w-full lg:w-4/12 px-4">
+                <div className="relative w-full mb-3">
+                  <label
+                    className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                    htmlFor="gender"
+                  >
+                    Gender
                   </label>
                   <select
-                    id="branch-select"
-                    name="branch"
-                    value={formData?.branch?.name || ""}
+                    id="gender"
+                    name="gender"
+                    value={formData?.gender}
                     onChange={handleChange}
                     className="border-0 px-3 py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
                   >
                     <option value="" disabled>
-                      Select Branch
+                      Select Gender
                     </option>
-                    {branches.map((branch) => (
-                      <option key={branch.id} value={JSON.stringify(branch)}>
-                        {branch.name}
+                    <option value="female">Female</option>
+                    <option value="male">Male</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+              </div>
+              <div className="w-full lg:w-4/12 px-4">
+                <div className="relative w-full mb-3">
+                  <label
+                    className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                    htmlFor="dob"
+                  >
+                    Date of Birth
+                  </label>
+                  <input
+                  required
+                    id="dob"
+                    type="date"
+                    name="dob"
+                    value={formData.dob}
+                    onChange={handleChange}
+                    placeholder="Select Date of Birth"
+                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                  />
+                   {dobError && (
+                    <p className="text-red-500 text-xs italic mt-2">{dobError}</p>
+                  )}
+                </div>
+              </div>
+              <div className="w-full px-4">
+                <div className="relative w-full mb-3">
+                  <label
+                    className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                    htmlFor="address"
+                  >
+                    Address
+                  </label>
+                  <textarea
+                  required
+                    id="address"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleChange}
+                    placeholder="Enter Full Address"
+                    rows={2}
+                    className="block w-full rounded-md bg-white px-3 py-1.5 text-base border-0 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none ease-linear transition-all duration-150"
+                    defaultValue={""}
+                  />
+                </div>
+              </div>
+              <div className="w-full lg:w-6/12 px-4">
+                <div className="relative w-full mb-3">
+                  <label
+                    className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                    htmlFor="instructor-select"
+                  >
+                    Instructor
+                  </label>
+                  <select
+                  required
+                    id="instructor-select"
+                    name="instructor"
+                    value={formData?.instructor?.name || ""}
+                    onChange={handleChange}
+                    className="border-0 px-3 py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                  >
+                    <option value="" disabled>
+                      Select Instructor
+                    </option>
+                    {instructors.map((instructor) => (
+                      <option
+                        key={instructor.id}
+                        value={JSON.stringify(instructor)}
+                      >
+                        {instructor.name}
                       </option>
                     ))}
                   </select>
                 </div>
               </div>
-
               <div className="w-full lg:w-6/12 px-4">
                 <div className="relative w-full mb-3">
                   <label
                     className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
-                    htmlFor="vehicle-select"
+                    htmlFor="courseduration"
                   >
-                    Vehicle
+                    Course Duration
+                  </label>
+                  <input
+                  required
+                    type="number"
+                    name="courseduration"
+                    value={formData.courseduration}
+                    onChange={handleChange}
+                    placeholder="Enter Course Duration"
+                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                  />
+                </div>
+              </div>
+              <div className="w-full lg:w-6/12 px-4">
+                <div className="relative w-full mb-3">
+                  <label
+                    className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                    htmlFor="courseTimeDuration"
+                  >
+                    Time Duration/Day
+                  </label>
+                  <input
+                  required
+                    type="number"
+                    id="courseTimeDuration"
+                    name="courseTimeDuration"
+                    value={formData.courseTimeDuation}
+                    onChange={handleChange}
+                    min={1}
+                    step={1}
+                    placeholder="Enter Time Duration/Day"
+                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                  />
+                </div>
+              </div>
+              <div className="w-full lg:w-6/12 px-4">
+                <div className="relative w-full mb-3">
+                  <label
+                    className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                    htmlFor="startDate"
+                  >
+                    Start Date
+                  </label>
+                  <input
+                  required
+                    type="date"
+                    id="startDate"
+                    name="startDate"
+                    value={formData.startDate}
+                    min={new Date().toISOString().split("T")[0]}
+                    onChange={handleChange}
+                    placeholder="Select Start Date"
+                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150 "
+                  />
+                  {error && (
+                    <p className="text-red-500 text-xs italic mt-2">{error}</p>
+                  )}
+                </div>
+              </div>
+              <div className="w-full lg:w-6/12 px-4">
+                <div className="relative w-full mb-3">
+                  <label
+                    className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                    htmlFor="startTime"
+                  >
+                    Start Time
+                  </label>
+                  <input
+                  required
+                    type="time"
+                    id="startTime"
+                    name="startTime"
+                    value={formData.startTime}
+                    onChange={handleChange}
+                    placeholder="Select Start Time"
+                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                  />
+                  {timeError && (
+                    <p className="text-red-500 text-xs mt-1">{timeError}</p>
+                  )}
+                </div>
+              </div>
+              <div className="w-full lg:w-6/12 px-4">
+                <div className="relative w-full mb-3">
+                  <label
+                    className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                    htmlFor="paymentMethod"
+                  >
+                    Payment Method
                   </label>
                   <select
-                    id="vehicle-select"
-                    name="vehicle"
-                    value={formData?.vehicle?.name || ""}
+                  required
+                    id="paymentMethod"
+                    name="paymentMethod"
+                    value={formData?.paymentMethod}
                     onChange={handleChange}
                     className="border-0 px-3 py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
-                    defaultValue=""
                   >
                     <option value="" disabled>
-                      Select Vehicle
+                      Select Payment Method
                     </option>
-                    {vehicles.map((vehicle) => (
-                      <option key={vehicle.id} value={JSON.stringify(vehicle)}>
-                        {vehicle.name}
-                      </option>
-                    ))}
+                    <option value="cash">Cash</option>
+                    <option value="easypaisa">EasyPaisa</option>
+                    <option value="bankTransfer">Bank Transfer</option>
                   </select>
+                </div>
+              </div>
+              <div className="w-full lg:w-4/12 px-4">
+                <div className="relative w-full mb-3">
+                  <label
+                    className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                    htmlFor="totalPayment"
+                  >
+                    Total Payment
+                  </label>
+                  <input
+                  required
+                    type="number"
+                    min={1}
+                    name="totalPayment"
+                    value={formData.totalPayment}
+                    onChange={handleChange}
+                    placeholder="Enter Total Payment"
+                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                  />
+                </div>
+              </div>
+              <div className="w-full lg:w-4/12 px-4">
+                <div className="relative w-full mb-3">
+                  <label
+                    className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                    htmlFor="paymentReceived"
+                  >
+                    Payment Recieved
+                  </label>
+                  <input
+                  required
+                    type="number"
+                    min={1}
+                    id="paymentReceived"
+                    name="paymentReceived"
+                    value={formData.paymentReceived}
+                    onChange={handleChange}
+                    placeholder="Enter Payment Recieved Amount"
+                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                  />
+                </div>
+              </div>
+              <div className="w-full lg:w-4/12 px-4">
+                <div className="relative w-full mb-3">
+                  <div className="flex items-center mt-10">
+                    <input
+                      id="paymentInInstallments"
+                      name="paymentInInstallments"
+                      type="checkbox"
+                      checked={formData.paymentInInstallments}
+                      onChange={handleChange}
+                      aria-describedby="comments-description"
+                      className="h-6 w-6 rounded border border-gray-300 bg-white checked:border-indigo-600 checked:bg-indigo-600 focus:outline-none"
+                    />
+                    <label
+                      htmlFor="paymentInInstallments"
+                      className="uppercase text-blueGray-600 text-xs font-bold px-2"
+                    >
+                      Payment In Installments
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div className="w-full px-4">
+                <div className="relative w-full mb-3">
+                  <label
+                    className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                    htmlFor="remainingPayment"
+                  >
+                    Remaining Payment
+                  </label>
+                  <input
+                    readOnly
+                    type="number"
+                    id="remainingPayment"
+                    name="remainingPayment"
+                    value={formData.remainingPayment}
+                    placeholder="Remaining Payment"
+                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                  />
                 </div>
               </div>
             </div>

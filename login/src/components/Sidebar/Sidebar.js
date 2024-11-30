@@ -205,29 +205,29 @@ export default function Sidebar() {
               </li> */}
                 </>
               )}
-              {/* {user?.role === "manager" && (
+              {user?.role === "manager" && (
                 <li className="items-center">
                   <Link
                     className={
                       "text-xs uppercase py-3 font-bold block " +
-                      (window.location.href.indexOf("/users") !== -1
+                      (window.location.href.indexOf("/addmission") !== -1
                         ? "text-lightBlue-500 hover:text-lightBlue-600"
                         : "text-blueGray-700 hover:text-blueGray-500")
                     }
-                    to="/users"
+                    to="/addmission"
                   >
                     <i
                       className={
-                        "fas fa-users mr-2 text-sm " +
-                        (window.location.href.indexOf("/users") !== -1
+                        "fas fa-file mr-2 text-sm " +
+                        (window.location.href.indexOf("/addmission") !== -1
                           ? "opacity-75"
                           : "text-blueGray-300")
                       }
                     ></i>{" "}
-                    Users
+                    Admission
                   </Link>
                 </li>
-              )} */}
+              )}
             </ul>
           </div>
         </div>
