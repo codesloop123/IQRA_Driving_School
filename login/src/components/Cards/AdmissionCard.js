@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useState, useEffect } from "react";
 import { fetchInstructors } from "store/instructor/action";
 import { format, parse } from "date-fns";
+import { postAdmission } from "store/admission/actions";
 // components
 
 export default function AdmissionCard() {
@@ -31,7 +32,7 @@ export default function AdmissionCard() {
     paymentMethod: "",
     totalPayment: "",
     paymentReceived: "",
-    paymentInInstallments: "",
+    paymentInInstallments: false,
     remainingPayment: "",
     manager: user,
     status: true,
@@ -98,13 +99,14 @@ export default function AdmissionCard() {
         ...formData,
         startDate: value,
       });
-    }else if (name === "dob") {
+    } else if (name === "dob") {
       const birthDate = new Date(value);
       const today = new Date();
       const age = today.getFullYear() - birthDate.getFullYear();
       const monthDiff = today.getMonth() - birthDate.getMonth();
       const isBeforeBirthday =
-        monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate());
+        monthDiff < 0 ||
+        (monthDiff === 0 && today.getDate() < birthDate.getDate());
       const calculatedAge = isBeforeBirthday ? age - 1 : age;
       if (calculatedAge < 15) {
         setDobError("Age must be at least 15 years.");
@@ -115,6 +117,30 @@ export default function AdmissionCard() {
         ...formData,
         dob: value,
       });
+    } else if (name === "courseduration") {
+      const numericValue = Number(value);
+      setFormData((prev) => ({
+        ...prev,
+        courseduration: numericValue,
+      }));
+    } else if (name === "totalPayment") {
+      const numericValue = Number(value);
+      setFormData((prev) => ({
+        ...prev,
+        totalPayment: numericValue,
+      }));
+    } else if (name === "paymentReceived") {
+      const numericValue = Number(value);
+      setFormData((prev) => ({
+        ...prev,
+        paymentReceived: numericValue,
+      }));
+    } else if (name === "remainingPayment") {
+      const numericValue = Number(value);
+      setFormData((prev) => ({
+        ...prev,
+        remainingPayment: numericValue,
+      }));
     } else {
       setFormData({
         ...formData,
@@ -134,16 +160,34 @@ export default function AdmissionCard() {
   };
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(formData,"submitted Data>>>>>>>>>");
-    // dispatch(postInstructor({ formData })).then(() => {
-    //   setFormData({
-    //     name: "",
-    //     email: "",
-    //     branch: null,
-    //     vehicle: "",
-    //     status: true,
-    //   });
-    // });
+    console.log(formData, "submitted Data>>>>>>>>>");
+    dispatch(postAdmission({ formData })).then(() => {
+      setError("");
+      setTimeError("");
+      setDobError("");
+      setFormData({
+        firstName: "",
+        lastName: "",
+        fatherName: "",
+        cnic: "",
+        gender: "",
+        dob: "",
+        cellNumber: "",
+        address: "",
+        instructor: "",
+        courseduration: "",
+        courseTimeDuration: "",
+        startDate: "",
+        startTime: "",
+        paymentMethod: "",
+        totalPayment: "",
+        paymentReceived: "",
+        paymentInInstallments: "",
+        remainingPayment: "",
+        manager: user,
+        status: true,
+      });
+    });
   };
   return (
     <>
@@ -167,7 +211,7 @@ export default function AdmissionCard() {
                     First Name
                   </label>
                   <input
-                  required
+                    required
                     type="text"
                     name="firstName"
                     value={formData.firstName}
@@ -186,7 +230,7 @@ export default function AdmissionCard() {
                     Last Name
                   </label>
                   <input
-                  required
+                    required
                     type="text"
                     name="lastName"
                     value={formData.lastName}
@@ -205,7 +249,7 @@ export default function AdmissionCard() {
                     Father Name
                   </label>
                   <input
-                  required
+                    required
                     id="fatherName"
                     type="text"
                     name="fatherName"
@@ -225,7 +269,7 @@ export default function AdmissionCard() {
                     CNIC
                   </label>
                   <input
-                  required
+                    required
                     id="cnic"
                     type="text"
                     name="cnic"
@@ -245,7 +289,7 @@ export default function AdmissionCard() {
                     Phone Number
                   </label>
                   <input
-                  required
+                    required
                     type="text"
                     name="cellNumber"
                     value={formData.cellNumber}
@@ -288,7 +332,7 @@ export default function AdmissionCard() {
                     Date of Birth
                   </label>
                   <input
-                  required
+                    required
                     id="dob"
                     type="date"
                     name="dob"
@@ -297,8 +341,10 @@ export default function AdmissionCard() {
                     placeholder="Select Date of Birth"
                     className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
                   />
-                   {dobError && (
-                    <p className="text-red-500 text-xs italic mt-2">{dobError}</p>
+                  {dobError && (
+                    <p className="text-red-500 text-xs italic mt-2">
+                      {dobError}
+                    </p>
                   )}
                 </div>
               </div>
@@ -311,7 +357,7 @@ export default function AdmissionCard() {
                     Address
                   </label>
                   <textarea
-                  required
+                    required
                     id="address"
                     name="address"
                     value={formData.address}
@@ -332,7 +378,7 @@ export default function AdmissionCard() {
                     Instructor
                   </label>
                   <select
-                  required
+                    required
                     id="instructor-select"
                     name="instructor"
                     value={formData?.instructor?.name || ""}
@@ -362,7 +408,7 @@ export default function AdmissionCard() {
                     Course Duration
                   </label>
                   <input
-                  required
+                    required
                     type="number"
                     name="courseduration"
                     value={formData.courseduration}
@@ -381,7 +427,7 @@ export default function AdmissionCard() {
                     Time Duration/Day
                   </label>
                   <input
-                  required
+                    required
                     type="number"
                     id="courseTimeDuration"
                     name="courseTimeDuration"
@@ -403,7 +449,7 @@ export default function AdmissionCard() {
                     Start Date
                   </label>
                   <input
-                  required
+                    required
                     type="date"
                     id="startDate"
                     name="startDate"
@@ -427,7 +473,7 @@ export default function AdmissionCard() {
                     Start Time
                   </label>
                   <input
-                  required
+                    required
                     type="time"
                     id="startTime"
                     name="startTime"
@@ -450,7 +496,7 @@ export default function AdmissionCard() {
                     Payment Method
                   </label>
                   <select
-                  required
+                    required
                     id="paymentMethod"
                     name="paymentMethod"
                     value={formData?.paymentMethod}
@@ -475,7 +521,7 @@ export default function AdmissionCard() {
                     Total Payment
                   </label>
                   <input
-                  required
+                    required
                     type="number"
                     min={1}
                     name="totalPayment"
@@ -495,7 +541,7 @@ export default function AdmissionCard() {
                     Payment Recieved
                   </label>
                   <input
-                  required
+                    required
                     type="number"
                     min={1}
                     id="paymentReceived"

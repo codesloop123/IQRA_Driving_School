@@ -30,8 +30,16 @@ const generateReferenceNumber = async (branchCode, lecturerCode) => {
       "0"
     )}-${entryOfMonth}-${lecturerCode}-${branchCode}-${currentYear}`;
 };
-
+const addTime = (startTime, durationMinutes) => {
+  const [startHours, startMinutes] = startTime.split(":").map(Number);
+  const totalMinutes = startMinutes + durationMinutes;
+  const additionalHours = Math.floor(totalMinutes / 60);
+  const remainingMinutes = totalMinutes % 60;
+  const endHours = startHours + additionalHours;
+  return `${String(endHours).padStart(2, "0")}:${String(remainingMinutes).padStart(2, "0")}`;
+};
 router.post("/add", async (req, res) => {
+  console.log(req.body,"data>>>>>>>>>>");
   const {
     firstName,
     lastName,
@@ -84,6 +92,7 @@ router.post("/add", async (req, res) => {
       paymentReceived,
       paymentInInstallments,
       remainingPayment,
+      referenceNumber,
       manager,
       status,
     });
@@ -97,11 +106,8 @@ router.post("/add", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-
-// GET route to fetch all admissions for a specific branch
 router.get("/:branch", async (req, res) => {
   const { branch } = req.params;
-
   try {
     const admissions = await Admission.find({ branch });
     res.status(200).json(admissions);
@@ -134,12 +140,10 @@ router.put("/:branch/:id/status", async (req, res) => {
     }
 
     await admission.save();
-    res
-      .status(200)
-      .json({
-        msg: "Student status updated successfully",
-        isActive: admission.isActive,
-      });
+    res.status(200).json({
+      msg: "Student status updated successfully",
+      isActive: admission.isActive,
+    });
   } catch (error) {
     console.error("Error updating status:", error);
     res.status(500).json({ msg: "Server error" });
