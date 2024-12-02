@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const Admission = require("../models/Admission");
 const router = express.Router();
+const Instructor = require("../models/Instructor");
 // function to generate reference number
 const generateReferenceNumber = async (branchCode, lecturerCode) => {
   const currentMonth = new Date().getMonth() + 1;
@@ -30,16 +31,26 @@ const generateReferenceNumber = async (branchCode, lecturerCode) => {
       "0"
     )}-${entryOfMonth}-${lecturerCode}-${branchCode}-${currentYear}`;
 };
+const formatTime = (hours, minutes) => {
+  const period = hours >= 12 ? "PM" : "AM";
+  const formattedHours = hours % 12 || 12; // Convert to 12-hour format
+  return `${formattedHours.toString().padStart(2, "0")}:${minutes
+    .toString()
+    .padStart(2, "0")}`;
+};
 const addTime = (startTime, durationMinutes) => {
   const [startHours, startMinutes] = startTime.split(":").map(Number);
-  const totalMinutes = startMinutes + durationMinutes;
-  const additionalHours = Math.floor(totalMinutes / 60);
-  const remainingMinutes = totalMinutes % 60;
-  const endHours = startHours + additionalHours;
-  return `${String(endHours).padStart(2, "0")}:${String(remainingMinutes).padStart(2, "0")}`;
+  const totalMinutes = startHours * 60 + startMinutes + Number(durationMinutes);
+  console.log(totalMinutes,"totalMinutes>>>>>>>>");
+  const endHours = Math.floor(totalMinutes / 60) % 24;
+  console.log(endHours,"endHours>>>>>>>>");
+  const endMinutes = totalMinutes % 60;
+  console.log(endMinutes,"endminutes>>>>>>>>>>>>>");
+  return formatTime(endHours, endMinutes);
 };
+
 router.post("/add", async (req, res) => {
-  console.log(req.body,"data>>>>>>>>>>");
+  console.log(req.body, "data>>>>>>>>>>");
   const {
     firstName,
     lastName,
@@ -71,6 +82,44 @@ router.post("/add", async (req, res) => {
     const endDate = new Date(startDate);
     endDate.setDate(endDate.getDate() + courseduration);
     const endTime = addTime(startTime, courseTimeDuration);
+    console.log(endTime, "endTime>>>>>>>>>>>>>>>>>>");
+    const instructorDoc = await Instructor.findById(instructor._id);
+    if (!instructorDoc) {
+      return res
+        .status(404)
+        .json({ status: false, message: "Instructor not found" });
+    }
+    const startIndex = instructorDoc.timeSlots.findIndex(
+      (slot) => slot.time === startTime
+    );
+    const endIndex = instructorDoc.timeSlots.findIndex(
+      (slot) => slot.time === endTime
+    );
+    console.log(startIndex, endIndex, "indexes>>>>>>>>>>>>>>>>>>>>");
+    if (startIndex === -1 || endIndex === -1) {
+      return res.status(400).json({
+        status: false,
+        message: "Invalid start or end time for booking slots.",
+      });
+    }
+
+    const slotsToBook = instructorDoc.timeSlots.slice(startIndex, endIndex + 1);
+    const isAnySlotBooked = slotsToBook.some(
+      (slot) => slot.status === "booked"
+    );
+
+    if (isAnySlotBooked) {
+      return res.status(400).json({
+        status: false,
+        message: "Slot is already booked.",
+      });
+    }
+
+    for (let i = startIndex; i <= endIndex; i++) {
+      instructorDoc.timeSlots[i].status = "booked";
+    }
+
+    await instructorDoc.save();
     const admission = new Admission({
       firstName,
       lastName,

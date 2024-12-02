@@ -85,7 +85,7 @@ export default function AdmissionCard() {
       }
       setFormData({
         ...formData,
-        startTime: value,
+        startTime: selectedTime,
       });
     } else if (name === "startDate") {
       const selectedDate = new Date(value);
@@ -161,33 +161,39 @@ export default function AdmissionCard() {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log(formData, "submitted Data>>>>>>>>>");
-    dispatch(postAdmission({ formData })).then(() => {
-      setError("");
-      setTimeError("");
-      setDobError("");
-      setFormData({
-        firstName: "",
-        lastName: "",
-        fatherName: "",
-        cnic: "",
-        gender: "",
-        dob: "",
-        cellNumber: "",
-        address: "",
-        instructor: "",
-        courseduration: "",
-        courseTimeDuration: "",
-        startDate: "",
-        startTime: "",
-        paymentMethod: "",
-        totalPayment: "",
-        paymentReceived: "",
-        paymentInInstallments: "",
-        remainingPayment: "",
-        manager: user,
-        status: true,
+    dispatch(postAdmission({ formData }))
+      .then((response) => {
+        if (response.meta.requestStatus === "fulfilled") {
+          setError("");
+          setTimeError("");
+          setDobError("");
+          setFormData({
+            firstName: "",
+            lastName: "",
+            fatherName: "",
+            cnic: "",
+            gender: "",
+            dob: "",
+            cellNumber: "",
+            address: "",
+            instructor: "",
+            courseduration: "",
+            courseTimeDuration: "",
+            startDate: "",
+            startTime: "",
+            paymentMethod: "",
+            totalPayment: "",
+            paymentReceived: "",
+            paymentInInstallments: "",
+            remainingPayment: "",
+            manager: user,
+            status: true,
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("Submission failed:", error);
       });
-    });
   };
   return (
     <>
