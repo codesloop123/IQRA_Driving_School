@@ -87,7 +87,30 @@ router.post("/add", async (req, res) => {
     manager,
     status,
   } = req.body;
-
+  if (
+    !firstName ||
+    !lastName ||
+    !fatherName ||
+    !cnic ||
+    !gender ||
+    !dob ||
+    !cellNumber ||
+    !address ||
+    !instructor ||
+    !courseduration ||
+    !courseTimeDuration ||
+    !startDate ||
+    !startTime ||
+    !paymentMethod ||
+    !totalPayment ||
+    !paymentReceived ||
+    paymentInInstallments === undefined ||
+    remainingPayment === undefined ||
+    !manager ||
+    !status
+  ) {
+    return res.status(400).json({ message: "All fields are required." });
+  }
   try {
     const referenceNumber = await generateReferenceNumber(
       manager.branch._id,
