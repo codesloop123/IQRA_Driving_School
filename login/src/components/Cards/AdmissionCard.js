@@ -24,7 +24,7 @@ export default function AdmissionCard() {
     dob: "",
     cellNumber: "",
     address: "",
-    instructor: "",
+    instructor: null,
     courseduration: "",
     courseTimeDuration: "",
     startDate: "",
@@ -50,11 +50,13 @@ export default function AdmissionCard() {
       remainingPayment: remaining >= 0 ? remaining : 0,
     }));
   }, [formData.totalPayment, formData.paymentReceived]);
-  console.log(formData, "vehicle formdata>>>>>>>>>>>>>");
+  console.log(formData, formData?.instructor?.name, "formdata>>>>>>>>>>>>>");
   const handleChange = (e) => {
     const { name, type, value, checked } = e.target;
     if (name === "instructor") {
-      const selectedInstructor = JSON.parse(value);
+      const selectedInstructor = instructors.find(
+        (instructor) => instructor.name === value
+      );
       setFormData({
         ...formData,
         instructor: selectedInstructor,
@@ -184,7 +186,7 @@ export default function AdmissionCard() {
             paymentMethod: "",
             totalPayment: "",
             paymentReceived: "",
-            paymentInInstallments: "",
+            paymentInInstallments: false,
             remainingPayment: "",
             manager: user,
             status: true,
@@ -394,12 +396,9 @@ export default function AdmissionCard() {
                     <option value="" disabled>
                       Select Instructor
                     </option>
-                    {instructors.map((instructor) => (
-                      <option
-                        key={instructor.id}
-                        value={JSON.stringify(instructor)}
-                      >
-                        {instructor.name}
+                    {instructors?.map((instructor) => (
+                      <option key={instructor?.id} value={instructor.name}>
+                        {instructor?.name}
                       </option>
                     ))}
                   </select>

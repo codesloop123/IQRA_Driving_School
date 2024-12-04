@@ -8,7 +8,7 @@ export const postAdmission = createAsyncThunk(
     try {
       dispatch(setRegisterLoader(true));
       const response = await axiosInstance.post("/admissions/add", {
-        ...formData,
+        ...formData, 
       });
       if (response.status === 200) {
         console.log(response, "response data");

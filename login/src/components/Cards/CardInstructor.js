@@ -18,6 +18,25 @@ export default function CardInstructor() {
     branch: null,
     vehicle: null,
     status: true,
+    timeSlots: [
+      { time: "09:00", status: "free" },
+      { time: "09:30", status: "free" },
+      { time: "10:00", status: "free" },
+      { time: "10:30", status: "free" },
+      { time: "11:00", status: "free" },
+      { time: "11:30", status: "free" },
+      { time: "12:00", status: "free" },
+      { time: "12:30", status: "free" },
+      { time: "01:00", status: "free" },
+      { time: "01:30", status: "free" },
+      { time: "02:00", status: "free" },
+      { time: "02:30", status: "free" },
+      { time: "03:00", status: "free" },
+      { time: "03:30", status: "free" },
+      { time: "04:00", status: "free" },
+      { time: "04:30", status: "free" },
+      { time: "05:00", status: "free" },
+    ],
   });
   console.log(formData, "vehicle formdata>>>>>>>>>>>>>");
   const handleChange = (e) => {

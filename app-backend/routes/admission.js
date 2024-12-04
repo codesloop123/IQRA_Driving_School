@@ -41,13 +41,27 @@ const formatTime = (hours, minutes) => {
 const addTime = (startTime, durationMinutes) => {
   const [startHours, startMinutes] = startTime.split(":").map(Number);
   const totalMinutes = startHours * 60 + startMinutes + Number(durationMinutes);
-  console.log(totalMinutes,"totalMinutes>>>>>>>>");
+  console.log(totalMinutes, "totalMinutes>>>>>>>>");
   const endHours = Math.floor(totalMinutes / 60) % 24;
-  console.log(endHours,"endHours>>>>>>>>");
+  console.log(endHours, "endHours>>>>>>>>");
   const endMinutes = totalMinutes % 60;
-  console.log(endMinutes,"endminutes>>>>>>>>>>>>>");
+  console.log(endMinutes, "endminutes>>>>>>>>>>>>>");
   return formatTime(endHours, endMinutes);
 };
+function calculateEndDateExcludingSundays(startDate, duration) {
+  let endDate = new Date(startDate);
+  let addedDays = 0;
+  console.log("Starting calculation...");
+  while (addedDays < duration) {
+    if (endDate.getDay() !== 0) {
+      addedDays++;
+    }
+    if (addedDays < duration) {
+      endDate.setDate(endDate.getDate() + 1);
+    }
+  }
+  return endDate;
+}
 
 router.post("/add", async (req, res) => {
   console.log(req.body, "data>>>>>>>>>>");
@@ -79,8 +93,7 @@ router.post("/add", async (req, res) => {
       manager.branch._id,
       instructor._id
     );
-    const endDate = new Date(startDate);
-    endDate.setDate(endDate.getDate() + courseduration);
+    const endDate = calculateEndDateExcludingSundays(startDate, courseduration);
     const endTime = addTime(startTime, courseTimeDuration);
     console.log(endTime, "endTime>>>>>>>>>>>>>>>>>>");
     const instructorDoc = await Instructor.findById(instructor._id);
