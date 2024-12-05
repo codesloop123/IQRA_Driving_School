@@ -191,11 +191,12 @@ router.post("/add", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-router.get("/:branch", async (req, res) => {
-  const { branch } = req.params;
+router.get("/:id", async (req, res) => {
+  const { id } = req.params;
   try {
-    const admissions = await Admission.find({ branch });
-    res.status(200).json(admissions);
+    const admissions = await Admission.find({ "manager.branch._id": id });
+    console.log("admissions>>>>>>>>>>>>");
+    res.status(200).json({ status: true, admissions: admissions });
   } catch (error) {
     console.error("Error fetching admissions:", error);
     res.status(500).json({ msg: "Server error" });

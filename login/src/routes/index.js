@@ -1,9 +1,9 @@
-import AdmissionCard from "components/Cards/AdmissionCard";
 import AddBranches from "views/admin/AddBranches";
 import AddInstructor from "views/admin/AddInstructor";
 import AddManager from "views/admin/AddManager";
 import AddVehicle from "views/admin/AddVehicles";
-import Admissions from "views/admin/Admission";
+import Admission from "views/admin/Admission";
+import Admissions from "views/admin/Admissions";
 import Branches from "views/admin/Branches";
 import Cars from "views/admin/Cars";
 import Dashboard from "views/admin/Dashboard";
@@ -85,6 +85,13 @@ let routes = [
   },
   {
     path: "/addmission",
+    name: "Admissions",
+    component: Admission,
+    layout: "admin",
+    isMenu: false,
+  },
+  {
+    path: "/addmissions",
     name: "Admissions",
     component: Admissions,
     layout: "admin",

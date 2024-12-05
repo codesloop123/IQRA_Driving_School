@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
+  admissions: [],
   registerLoading: false,
 };
 
@@ -10,8 +11,11 @@ const admissionSlice = createSlice({
     setRegisterLoader: (state, action) => {
       state.registerLoading = action.payload;
     },
+    setAdmissions: (state, action) => {
+      state.admissions = action.payload;
+    },
   },
 });
 
-export const { setRegisterLoader } = admissionSlice.actions;
+export const { setRegisterLoader, setAdmissions } = admissionSlice.actions;
 export default admissionSlice.reducer;
