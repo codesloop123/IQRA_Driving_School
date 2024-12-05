@@ -237,13 +237,13 @@ export default function Sidebar() {
                   >
                     <i
                       className={
-                        "fas fa-file mr-2 text-sm " +
+                        "fas fa-users mr-2 text-sm " +
                         (window.location.href.indexOf("/addmissions") !== -1
                           ? "opacity-75"
                           : "text-blueGray-300")
                       }
                     ></i>{" "}
-                    Admissions
+                    Students
                   </Link>
                 </li>
               )}
