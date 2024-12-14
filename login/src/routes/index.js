@@ -10,6 +10,7 @@ import Dashboard from "views/admin/Dashboard";
 import Instructors from "views/admin/Instructors";
 import Managers from "views/admin/Managers";
 import Users from "views/admin/Users";
+import Finances from "views/admin/Finances";
 import Login from "views/auth/Login";
 
 let routes = [
@@ -38,6 +39,13 @@ let routes = [
     path: "/users",
     name: "Users",
     component: Users,
+    layout: "admin",
+    isMenu: true,
+  },
+  {
+    path: "/finances",
+    name: "Finances",
+    component: Finances,
     layout: "admin",
     isMenu: true,
   },
