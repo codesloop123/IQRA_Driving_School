@@ -1,9 +1,7 @@
 const express = require("express");
-const mongoose = require("mongoose");
 const Admission = require("../models/Admission");
 const router = express.Router();
 const Instructor = require("../models/Instructor");
-// function to generate reference number
 const generateReferenceNumber = async (branchCode, lecturerCode) => {
   const currentMonth = new Date().getMonth() + 1;
   const currentYear = new Date().getFullYear().toString().slice(-2);
@@ -31,130 +29,112 @@ const generateReferenceNumber = async (branchCode, lecturerCode) => {
       "0"
     )}-${entryOfMonth}-${lecturerCode}-${branchCode}-${currentYear}`;
 };
-const formatTime = (hours, minutes) => {
-  const period = hours >= 12 ? "PM" : "AM";
-  const formattedHours = hours % 12 || 12; // Convert to 12-hour format
-  return `${formattedHours.toString().padStart(2, "0")}:${minutes
-    .toString()
-    .padStart(2, "0")}`;
-};
-const addTime = (startTime, durationMinutes) => {
-  const [startHours, startMinutes] = startTime.split(":").map(Number);
-  const totalMinutes = startHours * 60 + startMinutes + Number(durationMinutes);
-  console.log(totalMinutes, "totalMinutes>>>>>>>>");
-  const endHours = Math.floor(totalMinutes / 60) % 24;
-  console.log(endHours, "endHours>>>>>>>>");
-  const endMinutes = totalMinutes % 60;
-  console.log(endMinutes, "endminutes>>>>>>>>>>>>>");
-  return formatTime(endHours, endMinutes);
-};
-function calculateEndDateExcludingSundays(startDate, duration) {
-  let endDate = new Date(startDate);
-  let addedDays = 0;
-  console.log("Starting calculation...");
-  while (addedDays < duration) {
-    if (endDate.getDay() !== 0) {
-      addedDays++;
-    }
-    if (addedDays < duration) {
-      endDate.setDate(endDate.getDate() + 1);
-    }
-  }
-  return endDate;
-}
-
 router.post("/add", async (req, res) => {
-  console.log(req.body, "data>>>>>>>>>>");
-  const {
-    firstName,
-    lastName,
-    fatherName,
-    cnic,
-    gender,
-    dob,
-    cellNumber,
-    address,
-    instructor,
-    courseduration,
-    courseTimeDuration,
-    startDate,
-    startTime,
-    paymentMethod,
-    totalPayment,
-    paymentReceived,
-    paymentInInstallments,
-    remainingPayment,
-    manager,
-    status,
-  } = req.body;
-  if (
-    !firstName ||
-    !lastName ||
-    !fatherName ||
-    !cnic ||
-    !gender ||
-    !dob ||
-    !cellNumber ||
-    !address ||
-    !instructor ||
-    !courseduration ||
-    !courseTimeDuration ||
-    !startDate ||
-    !startTime ||
-    !paymentMethod ||
-    !totalPayment ||
-    !paymentReceived ||
-    paymentInInstallments === undefined ||
-    remainingPayment === undefined ||
-    !manager ||
-    !status
-  ) {
-    return res.status(400).json({ message: "All fields are required." });
-  }
   try {
+    const {
+      firstName,
+      lastName,
+      fatherName,
+      cnic,
+      gender,
+      dob,
+      cellNumber,
+      address,
+      instructor,
+      courseduration,
+      courseTimeDuration,
+      startDate,
+      startTime,
+      paymentMethod,
+      totalPayment,
+      paymentReceived,
+      paymentInInstallments,
+      remainingPayment,
+      manager,
+      status,
+    } = req.body;
+    if (
+      !firstName ||
+      !lastName ||
+      !fatherName ||
+      !cnic ||
+      !gender ||
+      !dob ||
+      !cellNumber ||
+      !address ||
+      !instructor ||
+      !courseduration ||
+      !courseTimeDuration ||
+      !startDate ||
+      !startTime ||
+      !paymentMethod ||
+      !totalPayment ||
+      !paymentReceived ||
+      paymentInInstallments === undefined ||
+      remainingPayment === undefined ||
+      !manager ||
+      !status
+    ) {
+      return res.status(400).json({ message: "All fields are required." });
+    }
     const referenceNumber = await generateReferenceNumber(
       manager.branch._id,
       instructor._id
     );
-    const endDate = calculateEndDateExcludingSundays(startDate, courseduration);
-    const endTime = addTime(startTime, courseTimeDuration);
-    console.log(endTime, "endTime>>>>>>>>>>>>>>>>>>");
     const instructorDoc = await Instructor.findById(instructor._id);
     if (!instructorDoc) {
       return res
         .status(404)
-        .json({ status: false, message: "Instructor not found" });
+        .json({ status: false, message: "Instructor not found." });
     }
-    const startIndex = instructorDoc.timeSlots.findIndex(
-      (slot) => slot.time === startTime
-    );
-    const endIndex = instructorDoc.timeSlots.findIndex(
-      (slot) => slot.time === endTime
-    );
-    console.log(startIndex, endIndex, "indexes>>>>>>>>>>>>>>>>>>>>");
-    if (startIndex === -1 || endIndex === -1) {
+    const { startTime: availableStart, endTime: availableEnd } =
+      instructorDoc.availability;
+    console.log(availableStart, availableEnd, "availability>>>>>>>>>>>");
+    const courseStartTime = startTime;
+    console.log(courseStartTime, "courseStartTime>>>>>>>>>>>");
+    const courseEndTime = calculateEndTime(startTime, courseTimeDuration);
+    console.log(courseEndTime, "courseEndTIme>>>>>>>>");
+    if (courseStartTime < availableStart || courseEndTime > availableEnd) {
       return res.status(400).json({
         status: false,
-        message: "Invalid start or end time for booking slots.",
+        message: "Requested time is outside instructor's availability.",
       });
     }
+    const endDate = calculateEndDate(startDate, courseduration);
+    const bookedSlots = [];
+    let currentStartDate = new Date(startDate);
+    for (let i = 0; i < courseduration; i++) {
+      if (currentStartDate.getDay() === 0) {
+        currentStartDate.setDate(currentStartDate.getDate() + 1);
+        continue;
+      }
+      bookedSlots.push({
+        date: formatDate(currentStartDate),
+        startTime: courseStartTime,
+        endTime: courseEndTime,
+      });
 
-    const slotsToBook = instructorDoc.timeSlots.slice(startIndex, endIndex + 1);
-    const isAnySlotBooked = slotsToBook.some(
-      (slot) => slot.status === "booked"
-    );
+      currentStartDate.setDate(currentStartDate.getDate() + 1);
+    }
+    const overlap = instructorDoc.bookedSlots.some((slot) => {
+      return bookedSlots.some(
+        (newSlot) =>
+          slot.date === newSlot.date &&
+          ((newSlot.startTime >= slot.startTime &&
+            newSlot.startTime < slot.endTime) ||
+            (newSlot.endTime > slot.startTime &&
+              newSlot.endTime <= slot.endTime))
+      );
+    });
 
-    if (isAnySlotBooked) {
+    if (overlap) {
       return res.status(400).json({
         status: false,
-        message: "Slot is already booked.",
+        message:
+          "Some slots are already booked for the selected date and time.",
       });
     }
-
-    for (let i = startIndex; i <= endIndex; i++) {
-      instructorDoc.timeSlots[i].status = "booked";
-    }
-
+    instructorDoc.bookedSlots.push(...bookedSlots);
     await instructorDoc.save();
     const admission = new Admission({
       firstName,
@@ -170,7 +150,7 @@ router.post("/add", async (req, res) => {
       courseTimeDuration,
       startDate,
       startTime,
-      endTime,
+      endTime:courseEndTime,
       endDate,
       paymentMethod,
       totalPayment,
@@ -183,14 +163,52 @@ router.post("/add", async (req, res) => {
     });
 
     await admission.save();
-    res
-      .status(200)
-      .json({ status: true, message: "Admission submitted successfully" });
+    res.status(200).json({
+      status: true,
+      message: "Admission booked successfully.",
+      bookedSlots,
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
+    console.error("Error adding admission:", error);
+    res.status(500).json({ status: false, message: "Internal server error." });
   }
 });
+const calculateEndTime = (startTime, duration) => {
+  const durationNumber = parseInt(duration, 10);
+  let [hours, minutes] = startTime.split(":").map(Number);
+  if (duration.length === 1) {
+    hours += durationNumber;
+  } else if (duration.length === 2) {
+    minutes += durationNumber;
+  }
+  if (minutes >= 60) {
+    hours += Math.floor(minutes / 60);
+    minutes = minutes % 60;
+  }
+  if (hours > 12) {
+    hours = hours % 12;
+  }
+  const formattedHours = hours.toString().padStart(2, "0");
+  const formattedMinutes = minutes.toString().padStart(2, "0");
+  return `${formattedHours}:${formattedMinutes}`;
+};
+
+const calculateEndDate = (startDate, durationDays) => {
+  const start = new Date(startDate);
+  let daysAdded = 0;
+
+  while (daysAdded < durationDays) {
+    start.setDate(start.getDate() + 1);
+    if (start.getDay() !== 0) {
+      daysAdded++;
+    }
+  }
+
+  return formatDate(start);
+};
+const formatDate = (date) => {
+  return date.toISOString().split("T")[0];
+};
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
   try {
@@ -202,7 +220,6 @@ router.get("/:id", async (req, res) => {
     res.status(500).json({ msg: "Server error" });
   }
 });
-
 // PUT route to toggle student's active status
 router.put("/:branch/:id/status", async (req, res) => {
   const { branch, id } = req.params;

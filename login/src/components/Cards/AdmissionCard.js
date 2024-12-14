@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { fetchInstructors } from "store/instructor/action";
 import { format, parse } from "date-fns";
 import { postAdmission } from "store/admission/actions";
-// components
+import { toast } from "react-toastify";
 
 export default function AdmissionCard() {
   const dispatch = useDispatch();
@@ -38,19 +38,6 @@ export default function AdmissionCard() {
     status: true,
   });
   console.log(formData, "formData>>>>>>>>>>>>>");
-  useEffect(() => {
-    dispatch(fetchInstructors());
-  }, []);
-  useEffect(() => {
-    const remaining =
-      parseFloat(formData.totalPayment || 0) -
-      parseFloat(formData.paymentReceived || 0);
-    setFormData((prev) => ({
-      ...prev,
-      remainingPayment: remaining >= 0 ? remaining : 0,
-    }));
-  }, [formData.totalPayment, formData.paymentReceived]);
-  console.log(formData, formData?.instructor?.name, "formdata>>>>>>>>>>>>>");
   const handleChange = (e) => {
     const { name, type, value, checked } = e.target;
     if (name === "instructor") {
@@ -94,9 +81,8 @@ export default function AdmissionCard() {
       const day = selectedDate.getDay();
       if (day === 0) {
         setError("Sunday is a holiday. Please select another date.");
-      } else {
-        setError("");
       }
+      setError("");
       setFormData({
         ...formData,
         startDate: value,
@@ -150,19 +136,62 @@ export default function AdmissionCard() {
       });
     }
   };
-  const checkInstructorAvailability = (instructor, selectedTime) => {
-    console.log(instructor, selectedTime, "parameters>>>>>>>>>");
-    // Look for the selected time slot in the instructor's available slots
-    const timeSlot = instructor.timeSlots.find(
-      (slot) => slot.time === selectedTime
-    );
-    console.log(timeSlot, "timeSlot>>>>>>>>>>>>>");
-
-    return timeSlot ? timeSlot.status === "free" : false; // Return true if available, false otherwise
+  const checkBookingConflict = (
+    bookedSlots,
+    selectedDate,
+    selectedStartTime
+  ) => {
+    for (let i = 0; i < bookedSlots.length; i++) {
+      const bookedSlot = bookedSlots[i];
+      const { date, startTime, endTime } = bookedSlot;
+      if (date === selectedDate) {
+        const selectedStart = parse(selectedStartTime, "HH:mm", new Date());
+        const bookedStart = parse(startTime, "HH:mm", new Date());
+        const bookedEnd = parse(endTime, "HH:mm", new Date());
+        if (
+          (selectedStart >= bookedStart && selectedStart < bookedEnd) ||
+          (selectedStart < bookedStart && selectedStart >= bookedStart)
+        ) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+  const checkInstructorAvailability = (instructor, selectedStartTime) => {
+    const bookedSlots = instructor.bookedSlots;
+    for (let i = 0; i < bookedSlots.length; i++) {
+      const bookedSlot = bookedSlots[i];
+      const { startTime, endTime } = bookedSlot;
+      const selectedStart = parse(selectedStartTime, "HH:mm", new Date());
+      const bookedStart = parse(startTime, "HH:mm", new Date());
+      const bookedEnd = parse(endTime, "HH:mm", new Date());
+      if (
+        (selectedStart >= bookedStart && selectedStart < bookedEnd) ||
+        (selectedStart < bookedStart && selectedStart >= bookedStart)
+      ) {
+        return false;
+      }
+    }
+    return true;
   };
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log(formData, "submitted Data>>>>>>>>>");
+    const { instructor, startDate, startTime } = formData;
+    if (!instructor) {
+      toast.error("Choose Instructor first");
+      return;
+    }
+    const conflict = checkBookingConflict(
+      instructor?.bookedSlots,
+      startDate,
+      startTime
+    );
+    if (conflict) {
+      toast.error("Instructor is already booked at this time.");
+      return;
+    }
     dispatch(postAdmission({ formData }))
       .then((response) => {
         if (response.meta.requestStatus === "fulfilled") {
@@ -197,6 +226,18 @@ export default function AdmissionCard() {
         console.error("Submission failed:", error);
       });
   };
+  useEffect(() => {
+    dispatch(fetchInstructors());
+  }, []);
+  useEffect(() => {
+    const remaining =
+      parseFloat(formData.totalPayment || 0) -
+      parseFloat(formData.paymentReceived || 0);
+    setFormData((prev) => ({
+      ...prev,
+      remainingPayment: remaining >= 0 ? remaining : 0,
+    }));
+  }, [formData.totalPayment, formData.paymentReceived]);
   return (
     <>
       <div className="relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded-lg bg-blueGray-100 border-0">

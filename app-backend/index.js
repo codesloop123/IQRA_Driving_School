@@ -8,10 +8,11 @@ mongoose
   .connect(
     "mongodb+srv://ceo:1auvXOBAaapyFFho@cluster0.cnucw.mongodb.net/IQRA_DRIVING",
     {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-        serverSelectionTimeoutMS: 30000, // Set timeout to 30 seconds
-      }
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 30000,
+      socketTimeoutMS: 45000,
+    }
   )
   .then(() => console.log("MongoDB connected for userAuthDB"))
   .catch((err) => console.log(err));
