@@ -5,15 +5,18 @@ import { fetchInstructors } from "store/instructor/action";
 import { format, parse } from "date-fns";
 import { postAdmission } from "store/admission/actions";
 import { toast } from "react-toastify";
+import AvailabilityModal from "components/Modals/AvailabilityModal";
 
 export default function AdmissionCard() {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+  const [open, setOpen] = useState(false);
   const { isInstructorLoading, instructors } = useSelector(
     (state) => state.instructor
   );
   const [error, setError] = useState("");
   const [timeError, setTimeError] = useState("");
+  const [cnicError, setCnicError] = useState("");
   const [dobError, setDobError] = useState("");
   const [formData, setFormData] = useState({
     firstName: "",
@@ -76,13 +79,28 @@ export default function AdmissionCard() {
         ...formData,
         startTime: selectedTime,
       });
+    } else if (name === "cnic") {
+      const digitsOnly = value.replace(/-/g, "");
+
+      if (digitsOnly?.length > 13) {
+        setCnicError("CNIC cannot exceed 13 digits.");
+      } else if (digitsOnly?.length < 13) {
+        setCnicError("CNIC should be minimum 13 digits.");
+      } else {
+        setCnicError("");
+      }
+      setFormData({
+        ...formData,
+        cnic: value,
+      });
     } else if (name === "startDate") {
       const selectedDate = new Date(value);
       const day = selectedDate.getDay();
       if (day === 0) {
         setError("Sunday is a holiday. Please select another date.");
+      } else {
+        setError("");
       }
-      setError("");
       setFormData({
         ...formData,
         startDate: value,
@@ -322,11 +340,17 @@ export default function AdmissionCard() {
                     id="cnic"
                     type="text"
                     name="cnic"
+                    pattern="^\d{5}-\d{7}-\d{1}$"
                     value={formData.cnic}
                     onChange={handleChange}
-                    placeholder="Enter CNIC"
+                    placeholder="62202-5658860-7"
                     className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
                   />
+                  {cnicError && (
+                    <p className="text-red-500 text-xs italic mt-2">
+                      {cnicError}
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="w-full lg:w-4/12 px-4">
@@ -420,12 +444,20 @@ export default function AdmissionCard() {
               </div>
               <div className="w-full lg:w-6/12 px-4">
                 <div className="relative w-full mb-3">
-                  <label
-                    className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
-                    htmlFor="instructor-select"
-                  >
-                    Instructor
-                  </label>
+                  <div className="flex justify-between gap-2">
+                    <label
+                      className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                      htmlFor="instructor-select"
+                    >
+                      Instructor
+                    </label>
+                    <p
+                      className="text-xs cursor-pointer text-lightBlue-600"
+                      onClick={() => setOpen(true)}
+                    >
+                      See Availability
+                    </p>
+                  </div>
                   <select
                     required
                     id="instructor-select"
@@ -457,6 +489,7 @@ export default function AdmissionCard() {
                     required
                     type="number"
                     name="courseduration"
+                    min={1}
                     value={formData.courseduration}
                     onChange={handleChange}
                     placeholder="Enter Course Duration"
@@ -477,7 +510,7 @@ export default function AdmissionCard() {
                     type="number"
                     id="courseTimeDuration"
                     name="courseTimeDuration"
-                    value={formData.courseTimeDuation}
+                    value={formData.courseTimeDuration}
                     onChange={handleChange}
                     min={1}
                     step={1}
@@ -671,6 +704,7 @@ export default function AdmissionCard() {
           </form>
         </div>
       </div>
+      <AvailabilityModal open={open} setOpen={setOpen} />
     </>
   );
 }
