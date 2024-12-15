@@ -1,3 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+.fc-event-title {
+  font-size: 12px;
+}
+.w-70-w {
+  width: 70%;
+}

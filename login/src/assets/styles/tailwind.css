@@ -2985,3 +2985,12 @@ select {
     width: 66.666667%;
   }
 }
+.rbc-btn-group button {
+  background-color: #0284c7 !important;
+  color: #ffffff !important;
+  border-radius: 0.375rem;
+  padding: 0.25rem 0.75rem;
+}
+.rbc-toolbar{
+  justify-content: space-between !important;
+}

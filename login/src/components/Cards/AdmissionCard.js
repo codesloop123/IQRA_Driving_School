@@ -453,7 +453,15 @@ export default function AdmissionCard() {
                     </label>
                     <p
                       className="text-xs cursor-pointer text-lightBlue-600"
-                      onClick={() => setOpen(true)}
+                      onClick={() => {
+                        if (!formData?.instructor) {
+                          toast.error(
+                            "choose Instructor to see their availabillity"
+                          );
+                          return;
+                        }
+                        setOpen(true);
+                      }}
                     >
                       See Availability
                     </p>
@@ -704,7 +712,18 @@ export default function AdmissionCard() {
           </form>
         </div>
       </div>
-      <AvailabilityModal open={open} setOpen={setOpen} />
+      {formData?.instructor && (
+        <AvailabilityModal
+          open={open}
+          setOpen={setOpen}
+          bookedSlots={
+            Array.isArray(formData?.instructor?.bookedSlots)
+              ? formData?.instructor?.bookedSlots
+              : []
+          }
+          instructorAvailability={formData?.instructor?.availability}
+        />
+      )}
     </>
   );
 }
