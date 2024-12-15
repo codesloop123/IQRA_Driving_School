@@ -266,7 +266,7 @@ export default function Sidebar() {
                     ></i>{" "}
                     Students
                   </Link>
-                  <Link
+                  {/* <Link
                     className={
                       "text-xs uppercase py-3 font-bold block " +
                       (window.location.href.indexOf("/attendance") !== -1
@@ -284,7 +284,7 @@ export default function Sidebar() {
                       }
                     ></i>{" "}
                     Attendance
-                  </Link>
+                  </Link> */}
                 </li>
               )}
             </ul>
