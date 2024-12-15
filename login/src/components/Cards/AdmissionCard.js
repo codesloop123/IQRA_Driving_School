@@ -10,6 +10,7 @@ import AvailabilityModal from "components/Modals/AvailabilityModal";
 export default function AdmissionCard() {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+  const { registerLoading } = useSelector((state) => state.admission);
   const [open, setOpen] = useState(false);
   const { isInstructorLoading, instructors } = useSelector(
     (state) => state.instructor
@@ -717,10 +718,10 @@ export default function AdmissionCard() {
             <div className="flex justify-end items-center px-4 py-3">
               <button
                 type="submit"
-                disabled={isInstructorLoading}
+                disabled={registerLoading}
                 class="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
               >
-                {isInstructorLoading ? (
+                {registerLoading ? (
                   <svg
                     aria-hidden="true"
                     className="w-5 h-5 text-gray animate-spin dark:text-gray fill-white "
