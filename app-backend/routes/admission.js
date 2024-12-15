@@ -50,6 +50,7 @@ router.post("/add", async (req, res) => {
       paymentReceived,
       paymentInInstallments,
       remainingPayment,
+      discount,
       manager,
       status,
     } = req.body;
@@ -72,6 +73,7 @@ router.post("/add", async (req, res) => {
       !paymentReceived ||
       paymentInInstallments === undefined ||
       remainingPayment === undefined ||
+      discount === undefined ||
       !manager ||
       !status
     ) {
@@ -150,13 +152,14 @@ router.post("/add", async (req, res) => {
       courseTimeDuration,
       startDate,
       startTime,
-      endTime:courseEndTime,
+      endTime: courseEndTime,
       endDate,
       paymentMethod,
       totalPayment,
       paymentReceived,
       paymentInInstallments,
       remainingPayment,
+      discount,
       referenceNumber,
       manager,
       status,

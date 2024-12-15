@@ -39,6 +39,7 @@ export default function AdmissionCard() {
     remainingPayment: "",
     manager: user,
     status: true,
+    discount: "",
   });
   console.log(formData, "formData>>>>>>>>>>>>>");
   const handleChange = (e) => {
@@ -248,14 +249,20 @@ export default function AdmissionCard() {
     dispatch(fetchInstructors());
   }, []);
   useEffect(() => {
+    const discountedTotal = formData.discount
+      ? parseFloat(formData.totalPayment || 0) -
+        parseFloat(formData.totalPayment || 0) *
+          (parseFloat(formData.discount || 0) / 100)
+      : parseFloat(formData.totalPayment || 0);
     const remaining =
-      parseFloat(formData.totalPayment || 0) -
-      parseFloat(formData.paymentReceived || 0);
+      discountedTotal - parseFloat(formData.paymentReceived || 0);
+
     setFormData((prev) => ({
       ...prev,
       remainingPayment: remaining >= 0 ? remaining : 0,
     }));
-  }, [formData.totalPayment, formData.paymentReceived]);
+  }, [formData.totalPayment, formData.paymentReceived, formData.discount]);
+
   return (
     <>
       <div className="relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded-lg bg-blueGray-100 border-0">
@@ -661,7 +668,26 @@ export default function AdmissionCard() {
                   </div>
                 </div>
               </div>
-              <div className="w-full px-4">
+              <div className="w-full lg:w-4/12 px-4">
+                <div className="relative w-full mb-3">
+                  <label
+                    className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                    htmlFor="discount"
+                  >
+                    Discount
+                  </label>
+                  <input
+                    type="number"
+                    id="discount"
+                    name="discount"
+                    value={formData?.discount}
+                    placeholder="Enter discount"
+                    onChange={handleChange}
+                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                  />
+                </div>
+              </div>
+              <div className="w-full lg:w-4/12 px-4">
                 <div className="relative w-full mb-3">
                   <label
                     className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
@@ -679,6 +705,13 @@ export default function AdmissionCard() {
                     className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
                   />
                 </div>
+              </div>
+              <div className="w-full lg:w-4/12 px-4">
+                <p className="mt-8">
+                  Discounted Total:{" "}
+                  {formData.totalPayment -
+                    formData.totalPayment * (formData?.discount / 100) || 0}
+                </p>
               </div>
             </div>
             <div className="flex justify-end items-center px-4 py-3">
