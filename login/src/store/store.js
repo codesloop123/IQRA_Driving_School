@@ -8,13 +8,15 @@ import branchSlice from "./branch/branchSlice";
 import vehicleSlice from "./vehicle/vehicleSlice";
 import instructorSlice from "./instructor/instructorSlice";
 import admissionSlice from "./admission/admissionSlice";
+import attendanceSlice from "./attendance/attendanceSlice";
 import Admission from "views/admin/Admission";
 const reducers = combineReducers({
   auth: authSlice,
   branch: branchSlice,
   vehicle: vehicleSlice,
   instructor: instructorSlice,
-  admission: admissionSlice
+  admission: admissionSlice,
+  attendance: attendanceSlice,
 });
 
 const persistConfig = {

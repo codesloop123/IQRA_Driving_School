@@ -53,3 +53,23 @@ export const fetchAdmissions = createAsyncThunk(
     }
   }
 );
+
+// export const fetchFinances = createAsyncThunk(
+//   "finances/get",
+//   async (branch, { dispatch }) => {
+//     console.log("inside fetch>>>>>>>");
+//     try {
+//       dispatch(setRegisterLoader(true));
+//       const response = await axiosInstance.get(`/admissions/${branch}/finances`);
+      
+
+//       if (response.status) {
+//         dispatch(setAdmissions(response.data.admissions));
+//       }
+//     } catch (error) {
+//       toast.error(error.message);
+//     } finally {
+//       dispatch(setRegisterLoader(false));
+//     }
+//   }
+// );

@@ -1,4 +1,6 @@
 import AddBranches from "views/admin/AddBranches";
+import AddAttendance from "views/admin/AddAttendance";
+import Attendance from "views/admin/Attendance";
 import AddInstructor from "views/admin/AddInstructor";
 import AddManager from "views/admin/AddManager";
 import AddVehicle from "views/admin/AddVehicles";
@@ -12,6 +14,7 @@ import Managers from "views/admin/Managers";
 import Users from "views/admin/Users";
 import Finances from "views/admin/Finances";
 import Login from "views/auth/Login";
+
 
 let routes = [
   {
@@ -62,6 +65,20 @@ let routes = [
     component: Instructors,
     layout: "admin",
     isMenu: true,
+  },
+  {
+    path: "/attendance",
+    name: "Attendance",
+    component: Attendance,
+    layout: "admin",
+    isMenu: false,
+  },
+  {
+    path: "/add-attendance",
+    name: "Attendance",
+    component: AddAttendance,
+    layout: "admin",
+    isMenu: false,
   },
   {
     path: "/add-instructors",
