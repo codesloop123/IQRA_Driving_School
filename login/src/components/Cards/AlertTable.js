@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { FaCheckCircle } from "react-icons/fa";
 import { MdCancel } from "react-icons/md";
+import { IoIosArrowDown } from "react-icons/io";
+import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
+
 import { format } from "date-fns";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { useDispatch, useSelector } from "react-redux";
@@ -28,6 +31,9 @@ export default function AlertTable({ color, title }) {
       setIdx((idx) => Math.min(branches.length - 1, idx + 1));
     else if (action === "DECREMENT") setIdx((idx) => Math.max(0, idx - 1));
   };
+  const handleClick = (i) => {
+    setIdx(i); // Update the state with the clicked branch's index
+  };
   return (
     <>
       <div
@@ -48,7 +54,33 @@ export default function AlertTable({ color, title }) {
                 {title}
               </h3>
             </div>
-            <div className="mr-3">
+            <Menu as="div" className="relative inline-block text-left">
+              <div>
+                <MenuButton className="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-lightBlue-600">
+                  {branches[idx]?.name}
+                  <IoIosArrowDown aria-hidden="true" className="mt-1 ml-1" />
+                </MenuButton>
+              </div>
+
+              <MenuItems
+                transition
+                className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black/5 transition focus:outline-none data-[closed]:scale-95 data-[closed]:transform data-[closed]:opacity-0 data-[enter]:duration-100 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
+              >
+                <div className="py-1">
+                  {branches.map((branch, idx) => (
+                    <MenuItem>
+                      <button
+                        onClick={handleClick.bind(null, idx)}
+                        className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-gray-900 data-[focus]:outline-none"
+                      >
+                        {branch?.name}
+                      </button>
+                    </MenuItem>
+                  ))}
+                </div>
+              </MenuItems>
+            </Menu>
+            {/* <div className="mr-3">
               <h3
                 className={
                   "font-semibold text-md " +
@@ -57,7 +89,7 @@ export default function AlertTable({ color, title }) {
               >
                 Branch Name: {branches[idx]?.name}
               </h3>
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -307,24 +339,24 @@ export default function AlertTable({ color, title }) {
         )}
       </div>
       <div className="flex justify-between items-center">
-        {idx > 0 && (
-          <button
-            onClick={navigateButtonHandler.bind(null, "DECREMENT")}
-            class="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
-          >
-            Prev Branch
-          </button>
-        )}
-        <div className={idx < branches.length - 1 ? "block" : "w-[100px]"}>
-          {idx < branches.length - 1 && (
+        <div className={idx > 0 ? "block" : "w-[100px]"}>
+          {idx > 0 && (
             <button
-              onClick={navigateButtonHandler.bind(null, "INCREMENT")}
-              className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
+              onClick={navigateButtonHandler.bind(null, "DECREMENT")}
+              class="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
             >
-              Next Branch
+              Prev Branch
             </button>
           )}
         </div>
+        {idx < branches.length - 1 && (
+          <button
+            onClick={navigateButtonHandler.bind(null, "INCREMENT")}
+            className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
+          >
+            Next Branch
+          </button>
+        )}
       </div>
     </>
   );
