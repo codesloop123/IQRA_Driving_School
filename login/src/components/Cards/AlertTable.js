@@ -14,7 +14,7 @@ import {
 import { format } from "date-fns";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchBranches } from "store/branch/actions";
-import { fetchAlert, postAlert } from "store/alerts/actions";
+import { fetchAlert, patchAlert } from "store/alerts/actions";
 
 export default function AlertTable({ color, title }) {
   const dispatch = useDispatch();
@@ -22,9 +22,9 @@ export default function AlertTable({ color, title }) {
   const { isAlertLoading, alerts } = useSelector((state) => state.alert);
   const [idx, setIdx] = useState(0);
   const [inputValue, setInputValue] = useState(0);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
+
   const openModal = (row) => {
     setSelectedRow(row);
     setIsModalOpen(true);
@@ -43,10 +43,14 @@ export default function AlertTable({ color, title }) {
       dispatch(fetchAlert(branches[idx]));
     }
   }, [isbranchLoading, idx]);
+
   const handleFormSubmit = (event) => {
     event.preventDefault();
     dispatch(
-      postAlert({ newAmountReceived: inputValue, id: alerts[selectedRow]?._id })
+      patchAlert({
+        newAmountReceived: inputValue,
+        id: alerts[selectedRow]?._id,
+      })
     );
     closeModal();
   };
@@ -89,7 +93,7 @@ export default function AlertTable({ color, title }) {
 
               <MenuItems
                 transition
-                className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black/5 transition focus:outline-none data-[closed]:scale-95 data-[closed]:transform data-[closed]:opacity-0 data-[enter]:duration-100 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
+                className="absolute right-0 z-10 mt-2 w-56 mr-4 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black/5 transition focus:outline-none data-[closed]:scale-95 data-[closed]:transform data-[closed]:opacity-0 data-[enter]:duration-100 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
               >
                 <div className="py-1">
                   {branches.map((branch, idx) => (
@@ -110,7 +114,10 @@ export default function AlertTable({ color, title }) {
 
         <Dialog open={isModalOpen} onClose={closeModal}>
           <div className="fixed inset-0 flex items-center justify-center z-50">
-            <Dialog.Panel className="bg-white rounded-lg shadow-lg p-6 w-96">
+            <Dialog.Panel
+              style={{ width: "30vw", minWidth: "250px" }}
+              className="bg-white rounded-lg shadow-lg p-6"
+            >
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold">Update Price</h2>
               </div>
@@ -128,15 +135,27 @@ export default function AlertTable({ color, title }) {
                     id="pricePaid"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
-                    className="mt-2 block w-full border border-gray-300 rounded-md p-2"
+                    className="mt-2 block w-full border border-gray-300 rounded-md p-2 "
                     required
                   />
+                  {(0 > inputValue ||
+                    alerts[selectedRow]?.remainingPayment < inputValue) && (
+                    <p style={{ color: "#cf2b02" }}>
+                      Price can not be greater than
+                      {` ${alerts[selectedRow]?.remainingPayment} `}
+                      or less than 0
+                    </p>
+                  )}
                 </div>
 
                 <div className="mt-4 flex justify-end">
                   <button
                     type="submit"
                     className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
+                    disabled={
+                      0 > inputValue ||
+                      alerts[selectedRow]?.remainingPayment < inputValue
+                    }
                   >
                     Submit
                   </button>
@@ -401,7 +420,7 @@ export default function AlertTable({ color, title }) {
             </button>
           )}
         </div>
-        {idx < branches.length - 1 && (
+        {idx < branches?.length - 1 && (
           <button
             onClick={navigateButtonHandler.bind(null, "INCREMENT")}
             className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"

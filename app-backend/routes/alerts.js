@@ -21,7 +21,7 @@ router.get("/payments/:branch", async (req, res) => {
 });
 
 // Route to mark a payment as complete by updating amountReceived and remainingAmount
-router.post("/complete/:id", async (req, res) => {
+router.patch("/complete/:id", async (req, res) => {
   const { id } = req.params;
   const { newAmountReceived } = req.body; // New amount received during this payment
 
@@ -38,7 +38,8 @@ router.post("/complete/:id", async (req, res) => {
 
     // Calculate the updated total amount received
     const updatedAmountReceived =
-      admission.paymentReceived + Number(newAmountReceived);
+      admission.paymentReceived +
+      Math.max(Math.min(admission.totalPayment, Number(newAmountReceived)), 0); //basically keeps the payment in range
 
     // Calculate the remaining amount after the new payment
     const updatedRemainingAmount =
