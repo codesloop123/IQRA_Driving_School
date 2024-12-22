@@ -17,7 +17,7 @@ export const fetchAlert = createAsyncThunk(
         dispatch(setAlert(response.data));
       }
     } catch (error) {
-      console.log(error.message);
+      console.log(error);
       toast.error(error.message);
     } finally {
       dispatch(setAlertLoader(false));

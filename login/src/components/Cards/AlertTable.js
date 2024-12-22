@@ -1,28 +1,32 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import { FaEye } from "react-icons/fa";
+import { FaCheckCircle } from "react-icons/fa";
+import { MdCancel } from "react-icons/md";
+import { format } from "date-fns";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchBranches } from "store/branch/actions";
 import { deleteBranch } from "store/branch/actions";
 import { fetchAlert } from "store/alerts/actions";
+import { max } from "moment";
 export default function AlertTable({ color, title }) {
   const history = useHistory();
   const dispatch = useDispatch();
   const { isbranchLoading, branches } = useSelector((state) => state.branch);
-  const { isAlertLoading, alert } = useSelector((state) => state.alert);
-  console.log(alert);
+  const { isAlertLoading, alerts } = useSelector((state) => state.alert);
+  const [idx, setIdx] = useState(0);
+  console.log(idx <= 0);
   useEffect(() => {
     dispatch(fetchBranches());
   }, []);
-
   useEffect(() => {
-    if (!isbranchLoading) dispatch(fetchAlert(branches[0]));
-  }, [isbranchLoading]);
-  const handleDelete = (id) => {
-    dispatch(deleteBranch({ id })).then(() => {
-      dispatch(fetchBranches());
-    });
+    if (branches[idx] !== undefined) dispatch(fetchAlert(branches[idx]));
+  }, [isbranchLoading, idx]);
+
+  const navigateButtonHandler = (action) => {
+    if (action === "INCREMENT")
+      setIdx((idx) => Math.min(branches.length - 1, idx + 1));
+    else if (action === "DECREMENT") setIdx((idx) => Math.max(0, idx - 1));
   };
   return (
     <>
@@ -44,9 +48,20 @@ export default function AlertTable({ color, title }) {
                 {title}
               </h3>
             </div>
+            <div className="mr-3">
+              <h3
+                className={
+                  "font-semibold text-md " +
+                  (color === "light" ? "text-blueGray-700" : "text-white")
+                }
+              >
+                Branch Name: {branches[idx]?.name}
+              </h3>
+            </div>
           </div>
         </div>
-        {isbranchLoading ? (
+
+        {isAlertLoading ? (
           <div className="flex justify-center items-center py-10">
             <svg
               aria-hidden="true"
@@ -68,79 +83,248 @@ export default function AlertTable({ color, title }) {
         ) : (
           <div className="block w-full overflow-x-auto">
             {/* Projects table */}
-            <table className="items-center w-full bg-transparent border-collapse">
-              <thead>
-                <tr>
-                  <th
-                    className={
-                      "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
-                      (color === "light"
-                        ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
-                        : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
-                    }
-                  >
-                    #ID
-                  </th>
-                  <th
-                    className={
-                      "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
-                      (color === "light"
-                        ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
-                        : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
-                    }
-                  >
-                    Name
-                  </th>
-                  <th
-                    className={
-                      "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
-                      (color === "light"
-                        ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
-                        : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
-                    }
-                  >
-                    View
-                  </th>
-                  <th
-                    className={
-                      "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
-                      (color === "light"
-                        ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
-                        : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
-                    }
-                  >
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {branches.map((branch, index) => (
-                  <tr key={index}>
-                    <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                      {branch._id}
-                    </td>
-                    <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                      {branch.name}
-                    </td>
-                    <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                      <FaEye className="w-5 h-5 text-lightBlue-600 cursor-pointer" />
-                    </td>
-                    <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                      <button
-                        onClick={() => handleDelete(branch?._id)}
-                        className={`py-2 px-4 rounded text-white font-bold 
-                      bg-red-400  
-                      `}
-                      >
-                        Delete
-                      </button>
-                    </td>
+
+            {alerts?.length > 0 && (
+              <table className="items-center w-full bg-transparent border-collapse">
+                <thead>
+                  <tr>
+                    <th
+                      className={
+                        "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
+                        (color === "light"
+                          ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                          : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
+                      }
+                    >
+                      Name
+                    </th>
+
+                    <th
+                      className={
+                        "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
+                        (color === "light"
+                          ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                          : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
+                      }
+                    >
+                      CNIC
+                    </th>
+                    <th
+                      className={
+                        "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
+                        (color === "light"
+                          ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                          : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
+                      }
+                    >
+                      instructor
+                    </th>
+                    <th
+                      className={
+                        "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
+                        (color === "light"
+                          ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                          : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
+                      }
+                    >
+                      Payment Method
+                    </th>
+                    <th
+                      className={
+                        "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
+                        (color === "light"
+                          ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                          : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
+                      }
+                    >
+                      Duration
+                    </th>
+                    <th
+                      className={
+                        "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
+                        (color === "light"
+                          ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                          : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
+                      }
+                    >
+                      Time Duration/Day
+                    </th>
+                    <th
+                      className={
+                        "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
+                        (color === "light"
+                          ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                          : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
+                      }
+                    >
+                      Total Payment
+                    </th>
+                    <th
+                      className={
+                        "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
+                        (color === "light"
+                          ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                          : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
+                      }
+                    >
+                      Recieved Payment
+                    </th>
+                    <th
+                      className={
+                        "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
+                        (color === "light"
+                          ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                          : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
+                      }
+                    >
+                      Remaining Payment
+                    </th>
+                    <th
+                      className={
+                        "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
+                        (color === "light"
+                          ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                          : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
+                      }
+                    >
+                      Manager
+                    </th>
+                    <th
+                      className={
+                        "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
+                        (color === "light"
+                          ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                          : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
+                      }
+                    >
+                      Start Date
+                    </th>
+                    <th
+                      className={
+                        "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
+                        (color === "light"
+                          ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                          : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
+                      }
+                    >
+                      End Date
+                    </th>
+                    <th
+                      className={
+                        "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
+                        (color === "light"
+                          ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                          : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
+                      }
+                    >
+                      Payment In Installments
+                    </th>
+                    <th
+                      className={
+                        "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
+                        (color === "light"
+                          ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                          : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
+                      }
+                    >
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {alerts.map((alert, index) => (
+                    <tr key={index}>
+                      <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        {alert?.firstName}
+                      </td>
+                      <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        {alert?.cnic}
+                      </td>
+                      <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        {alert?.instructor?.name}
+                      </td>
+                      <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        {alert?.paymentMethod}
+                      </td>
+                      <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        {alert?.courseduration}
+                      </td>
+                      <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        {alert?.courseTimeDuration}
+                      </td>
+                      <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        {alert?.totalPayment}
+                      </td>
+                      <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        {alert?.paymentReceived}
+                      </td>
+                      <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        {alert?.remainingPayment}
+                      </td>
+                      <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        {alert?.manager?.name}
+                      </td>
+                      <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        {format(new Date(alert?.startDate), "MM/dd/yyyy")}
+                      </td>
+                      <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        {format(new Date(alert?.endDate), "MM/dd/yyyy")}
+                      </td>
+                      <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        {alert?.paymentInInstallments ? (
+                          <div className="flex justify-center items-center">
+                            <FaCheckCircle className="w-5 h-5 text-center text-emerald-500" />
+                          </div>
+                        ) : (
+                          <div className="flex justify-center items-center">
+                            <MdCancel className="w-5 h-5 text-center text-red-500" />
+                          </div>
+                        )}
+                      </td>
+                      <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        <button
+                          className={`py-2 px-4 rounded text-white font-bold
+                      bg-lightBlue-600 
+                      `}
+                        >
+                          Free Slots
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+            {alerts?.length === 0 && (
+              <p
+                style={{ fontStyle: "italic" }}
+                className="text-gray-400 text-center py-4"
+              >
+                No Alerts Available
+              </p>
+            )}
           </div>
         )}
+      </div>
+      <div className="flex justify-between items-center">
+        {idx > 0 && (
+          <button
+            onClick={navigateButtonHandler.bind(null, "DECREMENT")}
+            class="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
+          >
+            Prev Branch
+          </button>
+        )}
+        <div className={idx < branches.length - 1 ? "block" : "w-[100px]"}>
+          {idx < branches.length - 1 && (
+            <button
+              onClick={navigateButtonHandler.bind(null, "INCREMENT")}
+              className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
+            >
+              Next Branch
+            </button>
+          )}
+        </div>
       </div>
     </>
   );

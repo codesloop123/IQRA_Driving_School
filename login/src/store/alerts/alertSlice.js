@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
-  admissions: [],
-  registerLoading: false,
+  alerts: [],
+  isAlertLoading: false,
 };
 
 const alertSlice = createSlice({
@@ -9,10 +9,10 @@ const alertSlice = createSlice({
   initialState,
   reducers: {
     setAlertLoader: (state, action) => {
-      state.registerLoading = action.payload;
+      state.isAlertLoading = action.payload;
     },
     setAlert: (state, action) => {
-      state.admissions = action.payload;
+      state.alerts = action.payload;
     },
   },
 });
