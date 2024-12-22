@@ -4,6 +4,7 @@ import AddManager from "views/admin/AddManager";
 import AddVehicle from "views/admin/AddVehicles";
 import Admission from "views/admin/Admission";
 import Admissions from "views/admin/Admissions";
+import Alert from "views/admin/Alert";
 import Branches from "views/admin/Branches";
 import Cars from "views/admin/Cars";
 import Dashboard from "views/admin/Dashboard";
@@ -24,6 +25,13 @@ let routes = [
     path: "/branches",
     component: Branches,
     name: "Branches",
+    layout: "admin",
+    isMenu: true,
+  },
+  {
+    path: "/alert",
+    component: Alert,
+    name: "Alert",
     layout: "admin",
     isMenu: true,
   },
