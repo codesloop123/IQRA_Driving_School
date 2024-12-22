@@ -102,7 +102,7 @@ export default function Sidebar() {
                     <Link
                       className={
                         "text-xs uppercase py-3 font-bold block " +
-                        (window.location.href.indexOf("/branches") !== -1
+                        (window.location.href.indexOf("/alert") !== -1
                           ? "text-lightBlue-500 hover:text-lightBlue-600"
                           : "text-blueGray-700 hover:text-blueGray-500")
                       }
@@ -110,7 +110,7 @@ export default function Sidebar() {
                     >
                       <i
                         className={
-                          "fas fa-circle-exclamation mr-2 text-sm" +
+                          "fas fa-bell mr-2 text-sm" +
                           (window.location.href.indexOf("/alert") !== -1
                             ? "opacity-75"
                             : "text-blueGray-300")
