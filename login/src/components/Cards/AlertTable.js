@@ -3,28 +3,53 @@ import PropTypes from "prop-types";
 import { FaCheckCircle } from "react-icons/fa";
 import { MdCancel } from "react-icons/md";
 import { IoIosArrowDown } from "react-icons/io";
-import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
+import {
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuItems,
+  Dialog,
+} from "@headlessui/react";
 
 import { format } from "date-fns";
-import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchBranches } from "store/branch/actions";
-import { deleteBranch } from "store/branch/actions";
-import { fetchAlert } from "store/alerts/actions";
-import { max } from "moment";
+import { fetchAlert, postAlert } from "store/alerts/actions";
+
 export default function AlertTable({ color, title }) {
-  const history = useHistory();
   const dispatch = useDispatch();
   const { isbranchLoading, branches } = useSelector((state) => state.branch);
   const { isAlertLoading, alerts } = useSelector((state) => state.alert);
   const [idx, setIdx] = useState(0);
-  console.log(idx <= 0);
+  const [inputValue, setInputValue] = useState(0);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedRow, setSelectedRow] = useState(null);
+  const openModal = (row) => {
+    setSelectedRow(row);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedRow(null);
+  };
+
   useEffect(() => {
     dispatch(fetchBranches());
   }, []);
   useEffect(() => {
-    if (branches[idx] !== undefined) dispatch(fetchAlert(branches[idx]));
+    if (branches[idx] !== undefined) {
+      dispatch(fetchAlert(branches[idx]));
+    }
   }, [isbranchLoading, idx]);
+  const handleFormSubmit = (event) => {
+    event.preventDefault();
+    dispatch(
+      postAlert({ newAmountReceived: inputValue, id: alerts[selectedRow]?._id })
+    );
+    closeModal();
+  };
 
   const navigateButtonHandler = (action) => {
     if (action === "INCREMENT")
@@ -54,7 +79,7 @@ export default function AlertTable({ color, title }) {
                 {title}
               </h3>
             </div>
-            <Menu as="div" className="relative inline-block text-left">
+            <Menu as="div" className="relative inline-block text-left pr-4">
               <div>
                 <MenuButton className="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-lightBlue-600">
                   {branches[idx]?.name}
@@ -68,7 +93,7 @@ export default function AlertTable({ color, title }) {
               >
                 <div className="py-1">
                   {branches.map((branch, idx) => (
-                    <MenuItem>
+                    <MenuItem key={idx}>
                       <button
                         onClick={handleClick.bind(null, idx)}
                         className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-gray-900 data-[focus]:outline-none"
@@ -80,19 +105,46 @@ export default function AlertTable({ color, title }) {
                 </div>
               </MenuItems>
             </Menu>
-            {/* <div className="mr-3">
-              <h3
-                className={
-                  "font-semibold text-md " +
-                  (color === "light" ? "text-blueGray-700" : "text-white")
-                }
-              >
-                Branch Name: {branches[idx]?.name}
-              </h3>
-            </div> */}
           </div>
         </div>
 
+        <Dialog open={isModalOpen} onClose={closeModal}>
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <Dialog.Panel className="bg-white rounded-lg shadow-lg p-6 w-96">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">Update Price</h2>
+              </div>
+
+              <form onSubmit={handleFormSubmit}>
+                <div className="mb-4">
+                  <label
+                    htmlFor="pricePaid"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Price Paid
+                  </label>
+                  <input
+                    type="number"
+                    id="pricePaid"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    className="mt-2 block w-full border border-gray-300 rounded-md p-2"
+                    required
+                  />
+                </div>
+
+                <div className="mt-4 flex justify-end">
+                  <button
+                    type="submit"
+                    className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
+                  >
+                    Submit
+                  </button>
+                </div>
+              </form>
+            </Dialog.Panel>
+          </div>
+        </Dialog>
         {isAlertLoading ? (
           <div className="flex justify-center items-center py-10">
             <svg
@@ -315,11 +367,11 @@ export default function AlertTable({ color, title }) {
                       </td>
                       <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                         <button
-                          className={`py-2 px-4 rounded text-white font-bold
-                      bg-lightBlue-600 
+                          className={`py-2 px-4 rounded text-white font-bold bg-lightBlue-600 
                       `}
+                          onClick={openModal.bind(null, index)}
                         >
-                          Free Slots
+                          Update Payment
                         </button>
                       </td>
                     </tr>

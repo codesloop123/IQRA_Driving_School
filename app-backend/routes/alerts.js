@@ -13,7 +13,6 @@ router.get("/payments/:branch", async (req, res) => {
       remainingPayment: { $gt: 0 },
       endDate: { $gte: today },
     });
-    console.log(admissions);
     res.status(200).json(admissions);
   } catch (error) {
     console.error("Error fetching payment alerts:", error);
@@ -35,22 +34,23 @@ router.post("/complete/:id", async (req, res) => {
     }
 
     console.log(`New amount received: ${newAmountReceived}`);
-    console.log(`Previous amount received: ${admission.amountReceived}`);
+    console.log(`Previous amount received: ${admission.paymentReceived}`);
 
     // Calculate the updated total amount received
-    const updatedAmountReceived = admission.amountReceived + newAmountReceived;
+    const updatedAmountReceived =
+      admission.paymentReceived + Number(newAmountReceived);
 
     // Calculate the remaining amount after the new payment
     const updatedRemainingAmount =
-      admission.totalAmount - updatedAmountReceived;
+      admission.totalPayment - updatedAmountReceived;
 
     // Log the calculated values to check them
     console.log(`Updated total amount received: ${updatedAmountReceived}`);
     console.log(`Updated remaining amount: ${updatedRemainingAmount}`);
 
     // Update the admission with new values
-    admission.amountReceived = updatedAmountReceived;
-    admission.remainingAmount =
+    admission.paymentReceived = updatedAmountReceived;
+    admission.remainingPayment =
       updatedRemainingAmount > 0 ? updatedRemainingAmount : 0;
 
     // Save the updated admission
