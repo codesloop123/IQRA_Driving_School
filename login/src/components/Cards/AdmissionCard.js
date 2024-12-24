@@ -6,6 +6,8 @@ import { format, parse } from "date-fns";
 import { postAdmission } from "store/admission/actions";
 import { toast } from "react-toastify";
 import AvailabilityModal from "components/Modals/AvailabilityModal";
+import { PDFDocument, rgb } from 'pdf-lib';
+import { saveAs } from 'file-saver';
 
 export default function AdmissionCard() {
   const dispatch = useDispatch();
@@ -64,7 +66,8 @@ export default function AdmissionCard() {
         return;
       }
       setTimeError("");
-      const selectedTime = format(parse(value, "HH:mm", new Date()), "hh:mm");
+      // Change this line to use "HH:mm" instead of "hh:mm"
+      const selectedTime = format(parse(value, "HH:mm", new Date()), "HH:mm");
       console.log(selectedTime, "selectedTime>>>>>>>>>>>>>");
       const { instructor } = formData;
       if (instructor) {
@@ -195,6 +198,67 @@ export default function AdmissionCard() {
     }
     return true;
   };
+
+  async function fillPdf() {
+    try {
+      // Load the existing PDF file from the public folder
+      const response = await fetch('../../assets/pdf/admissionForm.pdf');
+      const existingPdfBytes = await response.arrayBuffer(); // Read the file as an ArrayBuffer
+    
+      // Load the PDFDocument
+      const pdfDoc = await PDFDocument.load(existingPdfBytes);
+    
+      // Get the first page of the PDF
+      const pages = pdfDoc.getPages();
+      const firstPage = pages[0];
+    
+      const { firstName, lastName, fatherName, cnic, dob, cellNumber, address, totalPayment, startDate } = formData;
+    
+      const name = firstName + " " + lastName;
+      const education = "--";  // No field for education
+      const currentTime = new Date();
+      const time = `${currentTime.getHours()}:${currentTime.getMinutes()}`;
+      const date = `${currentTime.getDate().toString().padStart(2, '0')}-${(currentTime.getMonth() + 1).toString().padStart(2, '0')}-${currentTime.getFullYear()}`;
+    
+      // Define the data and positions
+      const data = {
+        "D/o,W/o,S/o": { x: 110, y: 604, value: fatherName },
+        "Name": { x: 395, y: 603, value: name },
+        "DOB": { x: 380, y: 568, value: dob },
+        "CNIC": { x: 95, y: 568, value: cnic },
+        "Ph#": { x: 55, y: 536, value: cellNumber },
+        "Cell": { x: 217, y: 534, value: cellNumber },
+        "Education": { x: 440, y: 534, value: education },
+        "Address": { x: 90, y: 507, value: address },
+        "Fee": { x: 55, y: 476, value: totalPayment },
+        "Time": { x: 150, y: 476, value: time },
+        "S.Date": { x: 305, y: 476, value: startDate },
+        "Date": { x: 460, y: 476, value: date },
+      };
+    
+      // Add text to the appropriate fields on the first page
+      for (const [field, { x, y, value }] of Object.entries(data)) {
+        firstPage.drawText(value, {
+          x,
+          y,
+          size: 12,
+          color: rgb(0, 0, 0),
+        });
+      }
+    
+      // Save the updated PDF
+      const pdfBytes = await pdfDoc.save();
+    
+      // Using FileSaver.js to trigger the download
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      saveAs(blob, 'admissionForm(filled).pdf');
+      console.log("PDF filled and download initiated.");
+    
+    } catch (error) {
+      console.error("Error filling PDF:", error);
+    }
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log(formData, "submitted Data>>>>>>>>>");
@@ -212,6 +276,7 @@ export default function AdmissionCard() {
       toast.error("Instructor is already booked at this time.");
       return;
     }
+    fillPdf();
     dispatch(postAdmission({ formData }))
       .then((response) => {
         if (response.meta.requestStatus === "fulfilled") {
