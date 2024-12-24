@@ -6,7 +6,7 @@ import { format, parse } from "date-fns";
 import { postAdmission } from "store/admission/actions";
 import { toast } from "react-toastify";
 import AvailabilityModal from "components/Modals/AvailabilityModal";
-import { PDFDocument, rgb } from 'pdf-lib';
+import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { saveAs } from 'file-saver';
 import admissionFormPdf from '../../assets/pdf/admissionForm.pdf';
 
@@ -200,7 +200,7 @@ export default function AdmissionCard() {
     return true;
   };
 
-  async function fillPdf() {
+  async function createAdmissionPdf() {
     try {
       // Load the existing PDF file from the public folder
       const response = await fetch(admissionFormPdf);
@@ -257,10 +257,124 @@ export default function AdmissionCard() {
       // Using FileSaver.js to trigger the download
       const blob = new Blob([pdfBytes], { type: 'application/pdf' });
       saveAs(blob, 'admissionForm(filled).pdf');
-      console.log("PDF filled and download initiated.");
+      console.log("Admission PDF filled and download initiated.");
     
     } catch (error) {
       console.error("Error filling PDF:", error);
+    }
+  }
+
+  async function createInvoicePdf() {
+    try {
+      // Extract invoice data
+      const { totalPayment, discount, paymentReceived, remainingPayment } =
+        formData;
+      const netPayment = totalPayment - ((totalPayment)*(discount/100));
+  
+      // Create a new PDF document
+      const pdfDoc = await PDFDocument.create();
+      const page = pdfDoc.addPage([400, 600]); // A6 page size
+  
+      // Load fonts
+      const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+      const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  
+      // Define colors and font sizes
+      const black = rgb(0, 0, 0);
+      const headerFontSize = 16;
+      const fieldFontSize = 12;
+      const lineSpacing = 20;
+  
+      let yPosition = 550; // Start at the top of the page
+  
+      // Add Header
+      const pageWidth = 400; // Width of the page (example: A6 size, 400 points)
+  
+      // Draw "IQRA Driving School"
+      const text1 = "IQRA Driving School";
+      const text1Width = boldFont.widthOfTextAtSize(text1, headerFontSize);
+      page.drawText(text1, {
+        x: (pageWidth - text1Width) / 2, // Center align
+        y: yPosition,
+        size: headerFontSize,
+        font: boldFont,
+        color: black,
+      });
+      yPosition -= lineSpacing;
+  
+      // Draw "INVOICE"
+      const text2 = "INVOICE";
+      const text2Width = boldFont.widthOfTextAtSize(text2, headerFontSize);
+      page.drawText(text2, {
+        x: (pageWidth - text2Width) / 2, // Center align
+        y: yPosition,
+        size: headerFontSize,
+        font: boldFont,
+        color: black,
+      });
+      yPosition -= lineSpacing * 2;
+  
+      // Add Invoice Fields
+      const fields = [
+        { label: "Reference ID", value: "INV123456" },
+        { label: "Total Payment (Without Discount)", value: totalPayment.toString() },
+        { label: "Discount", value: discount.toString() },
+        { label: "Net Payment (With Discount)", value: netPayment.toString() },
+        { label: "Payment Received", value: paymentReceived.toString() },
+        { label: "Payment Remaining", value: remainingPayment.toString() },
+      ];
+  
+      // Draw fields with bold labels
+      fields.forEach(({ label, value }) => {
+        // Draw Label (Bold)
+        page.drawText(`${label}:`, {
+          x: 50,
+          y: yPosition,
+          size: fieldFontSize,
+          font: boldFont, // Use bold font for label
+          color: black,
+        });
+  
+        // Draw Value (Regular)
+        page.drawText(value, {
+          x: 300, // Align value next to the label
+          y: yPosition,
+          size: fieldFontSize,
+          font: regularFont, // Use regular font for value
+          color: black,
+        });
+  
+        yPosition -= lineSpacing; // Move to the next line
+      });
+  
+      // Add Footer
+      page.drawText("Thank you for your payment!", {
+        x: 50,
+        y: 50, // Footer position
+        size: fieldFontSize,
+        font: regularFont,
+        color: black,
+      });
+  
+      // Save the PDF
+      const pdfBytes = await pdfDoc.save();
+  
+      // Trigger download
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      saveAs(blob, 'Invoice.pdf');
+      console.log("Invoice PDF created successfully!");
+    } catch (error) {
+      console.error("Error creating invoice PDF:", error);
+    }
+  }
+
+  async function generateAndDownloadPdfs() {
+    try {
+      // Ensure fillPdf completes before starting createInvoicePdf
+      await createAdmissionPdf();
+      await createInvoicePdf();
+    } catch (error) {
+      console.error("Error generating PDFs:", error);
     }
   }
 
@@ -281,7 +395,7 @@ export default function AdmissionCard() {
       toast.error("Instructor is already booked at this time.");
       return;
     }
-    fillPdf();
+    generateAndDownloadPdfs();
     dispatch(postAdmission({ formData }))
       .then((response) => {
         if (response.meta.requestStatus === "fulfilled") {
