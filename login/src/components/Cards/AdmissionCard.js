@@ -7,8 +7,8 @@ import { postAdmission } from "store/admission/actions";
 import { toast } from "react-toastify";
 import AvailabilityModal from "components/Modals/AvailabilityModal";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-import { saveAs } from 'file-saver';
-import admissionFormPdf from '../../assets/pdf/admissionForm.pdf';
+import { saveAs } from "file-saver";
+import admissionFormPdf from "../../assets/pdf/admissionForm.pdf";
 
 export default function AdmissionCard() {
   const dispatch = useDispatch();
@@ -200,30 +200,106 @@ export default function AdmissionCard() {
     return true;
   };
 
+  // async function createAdmissionPdf() {
+  //   try {
+  //     // Load the existing PDF file from the public folder
+  //     const response = await fetch(admissionFormPdf);
+  //     if (!response.ok) {
+  //     throw new Error(`Failed to fetch PDF. Status: ${response.status}`);
+  //     }
+  //     const existingPdfBytes = await response.arrayBuffer(); // Read the file as an ArrayBuffer
+
+  //     // Load the PDFDocument
+  //     const pdfDoc = await PDFDocument.load(existingPdfBytes);
+
+  //     // Get the first page of the PDF
+  //     const pages = pdfDoc.getPages();
+  //     const firstPage = pages[0];
+
+  //     const { firstName, lastName, fatherName, cnic, dob, cellNumber, address, totalPayment, startDate } = formData;
+
+  //     const name = firstName + " " + lastName;
+  //     const education = "--";  // No field for education
+  //     const currentTime = new Date();
+  //     const time = `${currentTime.getHours()}:${currentTime.getMinutes()}`;
+  //     const date = `${currentTime.getDate().toString().padStart(2, '0')}-${(currentTime.getMonth() + 1).toString().padStart(2, '0')}-${currentTime.getFullYear()}`;
+
+  //     // Define the data and positions
+  //     const data = {
+  //       "D/o,W/o,S/o": { x: 110, y: 604, value: fatherName.toString() },
+  //       "Name": { x: 395, y: 603, value: name.toString() },
+  //       "DOB": { x: 380, y: 568, value: dob.toString() },
+  //       "CNIC": { x: 95, y: 568, value: cnic.toString() },
+  //       "Ph#": { x: 55, y: 536, value: cellNumber.toString() },
+  //       "Cell": { x: 217, y: 534, value: cellNumber.toString() },
+  //       "Education": { x: 440, y: 534, value: education.toString() },
+  //       "Address": { x: 90, y: 507, value: address.toString() },
+  //       "Fee": { x: 55, y: 476, value: totalPayment.toString() },
+  //       "Time": { x: 150, y: 476, value: time.toString() },
+  //       "S.Date": { x: 305, y: 476, value: startDate.toString() },
+  //       "Date": { x: 460, y: 476, value: date.toString() },
+  //     };
+
+  //     // Add text to the appropriate fields on the first page
+  //     for (const [field, { x, y, value }] of Object.entries(data)) {
+  //       firstPage.drawText(value, {
+  //         x,
+  //         y,
+  //         size: 12,
+  //         color: rgb(0, 0, 0),
+  //       });
+  //     }
+
+  //     // Save the updated PDF
+  //     const pdfBytes = await pdfDoc.save();
+
+  //     // Using FileSaver.js to trigger the download
+  //     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+  //     saveAs(blob, 'admissionForm(filled).pdf');
+  //     console.log("Admission PDF filled and download initiated.");
+
+  //   } catch (error) {
+  //     console.error("Error filling PDF:", error);
+  //   }
+  // }
   async function createAdmissionPdf() {
     try {
       // Load the existing PDF file from the public folder
       const response = await fetch(admissionFormPdf);
       if (!response.ok) {
-      throw new Error(`Failed to fetch PDF. Status: ${response.status}`);
+        throw new Error(`Failed to fetch PDF. Status: ${response.status}`);
       }
       const existingPdfBytes = await response.arrayBuffer(); // Read the file as an ArrayBuffer
-    
+
       // Load the PDFDocument
       const pdfDoc = await PDFDocument.load(existingPdfBytes);
-    
+
       // Get the first page of the PDF
       const pages = pdfDoc.getPages();
       const firstPage = pages[0];
-    
-      const { firstName, lastName, fatherName, cnic, dob, cellNumber, address, totalPayment, startDate } = formData;
-    
+
+      const {
+        firstName,
+        lastName,
+        fatherName,
+        cnic,
+        dob,
+        cellNumber,
+        address,
+        totalPayment,
+        startDate,
+      } = formData;
+
       const name = firstName + " " + lastName;
-      const education = "--";  // No field for education
+      const education = "--"; // No field for education
       const currentTime = new Date();
       const time = `${currentTime.getHours()}:${currentTime.getMinutes()}`;
-      const date = `${currentTime.getDate().toString().padStart(2, '0')}-${(currentTime.getMonth() + 1).toString().padStart(2, '0')}-${currentTime.getFullYear()}`;
-    
+      const date = `${currentTime.getDate().toString().padStart(2, "0")}-${(
+        currentTime.getMonth() + 1
+      )
+        .toString()
+        .padStart(2, "0")}-${currentTime.getFullYear()}`;
+
       // Define the data and positions
       const data = {
         "D/o,W/o,S/o": { x: 110, y: 604, value: fatherName.toString() },
@@ -238,9 +314,9 @@ export default function AdmissionCard() {
         "Time": { x: 150, y: 476, value: time.toString() },
         "S.Date": { x: 305, y: 476, value: startDate.toString() },
         "Date": { x: 460, y: 476, value: date.toString() },
+        "Ref":{ x: 75, y:643, value: "REFNUMBR123" },
       };
-      
-    
+
       // Add text to the appropriate fields on the first page
       for (const [field, { x, y, value }] of Object.entries(data)) {
         firstPage.drawText(value, {
@@ -250,15 +326,14 @@ export default function AdmissionCard() {
           color: rgb(0, 0, 0),
         });
       }
-    
+
       // Save the updated PDF
       const pdfBytes = await pdfDoc.save();
-    
+
       // Using FileSaver.js to trigger the download
-      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-      saveAs(blob, 'admissionForm(filled).pdf');
+      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      saveAs(blob, "admissionForm(filled).pdf");
       console.log("Admission PDF filled and download initiated.");
-    
     } catch (error) {
       console.error("Error filling PDF:", error);
     }
@@ -269,27 +344,27 @@ export default function AdmissionCard() {
       // Extract invoice data
       const { totalPayment, discount, paymentReceived, remainingPayment } =
         formData;
-      const netPayment = totalPayment - ((totalPayment)*(discount/100));
-  
+      const netPayment = totalPayment - totalPayment * (discount / 100);
+
       // Create a new PDF document
       const pdfDoc = await PDFDocument.create();
       const page = pdfDoc.addPage([400, 600]); // A6 page size
-  
+
       // Load fonts
       const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
       const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  
+
       // Define colors and font sizes
       const black = rgb(0, 0, 0);
       const headerFontSize = 16;
       const fieldFontSize = 12;
       const lineSpacing = 20;
-  
+
       let yPosition = 550; // Start at the top of the page
-  
+
       // Add Header
       const pageWidth = 400; // Width of the page (example: A6 size, 400 points)
-  
+
       // Draw "IQRA Driving School"
       const text1 = "IQRA Driving School";
       const text1Width = boldFont.widthOfTextAtSize(text1, headerFontSize);
@@ -301,7 +376,7 @@ export default function AdmissionCard() {
         color: black,
       });
       yPosition -= lineSpacing;
-  
+
       // Draw "INVOICE"
       const text2 = "INVOICE";
       const text2Width = boldFont.widthOfTextAtSize(text2, headerFontSize);
@@ -313,17 +388,20 @@ export default function AdmissionCard() {
         color: black,
       });
       yPosition -= lineSpacing * 2;
-  
+
       // Add Invoice Fields
       const fields = [
-        { label: "Reference ID", value: "INV123456" },
-        { label: "Total Payment (Without Discount)", value: totalPayment.toString() },
+        { label: "Reference ID", value: "REFNUMBR123" },
+        {
+          label: "Total Payment (Without Discount)",
+          value: totalPayment.toString(),
+        },
         { label: "Discount", value: discount.toString() },
         { label: "Net Payment (With Discount)", value: netPayment.toString() },
         { label: "Payment Received", value: paymentReceived.toString() },
         { label: "Payment Remaining", value: remainingPayment.toString() },
       ];
-  
+
       // Draw fields with bold labels
       fields.forEach(({ label, value }) => {
         // Draw Label (Bold)
@@ -334,7 +412,7 @@ export default function AdmissionCard() {
           font: boldFont, // Use bold font for label
           color: black,
         });
-  
+
         // Draw Value (Regular)
         page.drawText(value, {
           x: 300, // Align value next to the label
@@ -343,10 +421,10 @@ export default function AdmissionCard() {
           font: regularFont, // Use regular font for value
           color: black,
         });
-  
+
         yPosition -= lineSpacing; // Move to the next line
       });
-  
+
       // Add Footer
       page.drawText("Thank you for your payment!", {
         x: 50,
@@ -355,14 +433,31 @@ export default function AdmissionCard() {
         font: regularFont,
         color: black,
       });
-  
+
       // Save the PDF
       const pdfBytes = await pdfDoc.save();
-  
-      // Trigger download
-      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-      saveAs(blob, 'Invoice.pdf');
-      console.log("Invoice PDF created successfully!");
+      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      const pdfUrl = URL.createObjectURL(blob);
+
+      // Create and load the iframe
+
+      const iframe = document.createElement("iframe");
+      iframe.src = pdfUrl;
+      iframe.style.position = "fixed";
+      iframe.style.top = "0";
+      iframe.style.left = "0";
+      iframe.style.width = "0";
+      iframe.style.height = "0";
+      iframe.style.border = "none";
+
+      document.body.appendChild(iframe);
+
+      iframe.onload = () => {
+        iframe.contentWindow?.focus();
+        iframe.contentWindow?.print();
+      };
+
+      console.log("Print dialog for the generated PDF is displayed.");
     } catch (error) {
       console.error("Error creating invoice PDF:", error);
     }
@@ -396,9 +491,10 @@ export default function AdmissionCard() {
       return;
     }
     generateAndDownloadPdfs();
-    dispatch(postAdmission({ formData }))
-      .then((response) => {
-        if (response.meta.requestStatus === "fulfilled") {
+    dispatch( postAdmission({ formData }))
+    .then((response) => {
+      console.log(response.data.refNumber);
+      if (response.meta.requestStatus === "fulfilled") {
           setError("");
           setTimeError("");
           setDobError("");
@@ -429,7 +525,7 @@ export default function AdmissionCard() {
       .catch((error) => {
         console.error("Submission failed:", error);
       });
-  };
+    };
   useEffect(() => {
     dispatch(fetchInstructors());
   }, []);

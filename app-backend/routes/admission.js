@@ -170,6 +170,7 @@ router.post("/add", async (req, res) => {
       status: true,
       message: "Admission booked successfully.",
       bookedSlots,
+      refNumber: admission.referenceNumber
     });
   } catch (error) {
     console.error("Error adding admission:", error);

@@ -2,6 +2,8 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import axiosInstance from "axiosInstance";
 import { toast } from "react-toastify";
 import { setAdmissions, setRegisterLoader } from "./admissionSlice";
+
+
 export const postAdmission = createAsyncThunk(
   "admission/post",
   async ({ formData }, { dispatch, rejectWithValue }) => {
