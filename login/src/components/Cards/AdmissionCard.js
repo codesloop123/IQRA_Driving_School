@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 import AvailabilityModal from "components/Modals/AvailabilityModal";
 import { PDFDocument, rgb } from 'pdf-lib';
 import { saveAs } from 'file-saver';
+import admissionFormPdf from '../../assets/pdf/admissionForm.pdf';
 
 export default function AdmissionCard() {
   const dispatch = useDispatch();
@@ -202,7 +203,10 @@ export default function AdmissionCard() {
   async function fillPdf() {
     try {
       // Load the existing PDF file from the public folder
-      const response = await fetch('../../assets/pdf/admissionForm.pdf');
+      const response = await fetch(admissionFormPdf);
+      if (!response.ok) {
+      throw new Error(`Failed to fetch PDF. Status: ${response.status}`);
+      }
       const existingPdfBytes = await response.arrayBuffer(); // Read the file as an ArrayBuffer
     
       // Load the PDFDocument
@@ -222,19 +226,20 @@ export default function AdmissionCard() {
     
       // Define the data and positions
       const data = {
-        "D/o,W/o,S/o": { x: 110, y: 604, value: fatherName },
-        "Name": { x: 395, y: 603, value: name },
-        "DOB": { x: 380, y: 568, value: dob },
-        "CNIC": { x: 95, y: 568, value: cnic },
-        "Ph#": { x: 55, y: 536, value: cellNumber },
-        "Cell": { x: 217, y: 534, value: cellNumber },
-        "Education": { x: 440, y: 534, value: education },
-        "Address": { x: 90, y: 507, value: address },
-        "Fee": { x: 55, y: 476, value: totalPayment },
-        "Time": { x: 150, y: 476, value: time },
-        "S.Date": { x: 305, y: 476, value: startDate },
-        "Date": { x: 460, y: 476, value: date },
+        "D/o,W/o,S/o": { x: 110, y: 604, value: fatherName.toString() },
+        "Name": { x: 395, y: 603, value: name.toString() },
+        "DOB": { x: 380, y: 568, value: dob.toString() },
+        "CNIC": { x: 95, y: 568, value: cnic.toString() },
+        "Ph#": { x: 55, y: 536, value: cellNumber.toString() },
+        "Cell": { x: 217, y: 534, value: cellNumber.toString() },
+        "Education": { x: 440, y: 534, value: education.toString() },
+        "Address": { x: 90, y: 507, value: address.toString() },
+        "Fee": { x: 55, y: 476, value: totalPayment.toString() },
+        "Time": { x: 150, y: 476, value: time.toString() },
+        "S.Date": { x: 305, y: 476, value: startDate.toString() },
+        "Date": { x: 460, y: 476, value: date.toString() },
       };
+      
     
       // Add text to the appropriate fields on the first page
       for (const [field, { x, y, value }] of Object.entries(data)) {
