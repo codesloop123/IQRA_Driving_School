@@ -128,6 +128,15 @@ export default function InstructorsTable({ color, title }) {
                         : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
                     }
                   >
+                    Lercturer Code</th>
+                  <th
+                    className={
+                      "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
+                      (color === "light"
+                        ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                        : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
+                    }
+                  >
                     Email
                   </th>
                   <th
@@ -178,6 +187,9 @@ export default function InstructorsTable({ color, title }) {
                     <tr key={index}>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                         {instructor?.name}
+                      </td>
+                      <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        {instructor?.lecturerCode}
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                         {instructor?.email}

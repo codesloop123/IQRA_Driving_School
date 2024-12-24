@@ -5,6 +5,7 @@ import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchBranches } from "store/branch/actions";
 import { deleteBranch } from "store/branch/actions";
+
 export default function BranchesTable({ color, title }) {
   const history = useHistory();
   const dispatch = useDispatch();
@@ -17,6 +18,8 @@ export default function BranchesTable({ color, title }) {
       dispatch(fetchBranches());
     });
   };
+
+  console.log(branches);
   return (
     <>
       <div
@@ -92,6 +95,20 @@ export default function BranchesTable({ color, title }) {
                   >
                     Name
                   </th>
+
+                  <th
+                    className={
+                      "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
+                      (color === "light"
+                        ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                        : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
+                    }
+                  >
+                    Branch Code
+                  </th>
+
+
+
                   <th
                     className={
                       "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
@@ -102,6 +119,9 @@ export default function BranchesTable({ color, title }) {
                   >
                     View
                   </th>
+
+
+
                   <th
                     className={
                       "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
@@ -122,6 +142,10 @@ export default function BranchesTable({ color, title }) {
                     </td>
                     <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                       {branch.name}
+                    </td>
+
+                    <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                      {branch.branchCode}
                     </td>
                     <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                       <FaEye className="w-5 h-5 text-lightBlue-600 cursor-pointer" />
