@@ -14,7 +14,8 @@ const reducers = combineReducers({
   branch: branchSlice,
   vehicle: vehicleSlice,
   instructor: instructorSlice,
-  admission: admissionSlice
+  admission: admissionSlice,
+  finance:admissionSlice
 });
 
 const persistConfig = {

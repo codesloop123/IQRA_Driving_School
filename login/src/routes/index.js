@@ -7,10 +7,12 @@ import Admissions from "views/admin/Admissions";
 import Branches from "views/admin/Branches";
 import Cars from "views/admin/Cars";
 import Dashboard from "views/admin/Dashboard";
+import Finances from "views/admin/Finances";
 import Instructors from "views/admin/Instructors";
 import Managers from "views/admin/Managers";
 import Users from "views/admin/Users";
 import Login from "views/auth/Login";
+import SortFinancesByDate from '../views/admin/SortFinancesByDate'
 
 let routes = [
   {
@@ -96,6 +98,20 @@ let routes = [
     component: Admissions,
     layout: "admin",
     isMenu: false,
+  },
+  {
+    path:"/finances",
+    name:"Finances",
+    component:Finances,
+    layout:"admin",
+    isMenu:true,
+  },
+  {
+    path:"/sort-finances-by-date",
+    name:"sort-finances-by-date",
+    component:SortFinancesByDate,
+    layout:"admin",
+    isMenu:false,
   },
   {
     path: "/login",
