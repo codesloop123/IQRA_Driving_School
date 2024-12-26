@@ -3,47 +3,79 @@ import { IoArrowBackOutline } from "react-icons/io5";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { fetchVehicles } from "store/vehicle/actions";
+import { FaX } from "react-icons/fa6";
 import { registerUser } from "store/auth/actions";
+import { duration } from "moment";
 // components
 
 export default function CardCourses() {
   const history = useHistory();
   const dispatch = useDispatch();
-  const { branches } = useSelector((state) => state.branch);
+  const { vehicles } = useSelector((state) => state.vehicle);
   const { registerLoading } = useSelector((state) => state.auth);
+  const [pricePackage, setPricePackage] = useState({ days: 0, price: 0 });
   const [formData, setFormData] = useState({
     name: "",
-    email: "",
-    role: "manager",
-    password: "",
-    branch: null,
-    status: true,
+    vehicle: "",
+    duration: "",
+    pricelist: [],
   });
+
+  const [error, setError] = useState(false);
+  console.log(formData);
+  const handleInputDays = (event) => {
+    if (event.target.value <= 0) {
+      setError(true);
+      return;
+    }
+    setError(false);
+    setPricePackage((state) => ({ ...state, days: event.target.value }));
+  };
+
+  const handleInputPrice = (event) => {
+    if (event.target.value <= 0) {
+      setError(true);
+      return;
+    }
+    setError(false);
+    setPricePackage((state) => ({ ...state, price: event.target.value }));
+  };
+  const handledelete = (index) => {
+    setFormData((state) => ({
+      ...state,
+      pricelist: state.pricelist.filter((_, idx) => idx !== index),
+    }));
+  };
+  const handleAddition = () => {
+    setFormData((prevState) => ({
+      ...prevState,
+      pricelist: [...prevState.pricelist, pricePackage],
+    }));
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    if (name === "branch") {
-      setFormData({
-        ...formData,
-        branch: JSON.parse(value),
-      });
-    } else {
-      setFormData({
-        ...formData,
-        [name]: value,
-      });
-    }
+
+    console.log(name, value);
+
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
   };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    dispatch(registerUser({ formData })).then(() => {
-      setFormData({
-        name: "",
-        email: "",
-        password: "",
-        branch: null,
-        status: true,
-      });
-    });
+    // dispatch(registerUser({ formData })).then(() => {
+    //   setFormData({
+    //     name: "",
+    //     vehicle: "",
+    //     duration: "",
+    //     pricelist: [],
+    //   });
+    // });
+    console.log(formData);
   };
   return (
     <>
@@ -64,13 +96,16 @@ export default function CardCourses() {
                 <div className="relative w-full mb-3">
                   <label
                     className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
-                    htmlFor="grid-password"
+                    htmlFor="name"
                   >
                     Name
                   </label>
                   <input
+                    id="name"
                     type="text"
                     name="name"
+                    onChange={handleChange}
+                    value={formData.name}
                     placeholder="Enter course name"
                     className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none  w-full ease-linear transition-all duration-150"
                   />
@@ -88,13 +123,13 @@ export default function CardCourses() {
                     id="vehicle-select"
                     name="vehicle"
                     className="border-0 px-3 py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                    onChange={handleChange}
+                    value={formData.vehicle || ""}
                   >
-                    <option value="" disabled>
-                      Select Vehicle
-                    </option>
-                    {branches.map((branch) => (
-                      <option key={branch.id} value={JSON.stringify(branch)}>
-                        {branch.name}
+                    <option value="">Select Vehicle</option>
+                    {vehicles.map((vehicle) => (
+                      <option key={vehicle.id} value={vehicle.name}>
+                        {vehicle.name}
                       </option>
                     ))}
                   </select>
@@ -104,26 +139,19 @@ export default function CardCourses() {
                 <div className="relative w-full mb-3">
                   <label
                     className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
-                    htmlFor="duration-select"
+                    htmlFor="duration"
                   >
                     Duration
                   </label>
-                  <select
-                    id="duration-select"
+                  <input
+                    type="text"
+                    id="duration"
                     name="duration"
-                    value={formData?.branch?.name || ""}
                     onChange={handleChange}
-                    className="border-0 px-3 py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
-                  >
-                    <option value="" disabled>
-                      Select Duration
-                    </option>
-                    {branches.map((branch) => (
-                      <option key={branch.id} value={JSON.stringify(branch)}>
-                        {branch.name}
-                      </option>
-                    ))}
-                  </select>
+                    value={formData.duration}
+                    placeholder="Enter Duration"
+                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none  w-full ease-linear transition-all duration-150"
+                  />
                 </div>
               </div>
               <div className="w-full lg:w-6/12 px-4">
@@ -132,25 +160,72 @@ export default function CardCourses() {
                     className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
                     htmlFor="price-select"
                   >
-                    Price
+                    Price Packages
                   </label>
-                  <select
-                    id="price-select"
-                    name="price"
-                    value={formData?.branch?.name || ""}
-                    onChange={handleChange}
-                    className="border-0 px-3 py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
-                  >
-                    <option value="" disabled>
-                      Select Price
-                    </option>
-                    {branches.map((branch) => (
-                      <option key={branch.id} value={JSON.stringify(branch)}>
-                        {branch.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex flex-row justify-between">
+                    <input
+                      style={{ width: "30%" }}
+                      id="price-select"
+                      type="number"
+                      name="days"
+                      placeholder="Enter Days"
+                      onChange={handleInputDays}
+                      className={`border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none  w-full ease-linear transition-all duration-150
+                      `}
+                    />
+                    <input
+                      style={{ width: "30%" }}
+                      id="price-select"
+                      type="number"
+                      name="price"
+                      onChange={handleInputPrice}
+                      placeholder="Enter Price"
+                      className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none  w-full ease-linear transition-all duration-150"
+                    />
+                    <button
+                      type="button"
+                      class="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
+                      onClick={handleAddition}
+                      disabled={error}
+                    >
+                      Add
+                    </button>
+                  </div>
+                  {error && (
+                    <p
+                      style={{
+                        color: "#cf2b02",
+                        fontSize: "12px",
+                        fontStyle: "italic",
+                        margin: "4px 0",
+                      }}
+                    >
+                      Days and Price can't be less than 1
+                    </p>
+                  )}
                 </div>
+                {formData.pricelist.map((item, idx) => (
+                  <span
+                    style={{ borderColor: "rgb(2 132 199)", margin: "2px" }}
+                    className="inline-block border border-blue-50 rounded-full py-1 px-3  bg-white"
+                  >
+                    <div className="flex p-0 m-0">
+                      <p
+                        style={{ fontStyle: "italic" }}
+                        className="p-0 pb-1 m-0 inline-block italic text-sm border-solid"
+                      >
+                        {item.days}, {item.price}
+                      </p>
+                      <button
+                        type="button"
+                        className="self-center ml-2"
+                        onClick={handledelete.bind(null, idx)}
+                      >
+                        <FaX style={{ color: "rgb(2 132 199)" }} />
+                      </button>
+                    </div>
+                  </span>
+                ))}
               </div>
             </div>
             <div className="flex justify-end items-center px-4 py-3">
@@ -158,6 +233,7 @@ export default function CardCourses() {
                 type="submit"
                 disabled={registerLoading}
                 class="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
+                onClick={handleSubmit}
               >
                 {registerLoading ? (
                   <svg
