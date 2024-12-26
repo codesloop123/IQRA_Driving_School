@@ -7,6 +7,7 @@ import Admissions from "views/admin/Admissions";
 import Alert from "views/admin/Alert";
 import Branches from "views/admin/Branches";
 import Cars from "views/admin/Cars";
+import Courses from "views/admin/Courses";
 import Dashboard from "views/admin/Dashboard";
 import Instructors from "views/admin/Instructors";
 import Managers from "views/admin/Managers";
@@ -25,6 +26,13 @@ let routes = [
     path: "/branches",
     component: Branches,
     name: "Branches",
+    layout: "admin",
+    isMenu: true,
+  },
+  {
+    path: "/courses",
+    component: Courses,
+    name: "Courses",
     layout: "admin",
     isMenu: true,
   },
