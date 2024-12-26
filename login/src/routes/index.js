@@ -13,6 +13,7 @@ import Instructors from "views/admin/Instructors";
 import Managers from "views/admin/Managers";
 import Users from "views/admin/Users";
 import Login from "views/auth/Login";
+import AddCourse from "views/admin/AddCourse";
 
 let routes = [
   {
@@ -89,6 +90,13 @@ let routes = [
     path: "/add-branches",
     name: "Branches",
     component: AddBranches,
+    layout: "admin",
+    isMenu: false,
+  },
+  {
+    path: "/add-course",
+    name: "Courses",
+    component: AddCourse,
     layout: "admin",
     isMenu: false,
   },

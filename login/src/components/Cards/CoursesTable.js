@@ -94,87 +94,9 @@ export default function CourseTable({ color, title }) {
                 Add
               </button>
             </div>
-            {/* <Menu as="div" className="relative inline-block text-left pr-4">
-              <div>
-                <MenuButton className="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-lightBlue-600">
-                  {branches[idx]?.name}
-                  <IoIosArrowDown aria-hidden="true" className="mt-1 ml-1" />
-                </MenuButton>
-              </div>
-
-              <MenuItems
-                transition
-                className="absolute right-0 z-10 mt-2 w-56 mr-4 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black/5 transition focus:outline-none data-[closed]:scale-95 data-[closed]:transform data-[closed]:opacity-0 data-[enter]:duration-100 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
-              >
-                <div className="py-1">
-                  {branches.map((branch, idx) => (
-                    <MenuItem key={idx}>
-                      <button
-                        onClick={handleClick.bind(null, idx)}
-                        className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-gray-900 data-[focus]:outline-none"
-                      >
-                        {branch?.name}
-                      </button>
-                    </MenuItem>
-                  ))}
-                </div>
-              </MenuItems>
-            </Menu> */}
           </div>
         </div>
 
-        {/* <Dialog open={isModalOpen} onClose={closeModal}>
-          <div className="fixed inset-0 flex items-center justify-center z-50">
-            <Dialog.Panel
-              style={{ width: "30vw", minWidth: "250px" }}
-              className="bg-white rounded-lg shadow-lg p-6"
-            >
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">Update Price</h2>
-              </div>
-
-              <form onSubmit={handleFormSubmit}>
-                <div className="mb-4">
-                  <label
-                    htmlFor="pricePaid"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Price Paid
-                  </label>
-                  <input
-                    type="number"
-                    id="pricePaid"
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    className="mt-2 block w-full border border-gray-300 rounded-md p-2 "
-                    required
-                  />
-                  {(0 > inputValue ||
-                    courses[selectedRow]?.remainingPayment < inputValue) && (
-                    <p style={{ color: "#cf2b02" }}>
-                      Price can not be greater than
-                      {` ${courses[selectedRow]?.remainingPayment} `}
-                      or less than 0
-                    </p>
-                  )}
-                </div>
-
-                <div className="mt-4 flex justify-end">
-                  <button
-                    type="submit"
-                    className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
-                    disabled={
-                      0 > inputValue ||
-                      courses[selectedRow]?.remainingPayment < inputValue
-                    }
-                  >
-                    Submit
-                  </button>
-                </div>
-              </form>
-            </Dialog.Panel>
-          </div>
-        </Dialog> */}
         {iscourseLoading ? (
           <div className="flex justify-center items-center py-10">
             <svg
@@ -254,26 +176,6 @@ export default function CourseTable({ color, title }) {
           </div>
         )}
       </div>
-      {/* <div className="flex justify-between items-center">
-        <div className={idx > 0 ? "block" : "w-[100px]"}>
-          {idx > 0 && (
-            <button
-              onClick={navigateButtonHandler.bind(null, "DECREMENT")}
-              class="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
-            >
-              Prev Branch
-            </button>
-          )}
-        </div>
-        {idx < branches?.length - 1 && (
-          <button
-            onClick={navigateButtonHandler.bind(null, "INCREMENT")}
-            className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
-          >
-            Next Branch
-          </button>
-        )}
-      </div> */}
     </>
   );
 }
