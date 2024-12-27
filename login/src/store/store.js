@@ -10,6 +10,7 @@ import instructorSlice from "./instructor/instructorSlice";
 import admissionSlice from "./admission/admissionSlice";
 import alertSlice from "./alerts/alertSlice";
 import Admission from "views/admin/Admission";
+import courseSlice from "./courses/courseSlice";
 const reducers = combineReducers({
   auth: authSlice,
   branch: branchSlice,
@@ -17,6 +18,7 @@ const reducers = combineReducers({
   instructor: instructorSlice,
   admission: admissionSlice,
   alert: alertSlice,
+  course: courseSlice,
 });
 
 const persistConfig = {

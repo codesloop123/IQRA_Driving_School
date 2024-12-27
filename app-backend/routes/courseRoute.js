@@ -5,10 +5,14 @@ const router = express.Router();
 router.post("/add", async (req, res) => {
   const { name, duration, pricelist, vehicle } = req.body;
 
-  if (!name && !duration && pricelist?.length === 0 && !vehicle) {
-    return res.status(400).json({ msg: "Please Enter Complete Details" });
+  if (!name || !duration || pricelist?.length === 0 || !vehicle) {
+    return res.status(400).json({ message: "Please Enter Complete Details" });
   }
-  console.log(req.body);
+  const hasNegativeValues = pricelist.some(
+    (item) => item.days <= 0 || item.price <= 0
+  );
+  if (duration <= 0 || hasNegativeValues)
+    return res.status(400).json({ message: "Numbers Can Not be less than 1" });
   try {
     const newCourse = new Course({
       name: name,
@@ -21,7 +25,7 @@ router.post("/add", async (req, res) => {
     if (savedCourse) {
       res
         .status(200)
-        .json({ status: true, message: "Branch added successfully" });
+        .json({ status: true, message: "Course added successfully" });
     }
   } catch (error) {
     console.error(error.message);
