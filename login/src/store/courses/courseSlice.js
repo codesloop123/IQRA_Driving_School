@@ -5,7 +5,7 @@ const initialState = {
 };
 
 const courseSlice = createSlice({
-  name: "branch",
+  name: "course",
   initialState,
   reducers: {
     setCourses: (state, action) => {

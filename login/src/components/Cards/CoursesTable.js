@@ -16,56 +16,33 @@ import { format } from "date-fns";
 import { useDispatch, useSelector } from "react-redux";
 import Table from "components/Utils/Table";
 // import { fetchBranches } from "store/branch/actions";
-// import { fetchCourses } from "store/courses/actions";
+import {
+  fetchCourses,
+  deleteCourse,
+  updateCourseStatus,
+} from "store/courses/actions";
 
 export default function CourseTable({ color, title }) {
-  //   const dispatch = useDispatch();
+  const dispatch = useDispatch();
   const history = useHistory();
 
-  const iscourseLoading = false;
-  const courses = [
-    {
-      name: "Beginner Driving Course",
-      duration: "2 weeks",
-      vehicle: "Car",
-      status: true,
-    },
-    {
-      name: "Intermediate Driving Course",
-      duration: "1 month",
-      vehicle: "Car",
-      status: false,
-    },
-    {
-      name: "Advanced Driving Course",
-      duration: "6 weeks",
-      vehicle: "Car",
-      status: true,
-    },
-    {
-      name: "Motorcycle Basics",
-      duration: "1 week",
-      vehicle: "Motorcycle",
-      status: true,
-    },
-    {
-      name: "Heavy Vehicle Training",
-      duration: "3 months",
-      vehicle: "Truck",
-      status: false,
-    },
-    {
-      name: "Bus Driving Course",
-      duration: "2 months",
-      vehicle: "Bus",
-      status: true,
-    },
-  ];
+  const { courses, iscourseLoading } = useSelector((state) => state.course);
 
-  //   const { iscourseLoading, courses } = useSelector((state) => state.course);
-  //   useEffect(() => {
-  //     dispatch(fetchCourses());
-  //   }, []);
+  useEffect(() => {
+    dispatch(fetchCourses());
+  }, []);
+  const onClickHandler = (index, action) => {
+    if (action === "DELETE")
+      dispatch(deleteCourse(courses[index]._id)).then(() =>
+        dispatch(fetchCourses())
+      );
+    else if (action === "UPDATE") {
+      const status = courses[index].status;
+      dispatch(
+        updateCourseStatus({ id: courses[index]._id, status: !status })
+      ).then(() => dispatch(fetchCourses()));
+    }
+  };
   return (
     <>
       <div
@@ -140,6 +117,7 @@ export default function CourseTable({ color, title }) {
                         className={`py-2 px-4 rounded text-white font-bold mr-1
                       bg-red-400  
                       `}
+                        onClick={onClickHandler.bind(null, index, "DELETE")}
                       >
                         Delete
                       </button>
@@ -148,6 +126,7 @@ export default function CourseTable({ color, title }) {
                           className={`py-2 px-4 rounded text-white font-bold
                       bg-red-400  
                       `}
+                          onClick={onClickHandler.bind(null, index, "UPDATE")}
                         >
                           Deactivate
                         </button>
@@ -156,6 +135,7 @@ export default function CourseTable({ color, title }) {
                           className={`py-2 px-4 rounded text-white font-bold
                     bg-emerald-400  
                     `}
+                          onClick={onClickHandler.bind(null, index, "UPDATE")}
                         >
                           Activate
                         </button>
