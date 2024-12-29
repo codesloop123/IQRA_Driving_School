@@ -18,7 +18,6 @@ import { fetchAlert, patchAlert } from "store/alerts/actions";
 
 export default function AlertTable({ color, title }) {
   const dispatch = useDispatch();
-  // const { isbranchLoading, branches } = useSelector((state) => state.branch);
   const { isAlertLoading, alerts } = useSelector((state) => state.alert);
   // const [idx, setIdx] = useState(0); to be added in attendance
   const [inputValue, setInputValue] = useState();

@@ -186,7 +186,7 @@ export default function CardAttendance() {
               <button
                 type="button"
                 onClick={handleSave}
-                disabled={!isAttendanceLoading}
+                disabled={isAttendanceLoading}
                 className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
               >
                 Save

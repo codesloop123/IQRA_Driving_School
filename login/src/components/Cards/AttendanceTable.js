@@ -1,29 +1,38 @@
 import PropTypes from "prop-types";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
+import { useState } from "react";
 import { fetchBranches } from "store/branch/actions";
 import { useEffect } from "react";
 import { fetchVehicles } from "store/vehicle/actions";
 import { fetchInstructors } from "store/instructor/action";
 import { deleteInstructor } from "store/instructor/action";
 import { updateInstructorStatus } from "store/instructor/action";
-
+import { fetchAttendance } from "store/attendance/action";
 export default function AttendanceTable({ color, title }) {
   const history = useHistory();
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
-  const { isAttendanceLoading, admissions } = useSelector(
-    (state) => state.admission
+  const [date, setDate] = useState(null);
+
+  const { isAttendanceLoading, students } = useSelector(
+    (state) => state.attendance
   );
-  console.log(admissions);
+
+  useEffect(() => {
+    console.log(date);
+    dispatch(fetchAttendance({ branchid: user?.branch?._id, date }));
+  }, [date]);
 
   const navigateButtonHandler = (action) => {
+    if (!date) return;
+
+    const currentDate = new Date(date);
     if (action === "INCREMENT")
-      setIdx((idx) => Math.min(branches.length - 1, idx + 1));
-    else if (action === "DECREMENT") setIdx((idx) => Math.max(0, idx - 1));
-  };
-  const handleClick = (i) => {
-    setIdx(i); // Update the state with the clicked branch's index
+      currentDate.setDate(currentDate.getDate() + 1); // Add one day
+    else if (action === "DECREMENT")
+      currentDate.setDate(currentDate.getDate() - 1); // Subtract one day
+    setDate(currentDate.toISOString().split("T")[0]); // Format as YYYY-MM-DD
   };
   return (
     <>
@@ -45,12 +54,22 @@ export default function AttendanceTable({ color, title }) {
                 {title}
               </h3>
             </div>
+            <div className="w-full lg:w-6/12 px-4 py-2">
+              <div className="relative w-full ">
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="border-0 px-3 py-3 bg-blueGray-50 text-blueGray-500 border-blueGray-100 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
+                />
+              </div>
+            </div>
             <div className="mr-3">
               <button
                 onClick={() => history.push("/add-attendance")}
                 className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
               >
-                Add
+                Add New
               </button>
             </div>
           </div>
@@ -122,29 +141,56 @@ export default function AttendanceTable({ color, title }) {
                   </th>
                 </tr>
               </thead>
-              <tbody>
-                {/* {instructors?.length > 0 &&
-                  instructors.map((instructor, index) => (
-                    <tr key={index}>
-                      <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        {instructor?.name}
+              {students.length !== 0 ? (
+                <tbody>
+                  {students.map((student) => (
+                    <tr
+                      key={student.id}
+                      className={`cursor-pointer hover:bg-lightBlue-100 `}
+                    >
+                      <td className="border-t-0 px-6 py-3 text-xs text-blueGray-500 align-middle whitespace-nowrap">
+                        {student.name}
                       </td>
-                      <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        {instructor?.email}
+                      <td className="border-t-0 px-6 py-3 text-xs text-blueGray-500 align-middle whitespace-nowrap">
+                        {student.refId}
                       </td>
-                      <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        {instructor?.status ? "Active" : "InActive"}
-                      </td>
-                      <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        {instructor?.name}
+                      <td className="border-t-0 px-6 py-3 text-xs text-blueGray-500 align-middle whitespace-nowrap">
+                        {student.status}
                       </td>
                     </tr>
-                  ))} */}
-              </tbody>
+                  ))}
+                </tbody>
+              ) : (
+                <p
+                  style={{ fontStyle: "italic" }}
+                  className="text-gray-400 text-center py-4"
+                >
+                  No Attendance Sheet Available
+                </p>
+              )}
             </table>
           </div>
         )}
       </div>
+      {date && (
+        <div className="flex justify-between items-center">
+          <div className={"block"}>
+            <button
+              onClick={navigateButtonHandler.bind(null, "DECREMENT")}
+              class="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
+            >
+              Prev Date
+            </button>
+          </div>
+
+          <button
+            onClick={navigateButtonHandler.bind(null, "INCREMENT")}
+            className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
+          >
+            Next Date
+          </button>
+        </div>
+      )}
     </>
   );
 }

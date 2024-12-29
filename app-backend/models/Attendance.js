@@ -1,9 +1,25 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const AttendanceSchema = new mongoose.Schema({
   date: { type: String, required: true },
   branch: { type: String, required: true }, // Add branch to schema
-  attendance: { type: Map, of: String, required: true }, // Store student names/IDs as keys and attendance status as values
+  attendance: [
+    {
+      refId: {
+        type: String,
+        required: true,
+      },
+      name: {
+        type: String,
+        required: true,
+      },
+      status: {
+        type: String,
+        required: true,
+        enum: ["Present", "Absent", "Leave"], // Example status types, can be extended
+      },
+    },
+  ],
 });
 
-module.exports = mongoose.model('Attendance', AttendanceSchema);
+module.exports = mongoose.model("Attendance", AttendanceSchema);

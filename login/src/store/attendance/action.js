@@ -15,8 +15,31 @@ export const fetchAttendees = createAsyncThunk(
         `/attendance/students/${branchid}`
       );
       if (response.status) {
-        console.log(response.data);
         dispatch(setStudents(response.data));
+        toast.success("Attendance Sheet Fetched Successfully");
+      }
+    } catch (error) {
+      if (error.response?.data?.message)
+        toast.error(error.response?.data?.message);
+      else toast.error(error.message);
+    } finally {
+      dispatch(setAttendanceLoader(false));
+    }
+  }
+);
+
+export const fetchAttendance = createAsyncThunk(
+  "attendance/get",
+  async ({ branchid, date }, { dispatch }) => {
+    try {
+      dispatch(setAttendanceLoader(true));
+      const response = await axiosInstance.get(
+        `/attendance/${branchid}/${date}`
+      );
+      if (response.status === 404) dispatch(setStudents([]));
+      else if (response.status) {
+        console.log(response);
+        dispatch(setStudents(response?.data?.attendance));
         toast.success("Attendance Sheet Fetched Successfully");
       }
     } catch (error) {
