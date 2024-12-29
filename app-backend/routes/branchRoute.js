@@ -7,14 +7,19 @@ const router = express.Router();
 
 // POST route to add a new instructor for a specific branch
 router.post("/add_branch", async (req, res) => {
-  const { name } = req.body;
+  const { name,branchCode } = req.body;
 
   if (!name) {
     return res.status(400).json({ msg: "Please enter branch name" });
   }
 
+  if (!branchCode) {
+    return res.status(400).json({ msg: "Please enter branch Id" });
+  }
+
+
   try {
-    const newBranch = new Branch({ name });
+    const newBranch = new Branch({ name, branchCode});
     const savedBranch = await newBranch.save();
     if (savedBranch) {
       res
@@ -31,6 +36,11 @@ router.post("/add_branch", async (req, res) => {
 router.get("/branches", async (req, res) => {
   try {
     const branches = await Branch.find();
+      //////////////ABD CODE////////////
+      // console.log(branches);
+      //////////////ABD CODE////////////
+
+
     res.status(200).json({status:true,branches:branches});
   } catch (error) {
     console.error(error);

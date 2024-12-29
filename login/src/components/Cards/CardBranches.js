@@ -8,13 +8,18 @@ import { postBranch } from "store/branch/actions";
 
 export default function CardBranches() {
   const history = useHistory();
+
+  // var branchId= "branch2";
   const { isbranchLoading } = useSelector((state) => state.branch);
   const dispatch = useDispatch();
+
+  const [branchCode,setBranchCode] = useState("");
   const [name, setName] = useState("");
   const handleSubmit = (e) => {
     e.preventDefault();
-    dispatch(postBranch({ name })).then(() => {
+    dispatch(postBranch({ name,branchCode })).then(() => {
       setName("");
+      setBranchCode("")
     });
   };
   return (
@@ -52,6 +57,31 @@ export default function CardBranches() {
                 </div>
               </div>
             </div>
+
+
+            <div className="flex flex-wrap mt-6">
+               <div className="w-full px-4">
+                <div className="relative w-full mb-3">
+                  <label
+                    className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                    htmlFor="name"
+                  >
+                    Branch Code
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    required
+                    value={branchCode}
+                    onChange={(e) => setBranchCode(e.target.value)}
+                    placeholder="Enter branch name"
+                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                  />
+                </div>
+              </div>
+            </div>
+
+
             <div className="flex justify-end items-center px-4 py-3">
               <button
                 type="submit"

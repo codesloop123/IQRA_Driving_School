@@ -5,11 +5,11 @@ import { setBranches, setBranchLoader } from "./branchSlice";
 
 export const postBranch = createAsyncThunk(
   "branch/post",
-  async ({ name }, { dispatch }) => {
+  async ({ name,branchCode }, { dispatch }) => {
     try {
       dispatch(setBranchLoader(true));
       const response = await axiosInstance.post("/branch/add_branch", {
-        name,
+        name,branchCode
       });
 
       if (response.status) {
