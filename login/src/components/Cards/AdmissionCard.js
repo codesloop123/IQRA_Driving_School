@@ -2,7 +2,7 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useState, useEffect } from "react";
 import { fetchInstructors } from "store/instructor/action";
-import { format, parse } from "date-fns";
+import { format, parse,isWithinInterval } from "date-fns";
 import { postAdmission } from "store/admission/actions";
 import { toast } from "react-toastify";
 import AvailabilityModal from "components/Modals/AvailabilityModal";
@@ -61,13 +61,14 @@ export default function AdmissionCard() {
   };
 
   const changeInstructor = (instructor) => {
+    // console.log("Here is the instructure",instructor);
     setFormData({
       ...formData,
       instructor: instructor,
     });
   };
 
-  const changeStartDateTime = (startDate) => {
+  const changeStartDateTime = (startDate,endTime) => {
     let startdata = formatDate(startDate);
     let starttime = formatTime(startDate);
     console.log(startdata);
@@ -91,7 +92,7 @@ export default function AdmissionCard() {
     const selectedTime = format(parse(starttime, "HH:mm", new Date()), "hh:mm");
     const { instructor } = formData;
     if (instructor) {
-      const isAvailable = checkInstructorAvailability(instructor, selectedTime);
+      const isAvailable = checkInstructorAvailability(instructor, startDate,endTime);
       if (!isAvailable) {
         setTimeError("Instructor is not available at this time.");
         return;
@@ -103,10 +104,10 @@ export default function AdmissionCard() {
       startDate: startdata,
       startTime: starttime,
     });
-    console.log("Here is:", formData?.startDate);
+    // console.log("Here is:", formData?.startDate);
   };
 
-  console.log(formData, "formData>>>>>>>>>>>>>");
+  // console.log(formData, "formData>>>>>>>>>>>>>");
   const handleChange = (e) => {
     const { name, type, value, checked } = e.target;
     if (name === "instructor") {
@@ -229,6 +230,7 @@ export default function AdmissionCard() {
   ) => {
     for (let i = 0; i < bookedSlots.length; i++) {
       const bookedSlot = bookedSlots[i];
+      console.log(bookedSlot);
       const { date, startTime, endTime } = bookedSlot;
       if (date === selectedDate) {
         const selectedStart = parse(selectedStartTime, "HH:mm", new Date());
@@ -244,22 +246,40 @@ export default function AdmissionCard() {
     }
     return false;
   };
-  const checkInstructorAvailability = (instructor, selectedStartTime) => {
-    const bookedSlots = instructor.bookedSlots;
+
+  // import { isWithinInterval } from 'date-fns';
+
+  const checkInstructorAvailability = (instructor, selectedStartTime, selectedEndTime) => {
+    const bookedSlots = instructor.bookedSlots || [];
+    console.log("Here are the booked slots:", bookedSlots);
+  
+    // Ensure that selected times are valid Date objects
+    if (!(selectedStartTime instanceof Date) || !(selectedEndTime instanceof Date)) {
+      console.error("Selected start and end times must be Date objects.");
+      return false;
+    }
+  
     for (let i = 0; i < bookedSlots.length; i++) {
       const bookedSlot = bookedSlots[i];
       const { startTime, endTime } = bookedSlot;
-      const selectedStart = parse(selectedStartTime, "HH:mm", new Date());
-      const bookedStart = parse(startTime, "HH:mm", new Date());
-      const bookedEnd = parse(endTime, "HH:mm", new Date());
+  
+      // Ensure that booked start and end times are valid Date objects
+      if (!(startTime instanceof Date) || !(endTime instanceof Date)) {
+        console.error("Booked start and end times must be Date objects.");
+        continue; // Skip this slot if invalid
+      }
+  
+      // Check for collision
       if (
-        (selectedStart >= bookedStart && selectedStart < bookedEnd) ||
-        (selectedStart < bookedStart && selectedStart >= bookedStart)
+        isWithinInterval(selectedStartTime, { start: startTime, end: endTime }) ||
+        isWithinInterval(selectedEndTime, { start: startTime, end: endTime }) ||
+        (selectedStartTime <= startTime && selectedEndTime >= endTime) // Selected range completely overlaps booked range
       ) {
-        return false;
+        console.log("Collision detected with:", bookedSlot);
+        return false; // Collision found
       }
     }
-    return true;
+    return true; // No collisions
   };
   const handleSubmit = (e) => {
     e.preventDefault();
