@@ -18,13 +18,13 @@ import { fetchAlert, patchAlert } from "store/alerts/actions";
 
 export default function AlertTable({ color, title }) {
   const dispatch = useDispatch();
-  const { isbranchLoading, branches } = useSelector((state) => state.branch);
+  // const { isbranchLoading, branches } = useSelector((state) => state.branch);
   const { isAlertLoading, alerts } = useSelector((state) => state.alert);
-  const [idx, setIdx] = useState(0);
-  const [inputValue, setInputValue] = useState(0);
+  // const [idx, setIdx] = useState(0); to be added in attendance
+  const [inputValue, setInputValue] = useState();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
-
+  const { user } = useSelector((state) => state.auth);
   const openModal = (row) => {
     setSelectedRow(row);
     setIsModalOpen(true);
@@ -36,13 +36,9 @@ export default function AlertTable({ color, title }) {
   };
 
   useEffect(() => {
-    dispatch(fetchBranches());
+    console.log(user);
+    dispatch(fetchAlert(user?.branch));
   }, []);
-  useEffect(() => {
-    if (branches[idx] !== undefined) {
-      dispatch(fetchAlert(branches[idx]));
-    }
-  }, [isbranchLoading, idx]);
 
   const handleFormSubmit = (event) => {
     event.preventDefault();
@@ -51,18 +47,19 @@ export default function AlertTable({ color, title }) {
         newAmountReceived: inputValue,
         id: alerts[selectedRow]?._id,
       })
-    );
+    ).then(() => dispatch(fetchAlert(user?.branch)));
+    setInputValue();
     closeModal();
   };
 
-  const navigateButtonHandler = (action) => {
-    if (action === "INCREMENT")
-      setIdx((idx) => Math.min(branches.length - 1, idx + 1));
-    else if (action === "DECREMENT") setIdx((idx) => Math.max(0, idx - 1));
-  };
-  const handleClick = (i) => {
-    setIdx(i); // Update the state with the clicked branch's index
-  };
+  // const navigateButtonHandler = (action) => {
+  //   if (action === "INCREMENT")
+  //     setIdx((idx) => Math.min(branches.length - 1, idx + 1));
+  //   else if (action === "DECREMENT") setIdx((idx) => Math.max(0, idx - 1));
+  // };
+  // const handleClick = (i) => {
+  //   setIdx(i); // Update the state with the clicked branch's index
+  // };
   return (
     <>
       <div
@@ -83,7 +80,7 @@ export default function AlertTable({ color, title }) {
                 {title}
               </h3>
             </div>
-            <Menu as="div" className="relative inline-block text-left pr-4">
+            {/* <Menu as="div" className="relative inline-block text-left pr-4">
               <div>
                 <MenuButton className="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-lightBlue-600">
                   {branches[idx]?.name}
@@ -108,7 +105,7 @@ export default function AlertTable({ color, title }) {
                   ))}
                 </div>
               </MenuItems>
-            </Menu>
+            </Menu> */}
           </div>
         </div>
 
@@ -409,7 +406,7 @@ export default function AlertTable({ color, title }) {
           </div>
         )}
       </div>
-      <div className="flex justify-between items-center">
+      {/* <div className="flex justify-between items-center">
         <div className={idx > 0 ? "block" : "w-[100px]"}>
           {idx > 0 && (
             <button
@@ -428,7 +425,7 @@ export default function AlertTable({ color, title }) {
             Next Branch
           </button>
         )}
-      </div>
+      </div> */}
     </>
   );
 }

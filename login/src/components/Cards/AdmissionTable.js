@@ -14,6 +14,7 @@ export default function AdmissionTable({ color, title }) {
   const { registerLoading, admissions } = useSelector(
     (state) => state.admission
   );
+  console.log(admissions);
   useEffect(() => {
     dispatch(fetchAdmissions(user?.branch?._id));
   }, [user]);
@@ -183,7 +184,7 @@ export default function AdmissionTable({ color, title }) {
                         : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
                     }
                   >
-                   Start Date
+                    Start Date
                   </th>
                   <th
                     className={
@@ -258,16 +259,16 @@ export default function AdmissionTable({ color, title }) {
                         {format(new Date(admission?.startDate), "MM/dd/yyyy")}
                       </td>
                       <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                      {format(new Date(admission?.endDate), "MM/dd/yyyy")}
+                        {format(new Date(admission?.endDate), "MM/dd/yyyy")}
                       </td>
                       <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                         {admission?.paymentInInstallments ? (
                           <div className="flex justify-center items-center">
-                          <FaCheckCircle className="w-5 h-5 text-center text-emerald-500" />
+                            <FaCheckCircle className="w-5 h-5 text-center text-emerald-500" />
                           </div>
                         ) : (
                           <div className="flex justify-center items-center">
-                          <MdCancel className="w-5 h-5 text-center text-red-500" />
+                            <MdCancel className="w-5 h-5 text-center text-red-500" />
                           </div>
                         )}
                       </td>

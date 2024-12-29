@@ -49,6 +49,7 @@ const AdmissionSchema = new mongoose.Schema({
   },
   dateRegistered: { type: Date, default: Date.now },
   referenceNumber: { type: String, required: true },
+  status: { type: Boolean, default: true },
 });
 
 module.exports = mongoose.model("Admission", AdmissionSchema);

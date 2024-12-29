@@ -14,7 +14,8 @@ import Managers from "views/admin/Managers";
 import Users from "views/admin/Users";
 import Login from "views/auth/Login";
 import AddCourse from "views/admin/AddCourse";
-
+import AddAttendance from "views/admin/AddAttendance";
+import Attendance from "views/admin/Attendance";
 let routes = [
   {
     path: "/",
@@ -27,6 +28,20 @@ let routes = [
     path: "/branches",
     component: Branches,
     name: "Branches",
+    layout: "admin",
+    isMenu: true,
+  },
+  {
+    path: "/attendance",
+    component: Attendance,
+    name: "Attendance",
+    layout: "admin",
+    isMenu: true,
+  },
+  {
+    path: "/add-attendance",
+    component: AddAttendance,
+    name: "Attendance",
     layout: "admin",
     isMenu: true,
   },
