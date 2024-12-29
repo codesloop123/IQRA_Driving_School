@@ -217,6 +217,7 @@ router.get("/:id", async (req, res) => {
   try {
     const admissions = await Admission.find({ "manager.branch._id": id });
     console.log("admissions>>>>>>>>>>>>");
+    console.log(admissions);
     res.status(200).json({ status: true, admissions: admissions });
   } catch (error) {
     console.error("Error fetching admissions:", error);

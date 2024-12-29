@@ -6,6 +6,7 @@ import { format, parse } from "date-fns";
 import { postAdmission } from "store/admission/actions";
 import { toast } from "react-toastify";
 import AvailabilityModal from "components/Modals/AvailabilityModal";
+import { start } from "@popperjs/core";
 
 export default function AdmissionCard() {
   const dispatch = useDispatch();
@@ -42,6 +43,69 @@ export default function AdmissionCard() {
     status: true,
     discount: "",
   });
+
+  
+  // Function to format Date to accordingly
+  const formatDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0"); 
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  // Function to format time to hh:mm
+  const formatTime = (date) => {
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${hours}:${minutes}`;
+  };
+
+  const changeInstructor = (instructor) => {
+    setFormData({
+      ...formData,
+      instructor: instructor,
+    });
+  };
+
+  const changeStartDateTime = (startDate) => {
+    let startdata = formatDate(startDate);
+    let starttime = formatTime(startDate);
+    console.log(startdata);
+    const selectedDate = new Date(startdata);
+    const day = selectedDate.getDay();
+    if (day === 0) {
+      setError("Sunday is a holiday. Please select another date.");
+    } else {
+      setError("");
+    }
+    const [hours, minutes] = starttime.split(":").map(Number);
+    if (minutes !== 0 && minutes !== 30) {
+      setTimeError("Please select a time ending in 00 or 30 minutes.");
+      return;
+    }
+    if (hours < 9 || hours > 16 || (hours === 17 && minutes > 0)) {
+      setTimeError("Time must be between 9:00 AM and 5:00 PM.");
+      return;
+    }
+    setTimeError("");
+    const selectedTime = format(parse(starttime, "HH:mm", new Date()), "hh:mm");
+    const { instructor } = formData;
+    if (instructor) {
+      const isAvailable = checkInstructorAvailability(instructor, selectedTime);
+      if (!isAvailable) {
+        setTimeError("Instructor is not available at this time.");
+        return;
+      }
+    }
+
+    setFormData({
+      ...formData,
+      startDate: startdata,
+      startTime: starttime,
+    });
+    console.log("Here is:", formData?.startDate);
+  };
+
   console.log(formData, "formData>>>>>>>>>>>>>");
   const handleChange = (e) => {
     const { name, type, value, checked } = e.target;
@@ -97,6 +161,7 @@ export default function AdmissionCard() {
       });
     } else if (name === "startDate") {
       const selectedDate = new Date(value);
+      console.log("Here is part 2:", value);
       const day = selectedDate.getDay();
       if (day === 0) {
         setError("Sunday is a holiday. Please select another date.");
@@ -107,6 +172,7 @@ export default function AdmissionCard() {
         ...formData,
         startDate: value,
       });
+      console.log("Here is:", formData?.startDate);
     } else if (name === "dob") {
       const birthDate = new Date(value);
       const today = new Date();
@@ -453,46 +519,27 @@ export default function AdmissionCard() {
               <div className="w-full lg:w-6/12 px-4">
                 <div className="relative w-full mb-3">
                   <div className="flex justify-between gap-2">
-                    <label
-                      className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
-                      htmlFor="instructor-select"
-                    >
-                      Instructor
-                    </label>
-                    <p
-                      className="text-xs cursor-pointer text-lightBlue-600"
-                      onClick={() => {
-                        if (!formData?.instructor) {
-                          toast.error(
-                            "choose Instructor to see their availabillity"
-                          );
-                          return;
-                        }
+                    <button
+                     onClick={() => {
+                      if (
+                        formData?.courseTimeDuration > 0 &&
+                        formData?.courseduration > 0
+                      ) {
                         setOpen(true);
-                      }}
+                      } else {
+                        toast.error(
+                          "Fill Course Duration and Time Duration"
+                        );
+                      }
+                    }}
+                      className="px-6 py-3 bg-lightBlue-600 text-white font-bold rounded-md shadow hover:bg-lightBlue-700 transition-all"
                     >
-                      See Availability
-                    </p>
+                      Check Availability
+                    </button>
                   </div>
-                  <select
-                    required
-                    id="instructor-select"
-                    name="instructor"
-                    value={formData?.instructor?.name || ""}
-                    onChange={handleChange}
-                    className="border-0 px-3 py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
-                  >
-                    <option value="" disabled>
-                      Select Instructor
-                    </option>
-                    {instructors?.map((instructor) => (
-                      <option key={instructor?.id} value={instructor.name}>
-                        {instructor?.name}
-                      </option>
-                    ))}
-                  </select>
                 </div>
               </div>
+
               <div className="w-full lg:w-6/12 px-4">
                 <div className="relative w-full mb-3">
                   <label
@@ -551,6 +598,7 @@ export default function AdmissionCard() {
                     value={formData.startDate}
                     min={new Date().toISOString().split("T")[0]}
                     onChange={handleChange}
+                    // readOnly
                     placeholder="Select Start Date"
                     className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150 "
                   />
@@ -568,6 +616,7 @@ export default function AdmissionCard() {
                     Start Time
                   </label>
                   <input
+                    // readOnly
                     required
                     type="time"
                     id="startTime"
@@ -746,16 +795,15 @@ export default function AdmissionCard() {
           </form>
         </div>
       </div>
-      {formData?.instructor && (
+      {formData?.courseduration && formData?.courseTimeDuration && (
         <AvailabilityModal
           open={open}
           setOpen={setOpen}
-          bookedSlots={
-            Array.isArray(formData?.instructor?.bookedSlots)
-              ? formData?.instructor?.bookedSlots
-              : []
-          }
+          courseduration={formData?.courseduration}
+          courseTimeDuration={formData?.courseTimeDuration}
+          changeStartDateTime={changeStartDateTime}
           instructorAvailability={formData?.instructor?.availability}
+          changeInstructor={changeInstructor}
         />
       )}
     </>
