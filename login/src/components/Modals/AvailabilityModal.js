@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Dialog,
@@ -79,14 +79,15 @@ export default function AvailabilityModal({
   const [highlightedEvents, setHighlightedEvents] = useState([]);
   const [newEvents, setNewEvents] = useState([]);
 
-  useEffect(() => {
-    if (selectedInstructor) {
 
-      if (typeof changeInstructor === "function") {
-        changeInstructor(selectedInstructor);
-      }
+
+  const stableChangeInstructor = useCallback(changeInstructor, [changeInstructor]);
+
+  useEffect(() => {
+    if (selectedInstructor && typeof stableChangeInstructor === "function") {
+      stableChangeInstructor(selectedInstructor);
     }
-  }, [selectedInstructor, changeInstructor]);
+  }, [selectedInstructor, stableChangeInstructor]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -100,11 +101,12 @@ export default function AvailabilityModal({
         console.error("Instructor not found!");
         return;
       }
-
-      setSelectedInstructor(selectedInstructor_1);
+      setSelectedInstructor(prev => selectedInstructor_1);
+      console.log(selectedInstructor);
 
       const filteredSlots = selectedInstructor_1.bookedSlots || [];
-      const mergedSlots = mergeSlots(filteredSlots);
+      if (filteredSlots.length > 0) {
+        const mergedSlots = mergeSlots(filteredSlots);
 
       const newEventsList = mergedSlots.map((slot) => ({
         title: `Booked ${slot.startTime} to ${slot.endTime}`,
@@ -115,6 +117,10 @@ export default function AvailabilityModal({
       }));
 
       setHighlightedEvents(newEventsList);
+    }
+    else{
+      setHighlightedEvents([]);
+    }
       setNewEvents([]);
     } else {
       console.error("Unhandled change for:", name);
@@ -177,7 +183,7 @@ export default function AvailabilityModal({
 
     setNewEvents(rangeEvents);
     const selectedDate = new Date(rangeEvents[0].start);
-    changeStartDateTime(selectedDate);
+    changeStartDateTime(selectedDate,rangeEvents[0].end);
   };
 
   function mergeSlots(slots) {
