@@ -80,8 +80,8 @@ router.post("/add", async (req, res) => {
       return res.status(400).json({ message: "All fields are required." });
     }
     const referenceNumber = await generateReferenceNumber(
-      manager.branch._id,
-      instructor._id
+      manager.branch.branchCode,
+      instructor.lecturerCode
     );
     const instructorDoc = await Instructor.findById(instructor._id);
     if (!instructorDoc) {
