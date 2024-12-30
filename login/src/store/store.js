@@ -21,6 +21,7 @@ const reducers = combineReducers({
   alert: alertSlice,
   course: courseSlice,
   attendance: attendanceSlice,
+  finance: admissionSlice,
 });
 
 const persistConfig = {

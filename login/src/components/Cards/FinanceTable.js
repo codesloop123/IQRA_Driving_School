@@ -1,60 +1,64 @@
 import PropTypes from "prop-types";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
+import { fetchFinances } from "store/admission/actions";
+import { useEffect, useState } from "react";
 import { fetchBranches } from "store/branch/actions";
-import { useEffect } from "react";
-import { fetchVehicles } from "store/vehicle/actions";
-import { fetchInstructors } from "store/instructor/action";
-import { deleteInstructor } from "store/instructor/action";
-import { updateInstructorStatus } from "store/instructor/action";
-export default function InstructorsTable({ color, title }) {
+import { setFinancesByDate } from "store/admission/admissionSlice";
+export default function FinanceTable({ color, title }) {
   const history = useHistory();
   const dispatch = useDispatch();
-  const { isInstructorLoading, instructors } = useSelector(
-    (state) => state.instructor
-  );
+  const { registerLoading, finances, financesByDate } = useSelector((state) => state.finance);
+  const { branches } = useSelector((state) => state.branch);
+  const [sortByProperty, setSortByProperty] = useState({
+    key: null,
+    direction: null
+  });
   useEffect(() => {
+    if (!financesByDate) {
+      dispatch(fetchFinances({}));
+    }
     dispatch(fetchBranches());
-    dispatch(fetchVehicles());
-    dispatch(fetchInstructors());
   }, []);
-  const managers = [
-    {
-      email: "iftikhar@gmail.com",
-      name: "Iftikhar",
-      branch: "Golra",
-      vehicle: "Alto",
-    },
-    {
-      email: "john.doe@example.com",
-      name: "John Doe",
-      branch: "F-10",
-      vehicle: "Alto",
-    },
-    {
-      email: "alice.smith@example.com",
-      name: "Alice Smith",
-      branch: "G-11",
-      vehicle: "Alto",
-    },
-    {
-      email: "bob.jones@example.com",
-      name: "Bob Jones",
-      branch: "G-12",
-      vehicle: "Alto",
-    },
-  ];
-  const handleDelete = (id) => {
-    dispatch(deleteInstructor({ id })).then(() => {
-      dispatch(fetchInstructors());
-    });
-  };
-  const handleUpdate = (id, status) => {
-    console.log(status, "status>>>>>>>>>>>.");
-    dispatch(updateInstructorStatus({ id, status })).then(() => {
-      dispatch(fetchInstructors());
-    });
-  };
+  // function to show the finances of only the specified branch
+  const handleSortByBranch = async (e) => {
+    dispatch(fetchFinances({ id: e.target.value }));
+  }
+  // updates the sortByProperty 
+  const handleSort = (column) => {
+    if (sortByProperty.key === column) {
+      setSortByProperty({
+        key: column,
+        direction: sortByProperty.direction === 'ascending' ? 'descending' : 'ascending',
+      })
+    }
+    else {
+      setSortByProperty({
+        key: column,
+        direction: 'descending'
+      })
+    }
+  }
+  const sortedFinances = [...finances].sort((a, b) => {
+    if (sortByProperty.key === null) return 0;
+
+    const aValue = a.paymentDetails[sortByProperty.key];
+    const bValue = b.paymentDetails[sortByProperty.key];
+
+    if (sortByProperty.direction === 'ascending') {
+      return aValue - bValue;
+    }
+    else if (sortByProperty.direction === 'descending') {
+      return bValue - aValue;
+    }
+    return 0;
+  })
+  //function to handle sort by date button
+  const handleSortByDateButton = () => {
+    dispatch(setFinancesByDate(false)); // if user after sorting one time, again tries to click sortbydate btn
+    history.push("/sort-finances-by-date");
+  }
+
   return (
     <>
       <div
@@ -76,16 +80,25 @@ export default function InstructorsTable({ color, title }) {
               </h3>
             </div>
             <div className="mr-3">
+              <select onChange={(e) => handleSortByBranch(e)}>
+                <option disabled selected>Select branch</option>
+                <option value={'All'}>All</option>
+                {branches.map((ele, ind) => {
+                  return (
+                    <option key={ind} value={ele._id}>{ele.name}</option>
+                  );
+                })}
+              </select>
+            </div>
+            <div className="mr-3">
               <button
-                onClick={() => history.push("/add-instructors")}
+                onClick={() => handleSortByDateButton()}
                 className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
-              >
-                Add
-              </button>
+              >Sort by date</button>
             </div>
           </div>
         </div>
-        {isInstructorLoading ? (
+        {registerLoading ? (
           <div className="flex justify-center items-center py-10">
             <svg
               aria-hidden="true"
@@ -106,7 +119,7 @@ export default function InstructorsTable({ color, title }) {
           </div>
         ) : (
           <div className="block w-full overflow-x-auto">
-            {/* Projects table */}
+            {/* Finances table */}
             <table className="items-center w-full bg-transparent border-collapse">
               <thead>
                 <tr>
@@ -118,7 +131,7 @@ export default function InstructorsTable({ color, title }) {
                         : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
                     }
                   >
-                    Name
+                    First Name
                   </th>
                   <th
                     className={
@@ -128,16 +141,7 @@ export default function InstructorsTable({ color, title }) {
                         : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
                     }
                   >
-                    Lercturer Code</th>
-                  <th
-                    className={
-                      "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
-                      (color === "light"
-                        ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
-                        : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
-                    }
-                  >
-                    Email
+                    Father Name
                   </th>
                   <th
                     className={
@@ -147,7 +151,20 @@ export default function InstructorsTable({ color, title }) {
                         : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
                     }
                   >
-                    Branch
+                    Date Registered
+                  </th>
+                  <th
+                    className={
+                      "flex items-center px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
+                      (color === "light"
+                        ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                        : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
+                    }
+                  >
+                    Payment Received
+                    <i onClick={() => handleSort("paymentReceived")}
+                      className="fas fa-solid fa-caret-down ml-1 cursor-pointer"
+                    ></i>
                   </th>
                   <th
                     className={
@@ -157,7 +174,10 @@ export default function InstructorsTable({ color, title }) {
                         : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
                     }
                   >
-                    Vehicle
+                    Remaining Payment
+                    <i onClick={() => handleSort("remainingPayment")}
+                      className="fas fa-solid fa-caret-down ml-1 cursor-pointer text-green-500"
+                    ></i>
                   </th>
                   <th
                     className={
@@ -167,7 +187,10 @@ export default function InstructorsTable({ color, title }) {
                         : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
                     }
                   >
-                    status
+                    Total Payment
+                    <i onClick={() => handleSort("totalPayment")}
+                      className="fas fa-solid fa-caret-down ml-1 cursor-pointer text-green-500"
+                    ></i>
                   </th>
                   <th
                     className={
@@ -177,60 +200,34 @@ export default function InstructorsTable({ color, title }) {
                         : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
                     }
                   >
-                    Actions
+                    Payment Method
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {instructors?.length > 0 &&
-                  instructors.map((instructor, index) => (
+                {sortedFinances?.length > 0 &&
+                  sortedFinances.map((finance, index) => (
                     <tr key={index}>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        {instructor?.name}
+                        {finance?.firstName}
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        {instructor?.lecturerCode}
+                        {finance?.fatherName}
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        {instructor?.email}
+                        {finance?.dateRegistered}
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        {instructor?.branch?.name}
+                        {finance?.paymentDetails.paymentReceived}
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        {instructor?.vehicle?.name}-{instructor?.vehicle?.number}
+                        {finance?.paymentDetails.remainingPayment}
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        {instructor?.status ? "Active" : "InActive"}
+                        {finance?.paymentDetails.totalPayment}
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        <button
-                          onClick={() => handleDelete(instructor?._id)}
-                          className={`py-2 px-4 rounded text-white font-bold mr-1
-                      bg-red-400  
-                      `}
-                        >
-                          Delete
-                        </button>
-                        {instructor.status ? (
-                          <button
-                            onClick={() => handleUpdate(instructor?._id, false)}
-                            className={`py-2 px-4 rounded text-white font-bold
-                      bg-red-400  
-                      `}
-                          >
-                            Deactivate
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => handleUpdate(instructor?._id, true)}
-                            className={`py-2 px-4 rounded text-white font-bold
-                    bg-emerald-400  
-                    `}
-                          >
-                            Activate
-                          </button>
-                        )}
+                        {finance?.paymentDetails.paymentMethod}
                       </td>
                     </tr>
                   ))}
@@ -243,10 +240,10 @@ export default function InstructorsTable({ color, title }) {
   );
 }
 
-InstructorsTable.defaultProps = {
+FinanceTable.defaultProps = {
   color: "light",
 };
 
-InstructorsTable.propTypes = {
+FinanceTable.propTypes = {
   color: PropTypes.oneOf(["light", "dark"]),
 };

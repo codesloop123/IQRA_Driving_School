@@ -18,6 +18,7 @@ export default function CardInstructor() {
     branch: null,
     vehicle: null,
     status: true,
+    lecturerCode:"",
     availability: { startTime: "09:00", endTime: "17:00" },
   });
   console.log(formData, "vehicle formdata>>>>>>>>>>>>>");
@@ -106,6 +107,28 @@ export default function CardInstructor() {
                   />
                 </div>
               </div>
+
+
+              <div className="w-full lg:w-6/12 px-4">
+                <div className="relative w-full mb-3">
+                  <label
+                    className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                    htmlFor="grid-password"
+                  >
+                    Instructor Code
+                  </label>
+                  <input
+                    type="text"
+                    name="lecturerCode"
+                    value={formData.lecturerCode}
+                    onChange={handleChange}
+                    placeholder="Enter instructor email"
+                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
+                  />
+                </div>
+              </div>
+
+
               <div className="w-full lg:w-6/12 px-4">
                 <div className="relative w-full mb-3">
                   <label

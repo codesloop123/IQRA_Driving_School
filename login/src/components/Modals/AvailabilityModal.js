@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   Dialog,
   DialogBackdrop,
@@ -8,6 +9,8 @@ import {
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import moment from "moment";
+import { fetchInstructors } from "store/instructor/action";
+import { toast } from "react-toastify";
 
 const localizer = momentLocalizer(moment);
 
@@ -53,9 +56,135 @@ const CustomToolbar = (toolbar) => {
   );
 };
 
-export default function AvailabilityModal({ open, setOpen, bookedSlots }) {
-  const [modalData, setModalData] = useState([]); // State for storing events of a clicked day
-  const [openModal, setOpenModal] = useState(false); // State to manage inner modal for day events
+export default function AvailabilityModal({
+  open,
+  setOpen,
+  courseduration,
+  courseTimeDuration,
+  changeStartDateTime,
+  changeInstructor,
+}) {
+  const [modalData, setModalData] = useState([]);
+  const [openModal, setOpenModal] = useState(false);
+
+  const dispatch = useDispatch();
+  const { instructors, isInstructorLoading } = useSelector(
+    (state) => state.instructor
+  );
+  const [selectedInstructor, setSelectedInstructor] = useState(null);
+  useEffect(() => {
+    dispatch(fetchInstructors());
+  }, [dispatch]);
+
+  const [highlightedEvents, setHighlightedEvents] = useState([]);
+  const [newEvents, setNewEvents] = useState([]);
+
+
+
+  const stableChangeInstructor = useCallback(changeInstructor, [changeInstructor]);
+
+  useEffect(() => {
+    if (selectedInstructor && typeof stableChangeInstructor === "function") {
+      stableChangeInstructor(selectedInstructor);
+    }
+  }, [selectedInstructor, stableChangeInstructor]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    if (name === "instructor") {
+      const selectedInstructor_1 = instructors.find(
+        (inst) => inst._id === value
+      );
+
+      if (!selectedInstructor_1) {
+        console.error("Instructor not found!");
+        return;
+      }
+      setSelectedInstructor(prev => selectedInstructor_1);
+      console.log(selectedInstructor);
+
+      const filteredSlots = selectedInstructor_1.bookedSlots || [];
+      if (filteredSlots.length > 0) {
+        const mergedSlots = mergeSlots(filteredSlots);
+
+      const newEventsList = mergedSlots.map((slot) => ({
+        title: `Booked ${slot.startTime} to ${slot.endTime}`,
+        start: new Date(`${slot.date}T${slot.startTime}`),
+        end: new Date(`${slot.date}T${slot.endTime}`),
+        color: generateRandomColor(),
+        tooltip: `Booked from ${slot.startTime} to ${slot.endTime}`,
+      }));
+
+      setHighlightedEvents(newEventsList);
+    }
+    else{
+      setHighlightedEvents([]);
+    }
+      setNewEvents([]);
+    } else {
+      console.error("Unhandled change for:", name);
+    }
+  };
+
+  const handleSelectSlot = ({ start }) => {
+    console.log("Slot input:", start);
+    if (!start) {
+      console.error("Invalid start time received from slot selection.");
+      return;
+    }
+    const startDateTime = new Date(start);
+    const rangeEvents = [];
+    let x = courseTimeDuration / 15;
+    for (let verticalOffset = 0; verticalOffset < x; verticalOffset++) {
+      for (
+        let horizontalOffset = 0;
+        horizontalOffset < courseduration;
+        horizontalOffset++
+      ) {
+        const eventStart = new Date(startDateTime);
+        const eventEnd = new Date(startDateTime);
+
+        eventStart.setMinutes(startDateTime.getMinutes() + verticalOffset * 15);
+        eventEnd.setMinutes(eventStart.getMinutes() + 15);
+
+        let adjustedDate = startDateTime.getDate() + horizontalOffset;
+        eventStart.setDate(adjustedDate);
+        eventEnd.setDate(adjustedDate);
+
+        if (eventStart.getDay() === 0) {
+          continue;
+        }
+
+        let myEventsList = highlightedEvents;
+        if (myEventsList.length > 0) {
+          const clash = myEventsList.some(
+            (existingEvent) =>
+              (eventStart >= existingEvent.start &&
+                eventStart < existingEvent.end) ||
+              (eventEnd > existingEvent.start && eventEnd <= existingEvent.end)
+          );
+
+          if (clash) {
+            toast.error("Instructor is already booked at this time.");
+            return;
+          }
+        }
+
+        rangeEvents.push({
+          title: `Booked ${eventStart.toLocaleString()} - ${eventEnd.toLocaleString()}`,
+          start: eventStart,
+          end: eventEnd,
+          color: "#FFD700",
+          tooltip: `Booked: ${eventStart.toLocaleTimeString()} - ${eventEnd.toLocaleTimeString()}`,
+        });
+      }
+    }
+
+    setNewEvents(rangeEvents);
+    const selectedDate = new Date(rangeEvents[0].start);
+    changeStartDateTime(selectedDate,rangeEvents[0].end);
+  };
 
   function mergeSlots(slots) {
     const clonedSlots = slots.map((slot) => ({ ...slot }));
@@ -87,14 +216,14 @@ export default function AvailabilityModal({ open, setOpen, bookedSlots }) {
     return mergedSlots;
   }
 
-  const mergedSlots = mergeSlots(bookedSlots);
-  const myEventsList = mergedSlots.map((slot) => ({
-    title: `Booked ${slot.startTime} to ${slot.endTime}`,
-    start: new Date(`${slot.date}T${slot.startTime}`),
-    end: new Date(`${slot.date}T${slot.endTime}`),
-    color: "red",
-    tooltip: `Booked from ${slot.startTime} to ${slot.endTime}`,
-  }));
+  function generateRandomColor() {
+    const letters = "0123456789ABCDEF";
+    let color = "#";
+    for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+  }
 
   const eventStyleGetter = (event) => {
     const backgroundColor = event.color;
@@ -106,17 +235,6 @@ export default function AvailabilityModal({ open, setOpen, bookedSlots }) {
         border: "none",
       },
     };
-  };
-
-  // Function to handle day click
-  const handleEventClick = (day) => {
-    const eventsForDay = myEventsList.filter(
-      (event) =>
-        new Date(event.start).toDateString() === new Date(day).toDateString()
-    );
-
-    setModalData(eventsForDay);
-    setOpenModal(true);
   };
   return (
     <>
@@ -134,20 +252,58 @@ export default function AvailabilityModal({ open, setOpen, bookedSlots }) {
                     >
                       Instructor Availability
                     </DialogTitle>
+
+                    <div className="w-full lg:w-6/12 px-4">
+                      <div className="relative w-full mb-3">
+                        <div className="flex justify-between gap-2">
+                          <label
+                            className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                            htmlFor="instructor-select"
+                          >
+                            Instructor
+                          </label>
+                        </div>
+                        <select
+                          required
+                          id="instructor-select"
+                          name="instructor"
+                          value={selectedInstructor?._id || ""}
+                          onChange={handleChange}
+                          className="border-0 px-3 py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                        >
+                          <option value="" disabled>
+                            Select Instructor
+                          </option>
+                          {instructors?.map((instructor) => (
+                            <option key={instructor?.id} value={instructor._id}>
+                              {instructor?.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
                     <div className="mt-2">
                       <Calendar
                         localizer={localizer}
-                        events={myEventsList}
+                        events={[...highlightedEvents, ...newEvents]}
                         startAccessor="start"
                         endAccessor="end"
                         style={{ height: 400, width: 800 }}
                         eventPropGetter={eventStyleGetter}
-                        defaultView="month"
+                        defaultView="week"
                         components={{
                           toolbar: CustomToolbar,
                         }}
-                        selectable // Enables day clicking
-                        onSelectSlot={({ start }) => handleEventClick(start)}
+                        selectable
+                        onSelectSlot={handleSelectSlot}
+                        step={15}
+                        timeslots={1}
+                        min={new Date(1970, 1, 1, 9, 0, 0)}
+                        max={new Date(1970, 1, 1, 18, 0, 0)}
+                        formats={{
+                          timeGutterFormat: "h:mm a",
+                        }}
                       />
                     </div>
                   </div>
@@ -167,7 +323,6 @@ export default function AvailabilityModal({ open, setOpen, bookedSlots }) {
         </div>
       </Dialog>
 
-      {/* Modal for showing events of a specific day */}
       {openModal && (
         <Dialog
           open={openModal}

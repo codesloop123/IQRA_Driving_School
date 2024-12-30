@@ -6,9 +6,9 @@ const router = express.Router();
 
 // POST route to add a new instructor for a specific branch
 router.post("/add", async (req, res) => {
-  const { name, email, branch, vehicle, status, availability } = req.body;
+  const { name, email, branch, vehicle, status, lecturerCode,availability } = req.body;
 
-  if (!name || !email || !branch || !vehicle || !status || !availability) {
+  if (!name || !email || !branch || !vehicle || !status || !availability || !lecturerCode) {
     return res.status(400).json({ msg: "Please enter all fields" });
   }
 
@@ -17,15 +17,19 @@ router.post("/add", async (req, res) => {
     if (instructor) {
       return res.status(200).json({ message: "Instructor already exists" });
     }
+
+    // var lecturerCode = "12345";
     const newInstructor = new Instructor({
       name,
       email,
+      lecturerCode,
       branch,
       vehicle,
       availability,
       status,
       bookedSlots: [],
     });
+    // console.log(newInstructor);
     const savedInstructor = await newInstructor.save();
     if (savedInstructor) {
       res
@@ -42,6 +46,7 @@ router.post("/add", async (req, res) => {
 router.get("/fetch", async (req, res) => {
   try {
     const instructors = await Instructor.find();
+    // console.log(instructors);
     res.status(200).json({ status: true, instructors: instructors });
   } catch (error) {
     console.error(error);

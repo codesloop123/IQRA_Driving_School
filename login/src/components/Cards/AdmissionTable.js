@@ -84,7 +84,7 @@ export default function AdmissionTable({ color, title }) {
                         : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
                     }
                   >
-                    Branch
+                    Reference No
                   </th>
                   <th
                     className={
@@ -226,7 +226,7 @@ export default function AdmissionTable({ color, title }) {
                         {admission?.firstName}
                       </td>
                       <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        {admission?.manager?.branch?.name}
+                        {admission?.referenceNumber}
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                         {admission?.cnic}

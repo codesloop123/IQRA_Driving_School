@@ -80,8 +80,8 @@ router.post("/add", async (req, res) => {
       return res.status(400).json({ message: "All fields are required." });
     }
     const referenceNumber = await generateReferenceNumber(
-      manager.branch._id,
-      instructor._id
+      manager.branch.branchCode,
+      instructor.lecturerCode
     );
     const instructorDoc = await Instructor.findById(instructor._id);
     if (!instructorDoc) {
@@ -217,6 +217,7 @@ router.get("/:id", async (req, res) => {
   try {
     const admissions = await Admission.find({ "manager.branch._id": id });
     console.log("admissions>>>>>>>>>>>>");
+    console.log(admissions);
     res.status(200).json({ status: true, admissions: admissions });
   } catch (error) {
     console.error("Error fetching admissions:", error);
@@ -256,21 +257,44 @@ router.put("/:branch/:id/status", async (req, res) => {
   }
 });
 
+//Route to fetch admissions finances 
 router.get("/:branch/finances", async (req, res) => {
   const { branch } = req.params;
-
+  const { toDate, fromDate } = req.query;
   try {
+    let admissions;
+    // Fetch admissions within a specific date range:
+    if (toDate && fromDate) {
+      const from = new Date(fromDate);
+      const to = new Date(toDate);
+      admissions = await Admission.find({
+        dateRegistered: {
+          $gte: from,
+          $lte: to
+        },
+      });
+    }
+    // Fetch admissions with payment details for all branches
+    else if (branch == "All") {
+      admissions = await Admission.find();
+    }
     // Fetch admissions with payment details for the specific branch
-    const admissions = await Admission.find({ branch });
+    else {
+      admissions = await Admission.find({ "manager.branch._id": branch });
+    }
 
-    // You can customize this to return only relevant financial data
     const finances = admissions.map((admission) => ({
       firstName: admission.firstName,
       fatherName: admission.fatherName,
       referenceNumber: admission.referenceNumber,
-      dateRegistered: admission.dateRegistered,
-      paymentDetails: admission.paymentDetails,
-      remainingAmount: admission.remainingAmount,
+      dateRegistered: new Date(admission.dateRegistered).toISOString().split('T')[0],
+      paymentDetails: {
+        paymentMethod: admission.paymentMethod,
+        totalPayment: admission.totalPayment,
+        paymentReceived: admission.paymentReceived,
+        discount: admission.discount,
+        remainingPayment: admission.remainingPayment
+      }
     }));
 
     res.status(200).json(finances);
