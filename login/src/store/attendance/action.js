@@ -46,6 +46,7 @@ export const fetchAttendance = createAsyncThunk(
       if (error.response?.data?.message)
         toast.error(error.response?.data?.message);
       else toast.error(error.message);
+      dispatch(setStudents([]));
     } finally {
       dispatch(setAttendanceLoader(false));
     }
