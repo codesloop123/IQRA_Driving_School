@@ -20,8 +20,7 @@ export default function AttendanceTable({ color, title }) {
   );
 
   useEffect(() => {
-    console.log(date);
-    dispatch(fetchAttendance({ branchid: user?.branch?._id, date }));
+    if (date) dispatch(fetchAttendance({ branchid: user?.branch?._id, date }));
   }, [date]);
 
   const navigateButtonHandler = (action) => {
@@ -143,19 +142,22 @@ export default function AttendanceTable({ color, title }) {
               </thead>
               {students.length !== 0 ? (
                 <tbody>
-                  {students.map((student) => (
+                  {students?.map((student) => (
                     <tr
                       key={student.id}
                       className={`cursor-pointer hover:bg-lightBlue-100 `}
                     >
                       <td className="border-t-0 px-6 py-3 text-xs text-blueGray-500 align-middle whitespace-nowrap">
-                        {student.name}
+                        {student.firstName} {student.lastName}
                       </td>
                       <td className="border-t-0 px-6 py-3 text-xs text-blueGray-500 align-middle whitespace-nowrap">
                         {student.refId}
                       </td>
                       <td className="border-t-0 px-6 py-3 text-xs text-blueGray-500 align-middle whitespace-nowrap">
-                        {student.status}
+                        {student.status ? "Active" : "Not Active"}
+                      </td>
+                      <td className="border-t-0 px-6 py-3 text-xs text-blueGray-500 align-middle whitespace-nowrap">
+                        {student.presence}
                       </td>
                     </tr>
                   ))}

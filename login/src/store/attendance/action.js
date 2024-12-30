@@ -38,8 +38,7 @@ export const fetchAttendance = createAsyncThunk(
       );
       if (response.status === 404) dispatch(setStudents([]));
       else if (response.status) {
-        console.log(response);
-        dispatch(setStudents(response?.data?.attendance));
+        dispatch(setStudents(response?.data));
         toast.success("Attendance Sheet Fetched Successfully");
       }
     } catch (error) {

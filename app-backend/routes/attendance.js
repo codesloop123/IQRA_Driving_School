@@ -41,18 +41,24 @@ router.get("/students/:branchid", async (req, res) => {
   const { branchid } = req.params;
 
   try {
-    // Find the attendance record for the given branch and date
-    const attendees = await Admission.find({
-      "manager.branch._id": branchid,
-      status: true,
-    });
-    const parse_to_student = attendees.map((attendee, index) => ({
-      id: attendee?._id,
-      name: `${attendee?.firstName} ${attendee?.lastName}`,
-      refId: attendee?.referenceNumber,
+    const attendees = await Admission.find(
+      {
+        "manager.branch._id": branchid,
+        status: true,
+      },
+      {
+        _id: 1, // Include _id
+        firstName: 1, // Include firstName
+        lastName: 1, // Include lastName
+        referenceNumber: 1, // Include referenceNumber
+      }
+    ).lean();
+    const formattedAttendees = attendees.map((attendee) => ({
+      _id: attendee._id,
+      name: `${attendee.firstName} ${attendee.lastName}`,
+      refId: attendee.referenceNumber,
     }));
-    console.log(parse_to_student);
-    res.status(200).json(parse_to_student);
+    res.status(200).json(formattedAttendees);
   } catch (error) {
     console.error("Error fetching attendance:", error);
     res.status(500).json({ msg: "Server error" });
@@ -65,8 +71,39 @@ router.get("/:branch/:date", async (req, res) => {
 
   try {
     // Find the attendance record for the given branch and date
-    const attendanceRecord = await Attendance.findOne({ branch, date });
-
+    const attendanceRecord = await Attendance.aggregate([
+      {
+        $match: {
+          branch: branch,
+          date: date, // Filter by branch and date
+        },
+      },
+      {
+        $unwind: "$attendance", // Deconstruct the attendance array
+      },
+      {
+        $lookup: {
+          from: "admissions", // The name of the Admission collection (lowercase and pluralized by default)
+          localField: "attendance.refId", // Field in Attendance to match
+          foreignField: "referenceNumber", // Field in Admission to match
+          as: "admissionDetails", // Alias for joined data
+        },
+      },
+      {
+        $unwind: "$admissionDetails", // Deconstruct the admissionDetails array
+      },
+      {
+        $project: {
+          _id: 1, // Exclude _id
+          firstName: "$admissionDetails.firstName",
+          lastName: "$admissionDetails.lastName",
+          refId: "$admissionDetails.referenceNumber",
+          status: "$admissionDetails.status", // Status from Attendance
+          presence: "$attendance.status",
+        },
+      },
+    ]);
+    console.log(attendanceRecord);
     if (!attendanceRecord) {
       return res
         .status(404)

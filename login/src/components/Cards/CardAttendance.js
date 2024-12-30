@@ -28,8 +28,9 @@ export default function CardAttendance() {
   const handleAttendance = (status) => {
     if (selectedRow !== null) {
       const updatedData = attendanceData.map((row) =>
-        row.id === selectedRow ? { ...row, status } : row
+        row._id === selectedRow ? { ...row, status } : row
       );
+      console.log(updatedData);
       setAttendanceData(updatedData);
     }
   };
@@ -44,7 +45,7 @@ export default function CardAttendance() {
     );
   };
   const filteredData = attendanceData.filter((row) =>
-    row.name.toLowerCase().includes(search.toLowerCase())
+    row?.name?.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleSearchKeyPress = (e) => {
@@ -135,12 +136,12 @@ export default function CardAttendance() {
                     </tr>
                   </thead>
                   <tbody className="bg-white">
-                    {filteredData.map((row) => (
+                    {filteredData.map((row, index) => (
                       <tr
-                        key={row.id}
-                        onClick={() => handleRowClick(row.id)}
+                        key={row._id}
+                        onClick={() => handleRowClick(row._id)}
                         className={`cursor-pointer hover:bg-lightBlue-100 ${
-                          selectedRow === row.id ? "bg-lightBlue-200" : ""
+                          selectedRow === row._id ? "bg-lightBlue-200" : ""
                         }`}
                       >
                         <td className="border-t-0 px-6 py-3 text-xs text-blueGray-500 align-middle whitespace-nowrap">
