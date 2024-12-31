@@ -77,7 +77,6 @@ export default function AdmissionCard() {
   const changeStartDateTime = (startDate, endTime) => {
     let startdata = formatDate(startDate);
     let starttime = formatTime(startDate);
-    console.log(startdata);
     const selectedDate = new Date(startdata);
     const day = selectedDate.getDay();
     if (day === 0) {
@@ -118,7 +117,6 @@ export default function AdmissionCard() {
 
   const handleChange = (e) => {
     const { name, type, value, checked } = e.target;
-    console.log(courses[value]);
     if (name === "instructor") {
       const selectedInstructor = instructors.find(
         (instructor) => instructor.name === value
@@ -178,7 +176,6 @@ export default function AdmissionCard() {
       });
     } else if (name === "startDate") {
       const selectedDate = new Date(value);
-      console.log("Here is part 2:", value);
       const day = selectedDate.getDay();
       if (day === 0) {
         setError("Sunday is a holiday. Please select another date.");
@@ -189,7 +186,6 @@ export default function AdmissionCard() {
         ...formData,
         startDate: value,
       });
-      console.log("Here is:", formData?.startDate);
     } else if (name === "dob") {
       const birthDate = new Date(value);
       const today = new Date();
@@ -248,7 +244,6 @@ export default function AdmissionCard() {
   ) => {
     for (let i = 0; i < bookedSlots.length; i++) {
       const bookedSlot = bookedSlots[i];
-      console.log(bookedSlot);
       const { date, startTime, endTime } = bookedSlot;
       if (date === selectedDate) {
         const selectedStart = parse(selectedStartTime, "HH:mm", new Date());
@@ -271,7 +266,6 @@ export default function AdmissionCard() {
     selectedEndTime
   ) => {
     const bookedSlots = instructor.bookedSlots || [];
-    console.log("Here are the booked slots:", bookedSlots);
 
     // Ensure that selected times are valid Date objects
     if (
@@ -301,7 +295,6 @@ export default function AdmissionCard() {
         isWithinInterval(selectedEndTime, { start: startTime, end: endTime }) ||
         (selectedStartTime <= startTime && selectedEndTime >= endTime) // Selected range completely overlaps booked range
       ) {
-        console.log("Collision detected with:", bookedSlot);
         return false; // Collision found
       }
     }
@@ -310,6 +303,7 @@ export default function AdmissionCard() {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log(formData, "submitted Data>>>>>>>>>");
+
     const { instructor, startDate, startTime } = formData;
     if (!instructor) {
       toast.error("Choose Instructor first");
@@ -364,7 +358,6 @@ export default function AdmissionCard() {
     dispatch(fetchInstructors());
     dispatch(fetchCourses());
   }, []);
-  console.log(courses);
   useEffect(() => {
     const discountedTotal = formData.discount
       ? parseFloat(formData.totalPayment || 0) -

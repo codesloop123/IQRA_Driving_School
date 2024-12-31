@@ -52,6 +52,8 @@ router.post("/add", async (req, res) => {
       remainingPayment,
       discount,
       manager,
+      course,
+      vehicle,
       status,
     } = req.body;
     if (
@@ -75,12 +77,14 @@ router.post("/add", async (req, res) => {
       remainingPayment === undefined ||
       discount === undefined ||
       !manager ||
-      !status
+      !status ||
+      !course ||
+      !vehicle
     ) {
       return res.status(400).json({ message: "All fields are required." });
     }
     const referenceNumber = await generateReferenceNumber(
-      manager.branch.branchCode,
+      manager.branch._id,
       instructor.lecturerCode
     );
     const instructorDoc = await Instructor.findById(instructor._id);
@@ -257,7 +261,7 @@ router.put("/:branch/:id/status", async (req, res) => {
   }
 });
 
-//Route to fetch admissions finances 
+//Route to fetch admissions finances
 router.get("/:branch/finances", async (req, res) => {
   const { branch } = req.params;
   const { toDate, fromDate } = req.query;
@@ -270,7 +274,7 @@ router.get("/:branch/finances", async (req, res) => {
       admissions = await Admission.find({
         dateRegistered: {
           $gte: from,
-          $lte: to
+          $lte: to,
         },
       });
     }
@@ -287,14 +291,16 @@ router.get("/:branch/finances", async (req, res) => {
       firstName: admission.firstName,
       fatherName: admission.fatherName,
       referenceNumber: admission.referenceNumber,
-      dateRegistered: new Date(admission.dateRegistered).toISOString().split('T')[0],
+      dateRegistered: new Date(admission.dateRegistered)
+        .toISOString()
+        .split("T")[0],
       paymentDetails: {
         paymentMethod: admission.paymentMethod,
         totalPayment: admission.totalPayment,
         paymentReceived: admission.paymentReceived,
         discount: admission.discount,
-        remainingPayment: admission.remainingPayment
-      }
+        remainingPayment: admission.remainingPayment,
+      },
     }));
 
     res.status(200).json(finances);
