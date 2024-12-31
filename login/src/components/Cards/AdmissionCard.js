@@ -2,24 +2,29 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useState, useEffect } from "react";
 import { fetchInstructors } from "store/instructor/action";
-import { format, parse,isWithinInterval } from "date-fns";
+import { format, parse, isWithinInterval } from "date-fns";
 import { postAdmission } from "store/admission/actions";
 import { toast } from "react-toastify";
 import AvailabilityModal from "components/Modals/AvailabilityModal";
 import { start } from "@popperjs/core";
+import { fetchCourses } from "store/courses/actions";
 
 export default function AdmissionCard() {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+  const { courses } = useSelector((state) => state.course);
   const { registerLoading } = useSelector((state) => state.admission);
   const [open, setOpen] = useState(false);
   const { isInstructorLoading, instructors } = useSelector(
     (state) => state.instructor
   );
+  const [idx, setIdx] = useState("");
+  const [priceIdx, setPriceIdx] = useState("");
   const [error, setError] = useState("");
   const [timeError, setTimeError] = useState("");
   const [cnicError, setCnicError] = useState("");
   const [dobError, setDobError] = useState("");
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -42,13 +47,14 @@ export default function AdmissionCard() {
     manager: user,
     status: true,
     discount: "",
+    course: "",
+    vehicle: "",
   });
 
-  
   // Function to format Date to accordingly
   const formatDate = (date) => {
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0"); 
+    const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
@@ -68,7 +74,7 @@ export default function AdmissionCard() {
     });
   };
 
-  const changeStartDateTime = (startDate,endTime) => {
+  const changeStartDateTime = (startDate, endTime) => {
     let startdata = formatDate(startDate);
     let starttime = formatTime(startDate);
     console.log(startdata);
@@ -92,7 +98,11 @@ export default function AdmissionCard() {
     const selectedTime = format(parse(starttime, "HH:mm", new Date()), "hh:mm");
     const { instructor } = formData;
     if (instructor) {
-      const isAvailable = checkInstructorAvailability(instructor, startDate,endTime);
+      const isAvailable = checkInstructorAvailability(
+        instructor,
+        startDate,
+        endTime
+      );
       if (!isAvailable) {
         setTimeError("Instructor is not available at this time.");
         return;
@@ -104,12 +114,11 @@ export default function AdmissionCard() {
       startDate: startdata,
       startTime: starttime,
     });
-    // console.log("Here is:", formData?.startDate);
   };
 
-  // console.log(formData, "formData>>>>>>>>>>>>>");
   const handleChange = (e) => {
     const { name, type, value, checked } = e.target;
+    console.log(courses[value]);
     if (name === "instructor") {
       const selectedInstructor = instructors.find(
         (instructor) => instructor.name === value
@@ -117,6 +126,14 @@ export default function AdmissionCard() {
       setFormData({
         ...formData,
         instructor: selectedInstructor,
+      });
+    } else if (name === "course") {
+      setIdx(value);
+      setFormData({
+        ...formData,
+        course: courses[value]?.name,
+        courseTimeDuration: courses[value]?.duration,
+        vehicle: courses[value]?.vehicle,
       });
     } else if (name === "startTime") {
       const [hours, minutes] = value.split(":").map(Number);
@@ -130,7 +147,6 @@ export default function AdmissionCard() {
       }
       setTimeError("");
       const selectedTime = format(parse(value, "HH:mm", new Date()), "hh:mm");
-      console.log(selectedTime, "selectedTime>>>>>>>>>>>>>");
       const { instructor } = formData;
       if (instructor) {
         const isAvailable = checkInstructorAvailability(
@@ -193,10 +209,12 @@ export default function AdmissionCard() {
         dob: value,
       });
     } else if (name === "courseduration") {
-      const numericValue = Number(value);
+      const numericValue = Number(courses[idx]?.pricelist[value]?.days);
+      setPriceIdx(value);
       setFormData((prev) => ({
         ...prev,
         courseduration: numericValue,
+        totalPayment: Number(courses[idx].pricelist[value].price),
       }));
     } else if (name === "totalPayment") {
       const numericValue = Number(value);
@@ -247,31 +265,39 @@ export default function AdmissionCard() {
     return false;
   };
 
-  // import { isWithinInterval } from 'date-fns';
-
-  const checkInstructorAvailability = (instructor, selectedStartTime, selectedEndTime) => {
+  const checkInstructorAvailability = (
+    instructor,
+    selectedStartTime,
+    selectedEndTime
+  ) => {
     const bookedSlots = instructor.bookedSlots || [];
     console.log("Here are the booked slots:", bookedSlots);
-  
+
     // Ensure that selected times are valid Date objects
-    if (!(selectedStartTime instanceof Date) || !(selectedEndTime instanceof Date)) {
+    if (
+      !(selectedStartTime instanceof Date) ||
+      !(selectedEndTime instanceof Date)
+    ) {
       console.error("Selected start and end times must be Date objects.");
       return false;
     }
-  
+
     for (let i = 0; i < bookedSlots.length; i++) {
       const bookedSlot = bookedSlots[i];
       const { startTime, endTime } = bookedSlot;
-  
+
       // Ensure that booked start and end times are valid Date objects
       if (!(startTime instanceof Date) || !(endTime instanceof Date)) {
         console.error("Booked start and end times must be Date objects.");
         continue; // Skip this slot if invalid
       }
-  
+
       // Check for collision
       if (
-        isWithinInterval(selectedStartTime, { start: startTime, end: endTime }) ||
+        isWithinInterval(selectedStartTime, {
+          start: startTime,
+          end: endTime,
+        }) ||
         isWithinInterval(selectedEndTime, { start: startTime, end: endTime }) ||
         (selectedStartTime <= startTime && selectedEndTime >= endTime) // Selected range completely overlaps booked range
       ) {
@@ -320,6 +346,8 @@ export default function AdmissionCard() {
             startTime: "",
             paymentMethod: "",
             totalPayment: "",
+            course: "",
+            vehicle: "",
             paymentReceived: "",
             paymentInInstallments: false,
             remainingPayment: "",
@@ -334,7 +362,9 @@ export default function AdmissionCard() {
   };
   useEffect(() => {
     dispatch(fetchInstructors());
+    dispatch(fetchCourses());
   }, []);
+  console.log(courses);
   useEffect(() => {
     const discountedTotal = formData.discount
       ? parseFloat(formData.totalPayment || 0) -
@@ -540,18 +570,16 @@ export default function AdmissionCard() {
                 <div className="relative w-full mb-3">
                   <div className="flex justify-between gap-2">
                     <button
-                     onClick={() => {
-                      if (
-                        formData?.courseTimeDuration > 0 &&
-                        formData?.courseduration > 0
-                      ) {
-                        setOpen(true);
-                      } else {
-                        toast.error(
-                          "Fill Course Duration and Time Duration"
-                        );
-                      }
-                    }}
+                      onClick={() => {
+                        if (
+                          formData?.courseTimeDuration > 0 &&
+                          formData?.courseduration > 0
+                        ) {
+                          setOpen(true);
+                        } else {
+                          toast.error("Fill Course Duration and Time Duration");
+                        }
+                      }}
                       className="px-6 py-3 bg-lightBlue-600 text-white font-bold rounded-md shadow hover:bg-lightBlue-700 transition-all"
                     >
                       Check Availability
@@ -559,23 +587,46 @@ export default function AdmissionCard() {
                   </div>
                 </div>
               </div>
-
               <div className="w-full lg:w-6/12 px-4">
                 <div className="relative w-full mb-3">
                   <label
                     className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
-                    htmlFor="courseduration"
+                    htmlFor="course"
                   >
-                    Course Duration
+                    Course
+                  </label>
+                  <select
+                    required
+                    id="course"
+                    name="course"
+                    value={idx}
+                    onChange={handleChange}
+                    className="border-0 px-3 py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                  >
+                    <option value="" disabled>
+                      Select Course
+                    </option>
+                    {courses.map((course, index) => (
+                      <option value={index} key={course?._id}>
+                        {course?.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="w-full lg:w-6/12 px-4">
+                <div className="relative w-full mb-3">
+                  <label
+                    className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                    htmlFor="vehicle"
+                  >
+                    Vehicle
                   </label>
                   <input
                     required
-                    type="number"
-                    name="courseduration"
-                    min={1}
-                    value={formData.courseduration}
-                    onChange={handleChange}
-                    placeholder="Enter Course Duration"
+                    name="vehicle"
+                    readOnly
+                    value={formData?.vehicle}
                     className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
                   />
                 </div>
@@ -589,17 +640,42 @@ export default function AdmissionCard() {
                     Time Duration/Day
                   </label>
                   <input
+                    readOnly
                     required
                     type="number"
                     id="courseTimeDuration"
                     name="courseTimeDuration"
                     value={formData.courseTimeDuration}
-                    onChange={handleChange}
-                    min={1}
-                    step={1}
-                    placeholder="Enter Time Duration/Day"
                     className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
                   />
+                </div>
+              </div>{" "}
+              <div className="w-full lg:w-6/12 px-4">
+                <div className="relative w-full mb-3">
+                  <label
+                    className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                    htmlFor="courseduration"
+                  >
+                    Duration
+                  </label>
+                  <select
+                    required
+                    id="courseduration"
+                    name="courseduration"
+                    value={priceIdx}
+                    onChange={handleChange}
+                    className="border-0 px-3 py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                  >
+                    <option value="" disabled>
+                      Select Duration (Days)
+                    </option>
+
+                    {courses[idx]?.pricelist.map((course, index) => (
+                      <option value={index} key={course?._id}>
+                        {course?.days} Day{`${course?.days > 1 ? "s" : ""}`}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
               <div className="w-full lg:w-6/12 px-4">
@@ -686,12 +762,12 @@ export default function AdmissionCard() {
                   </label>
                   <input
                     required
+                    readOnly
                     type="number"
                     min={1}
                     name="totalPayment"
                     value={formData.totalPayment}
                     onChange={handleChange}
-                    placeholder="Enter Total Payment"
                     className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
                   />
                 </div>

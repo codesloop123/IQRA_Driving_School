@@ -26,6 +26,8 @@ const AdmissionSchema = new mongoose.Schema({
     type: InstructorSchema,
     required: true,
   },
+  vehicle: { type: String, required: true },
+  course: { type: String, required: true },
   courseduration: { type: Number, required: true },
   courseTimeDuration: { type: String, required: true },
   startDate: { type: Date, required: true },
