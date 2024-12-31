@@ -311,6 +311,27 @@ export default function Sidebar() {
                       Alert
                     </Link>
                   </li>
+                  <li className="items-center">
+                    <Link
+                      className={
+                        "text-xs uppercase py-3 font-bold block " +
+                        (window.location.href.indexOf("/attendance") !== -1
+                          ? "text-lightBlue-500 hover:text-lightBlue-600"
+                          : "text-blueGray-700 hover:text-blueGray-500")
+                      }
+                      to="/attendance"
+                    >
+                      <i
+                        className={
+                          "fas fa-check mr-2 text-sm " +
+                          (window.location.href.indexOf("/alert") !== -1
+                            ? "opacity-75"
+                            : "text-blueGray-300")
+                        }
+                      ></i>
+                      Attendance
+                    </Link>
+                  </li>
                   <Link
                     className={
                       "text-xs uppercase py-3 font-bold block " +
