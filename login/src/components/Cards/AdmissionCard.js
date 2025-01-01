@@ -88,10 +88,10 @@ export default function AdmissionCard() {
       setError("");
     }
     const [hours, minutes] = starttime.split(":").map(Number);
-    if (minutes !== 0 && minutes !== 30) {
-      setTimeError("Please select a time ending in 00 or 30 minutes.");
-      return;
-    }
+    // if (minutes !== 0 && minutes !== 30) {
+    //   setTimeError("Please select a time ending in 00 or 30 minutes.");
+    //   return;
+    // }
     if (hours < 9 || hours > 16 || (hours === 17 && minutes > 0)) {
       setTimeError("Time must be between 9:00 AM and 5:00 PM.");
       return;
@@ -138,7 +138,7 @@ export default function AdmissionCard() {
       });
     } else if (name === "startTime") {
       const [hours, minutes] = value.split(":").map(Number);
-      if (minutes !== 0 && minutes !== 30) {
+      if (minutes !== 0 && minutes !== 30 && minutes !== 15 && minutes !== 45) {
         setTimeError("Please select a time ending in 00 or 30 minutes.");
         return;
       }
@@ -392,11 +392,15 @@ export default function AdmissionCard() {
         address,
         totalPayment,
         startDate,
+        courseduration,
+        courseTimeDuration,
       } = formData;
 
       const name = firstName + " " + lastName;
       const education = "--"; // No field for education
       const currentTime = new Date();
+      const drivingdays = courseduration-2;
+      const learningdays = courseduration-drivingdays;
       const time = `${currentTime.getHours()}:${currentTime.getMinutes()}`;
       const date = `${currentTime.getDate().toString().padStart(2, "0")}-${(
         currentTime.getMonth() + 1
@@ -418,7 +422,10 @@ export default function AdmissionCard() {
         "Time": { x: 150, y: 476, value: time.toString() },
         "S.Date": { x: 305, y: 476, value: startDate.toString() },
         "Date": { x: 460, y: 476, value: date.toString() },
-        "Ref":{ x: 75, y:643, value: "REFNUMBR123" },
+        "Total Days": { x: 465, y: 405, value: courseduration.toString() },
+        "Ddays": { x: 360, y: 405, value: drivingdays.toString() },
+        "Ldays": { x: 50, y: 405, value: learningdays.toString() },
+        "time": { x: 290, y: 405, value: courseTimeDuration.toString() }
       };
 
       // Add text to the appropriate fields on the first page
@@ -437,6 +444,25 @@ export default function AdmissionCard() {
       // Using FileSaver.js to trigger the download
       const blob = new Blob([pdfBytes], { type: "application/pdf" });
       saveAs(blob, "admissionForm(filled).pdf");
+      const pdfUrl = URL.createObjectURL(blob);
+
+      const iframe = document.createElement("iframe");
+      iframe.src = pdfUrl;
+      iframe.style.position = "fixed";
+      iframe.style.top = "0";
+      iframe.style.left = "0";
+      iframe.style.width = "0";
+      iframe.style.height = "0";
+      iframe.style.border = "none";
+
+      document.body.appendChild(iframe);
+
+      iframe.onload = () => {
+        iframe.contentWindow?.focus();
+        iframe.contentWindow?.print();
+      };
+
+
       console.log("Admission PDF filled and download initiated.");
     } catch (error) {
       console.error("Error filling PDF:", error);
@@ -571,7 +597,7 @@ export default function AdmissionCard() {
     try {
       // Ensure fillPdf completes before starting createInvoicePdf
       await createAdmissionPdf();
-      await createInvoicePdf();
+      // await createInvoicePdf();
     } catch (error) {
       console.error("Error generating PDFs:", error);
     }
@@ -633,6 +659,7 @@ export default function AdmissionCard() {
         console.error("Submission failed:", error);
       });
     };
+
   useEffect(() => {
     dispatch(fetchInstructors());
     dispatch(fetchCourses());
