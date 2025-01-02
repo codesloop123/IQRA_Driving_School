@@ -366,7 +366,7 @@ export default function AdmissionCard() {
   //     console.error("Error filling PDF:", error);
   //   }
   // }
-  async function createAdmissionPdf() {
+  async function createAdmissionPdf(refNumber) {
     try {
       // Load the existing PDF file from the public folder
       const response = await fetch(admissionFormPdf);
@@ -399,8 +399,8 @@ export default function AdmissionCard() {
       const name = firstName + " " + lastName;
       const education = "--"; // No field for education
       const currentTime = new Date();
-      const drivingdays = courseduration-2;
-      const learningdays = courseduration-drivingdays;
+      const drivingdays = courseduration - 2;
+      const learningdays = courseduration - drivingdays;
       const time = `${currentTime.getHours()}:${currentTime.getMinutes()}`;
       const date = `${currentTime.getDate().toString().padStart(2, "0")}-${(
         currentTime.getMonth() + 1
@@ -410,22 +410,23 @@ export default function AdmissionCard() {
 
       // Define the data and positions
       const data = {
+        refNo: { x: 80, y: 654, value: refNumber.toString() },
         "D/o,W/o,S/o": { x: 110, y: 604, value: fatherName.toString() },
-        "Name": { x: 395, y: 603, value: name.toString() },
-        "DOB": { x: 380, y: 568, value: dob.toString() },
-        "CNIC": { x: 95, y: 568, value: cnic.toString() },
+        Name: { x: 395, y: 603, value: name.toString() },
+        DOB: { x: 380, y: 568, value: dob.toString() },
+        CNIC: { x: 95, y: 568, value: cnic.toString() },
         "Ph#": { x: 55, y: 536, value: cellNumber.toString() },
-        "Cell": { x: 217, y: 534, value: cellNumber.toString() },
-        "Education": { x: 440, y: 534, value: education.toString() },
-        "Address": { x: 90, y: 507, value: address.toString() },
-        "Fee": { x: 55, y: 476, value: totalPayment.toString() },
-        "Time": { x: 150, y: 476, value: time.toString() },
+        Cell: { x: 217, y: 534, value: cellNumber.toString() },
+        Education: { x: 440, y: 534, value: education.toString() },
+        Address: { x: 90, y: 507, value: address.toString() },
+        Fee: { x: 55, y: 476, value: totalPayment.toString() },
+        Time: { x: 150, y: 476, value: time.toString() },
         "S.Date": { x: 305, y: 476, value: startDate.toString() },
-        "Date": { x: 460, y: 476, value: date.toString() },
+        Date: { x: 460, y: 476, value: date.toString() },
         "Total Days": { x: 465, y: 405, value: courseduration.toString() },
-        "Ddays": { x: 360, y: 405, value: drivingdays.toString() },
-        "Ldays": { x: 50, y: 405, value: learningdays.toString() },
-        "time": { x: 290, y: 405, value: courseTimeDuration.toString() }
+        Ddays: { x: 360, y: 405, value: drivingdays.toString() },
+        Ldays: { x: 50, y: 405, value: learningdays.toString() },
+        time: { x: 290, y: 405, value: courseTimeDuration.toString() },
       };
 
       // Add text to the appropriate fields on the first page
@@ -461,7 +462,6 @@ export default function AdmissionCard() {
         iframe.contentWindow?.focus();
         iframe.contentWindow?.print();
       };
-
 
       console.log("Admission PDF filled and download initiated.");
     } catch (error) {
@@ -593,10 +593,10 @@ export default function AdmissionCard() {
     }
   }
 
-  async function generateAndDownloadPdfs() {
+  async function generateAndDownloadPdfs(refNumber) {
     try {
       // Ensure fillPdf completes before starting createInvoicePdf
-      await createAdmissionPdf();
+      await createAdmissionPdf(refNumber);
       // await createInvoicePdf();
     } catch (error) {
       console.error("Error generating PDFs:", error);
@@ -605,7 +605,6 @@ export default function AdmissionCard() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(formData, "submitted Data>>>>>>>>>");
 
     const { instructor, startDate, startTime } = formData;
     if (!instructor) {
@@ -621,14 +620,17 @@ export default function AdmissionCard() {
       toast.error("Instructor is already booked at this time.");
       return;
     }
-    generateAndDownloadPdfs();
-    dispatch( postAdmission({ formData }))
-    .then((response) => {
-      console.log(response.data.refNumber);
-      if (response.meta.requestStatus === "fulfilled") {
+
+    dispatch(postAdmission({ formData }))
+      .then((response) => {
+        generateAndDownloadPdfs(response?.payload?.refNumber);
+
+        if (response.meta.requestStatus === "fulfilled") {
           setError("");
           setTimeError("");
           setDobError("");
+          setIdx("");
+          setPriceIdx("");
           setFormData({
             firstName: "",
             lastName: "",
@@ -638,27 +640,28 @@ export default function AdmissionCard() {
             dob: "",
             cellNumber: "",
             address: "",
-            instructor: "",
+            instructor: null,
             courseduration: "",
             courseTimeDuration: "",
             startDate: "",
             startTime: "",
             paymentMethod: "",
             totalPayment: "",
-            course: "",
-            vehicle: "",
             paymentReceived: "",
             paymentInInstallments: false,
             remainingPayment: "",
             manager: user,
             status: true,
+            discount: "",
+            course: "",
+            vehicle: "",
           });
         }
       })
       .catch((error) => {
         console.error("Submission failed:", error);
       });
-    };
+  };
 
   useEffect(() => {
     dispatch(fetchInstructors());

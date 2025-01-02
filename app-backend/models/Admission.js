@@ -41,7 +41,7 @@ const AdmissionSchema = new mongoose.Schema({
   },
   totalPayment: { type: Number, required: true },
   paymentReceived: { type: Number, required: true },
-  discount: { type: Number, required: true },
+  discount: { type: Number },
   paymentInInstallments: { type: Boolean, required: true, default: false },
   remainingPayment: { type: Number, required: true },
   dateRegistered: { type: Date, default: Date.now },
