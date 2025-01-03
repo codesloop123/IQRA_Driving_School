@@ -1193,17 +1193,27 @@ export default function AdmissionCard() {
           </form>
         </div>
       </div>
-      {formData?.courseduration && formData?.courseTimeDuration && (
-        <AvailabilityModal
-          open={open}
-          setOpen={setOpen}
-          courseduration={formData?.courseduration}
-          courseTimeDuration={formData?.courseTimeDuration}
-          changeStartDateTime={changeStartDateTime}
-          instructorAvailability={formData?.instructor?.availability}
-          changeInstructor={changeInstructor}
-        />
-      )}
+      {formData?.courseduration &&
+        formData?.courseTimeDuration &&
+        formData?.firstName &&
+        formData?.lastName &&
+        formData?.vehicle &&
+        formData?.address &&
+        formData?.cellNumber && (
+          <AvailabilityModal
+            open={open}
+            setOpen={setOpen}
+            courseduration={formData?.courseduration}
+            courseTimeDuration={formData?.courseTimeDuration}
+            changeStartDateTime={changeStartDateTime}
+            instructorAvailability={formData?.instructor?.availability}
+            name={formData?.firstName + " " + formData?.lastName}
+            car={formData?.vehicle}
+            phone={formData?.cellNumber}
+            area={formData?.address}
+            changeInstructor={changeInstructor}
+          />
+        )}
     </>
   );
 }

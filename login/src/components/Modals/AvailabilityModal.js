@@ -63,6 +63,10 @@ export default function AvailabilityModal({
   courseTimeDuration,
   changeStartDateTime,
   changeInstructor,
+  name,
+  area,
+  phone,
+  car,
 }) {
   const [modalData, setModalData] = useState([]);
   const [openModal, setOpenModal] = useState(false);
@@ -79,9 +83,9 @@ export default function AvailabilityModal({
   const [highlightedEvents, setHighlightedEvents] = useState([]);
   const [newEvents, setNewEvents] = useState([]);
 
-
-
-  const stableChangeInstructor = useCallback(changeInstructor, [changeInstructor]);
+  const stableChangeInstructor = useCallback(changeInstructor, [
+    changeInstructor,
+  ]);
 
   useEffect(() => {
     if (selectedInstructor && typeof stableChangeInstructor === "function") {
@@ -101,26 +105,25 @@ export default function AvailabilityModal({
         console.error("Instructor not found!");
         return;
       }
-      setSelectedInstructor(prev => selectedInstructor_1);
+      setSelectedInstructor((prev) => selectedInstructor_1);
       console.log(selectedInstructor);
 
       const filteredSlots = selectedInstructor_1.bookedSlots || [];
       if (filteredSlots.length > 0) {
         const mergedSlots = mergeSlots(filteredSlots);
 
-      const newEventsList = mergedSlots.map((slot) => ({
-        title: `Booked ${slot.startTime} to ${slot.endTime}`,
-        start: new Date(`${slot.date}T${slot.startTime}`),
-        end: new Date(`${slot.date}T${slot.endTime}`),
-        color: generateRandomColor(),
-        tooltip: `Booked from ${slot.startTime} to ${slot.endTime}`,
-      }));
+        const newEventsList = mergedSlots.map((slot) => ({
+          title: `Booked ${slot.startTime} to ${slot.endTime}`,
+          start: new Date(`${slot.date}T${slot.startTime}`),
+          end: new Date(`${slot.date}T${slot.endTime}`),
+          color: generateRandomColor(),
+          tooltip: `Booked from ${slot.startTime} to ${slot.endTime}`,
+        }));
 
-      setHighlightedEvents(newEventsList);
-    }
-    else{
-      setHighlightedEvents([]);
-    }
+        setHighlightedEvents(newEventsList);
+      } else {
+        setHighlightedEvents([]);
+      }
       setNewEvents([]);
     } else {
       console.error("Unhandled change for:", name);
@@ -183,7 +186,7 @@ export default function AvailabilityModal({
 
     setNewEvents(rangeEvents);
     const selectedDate = new Date(rangeEvents[0].start);
-    changeStartDateTime(selectedDate,rangeEvents[0].end);
+    changeStartDateTime(selectedDate, rangeEvents[0].end);
   };
 
   function mergeSlots(slots) {
@@ -245,16 +248,16 @@ export default function AvailabilityModal({
             <DialogPanel className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:scale-100">
               <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                 <div className="sm:flex sm:items-start justify-center">
-                  <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                  <div className="mt-1 text-center sm:ml-4 sm:mt-0 sm:text-left">
                     <DialogTitle
                       as="h3"
-                      className="text-base font-semibold text-gray-900"
+                      className="text-base font-semibold text-center mb-8 text-gray-900"
                     >
                       Instructor Availability
                     </DialogTitle>
 
-                    <div className="w-full lg:w-6/12 px-4">
-                      <div className="relative w-full mb-3">
+                    <div className="w-full lg:w-full px-4 flex flex-row justify-between">
+                      <div className="relative mb-3" style={{ width: "33%" }}>
                         <div className="flex justify-between gap-2">
                           <label
                             className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
@@ -269,7 +272,7 @@ export default function AvailabilityModal({
                           name="instructor"
                           value={selectedInstructor?._id || ""}
                           onChange={handleChange}
-                          className="border-0 px-3 py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                          className="border-0 px-3 w-full py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none  ease-linear transition-all duration-150"
                         >
                           <option value="" disabled>
                             Select Instructor
@@ -280,6 +283,24 @@ export default function AvailabilityModal({
                             </option>
                           ))}
                         </select>
+                      </div>
+                      <div className="relative  mb-3">
+                        <h4 className="block uppercase text-blueGray-600 text-xs font-bold mb-2">
+                          Details
+                        </h4>
+                        <p className="block uppercase text-xs  mb-1">
+                          Name: {name}
+                        </p>
+                        <p className="block uppercase text-xs  mb-1">
+                          Phone Num: {phone}
+                        </p>
+
+                        <p className="block uppercase text-xs  mb-1">
+                          Area: {area}
+                        </p>
+                        <p className="block uppercase text-xs  mb-1">
+                          Car: {car}
+                        </p>
                       </div>
                     </div>
 
