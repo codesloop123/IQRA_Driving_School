@@ -9,10 +9,11 @@ router.get("/payments/:branch", async (req, res) => {
   try {
     // Fetch admissions with a balance due, where the course is ongoing, and the branch matches
     const admissions = await Admission.find({
-      "instructor.branch._id": branch, // Filter by branch
+      "instructor.branch._id": { $eq: branch }, // Filter by branch
       remainingPayment: { $gt: 0 },
       endDate: { $gte: today },
     });
+    console.log(admissions);
     res.status(200).json(admissions);
   } catch (error) {
     console.error("Error fetching payment alerts:", error);

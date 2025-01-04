@@ -142,7 +142,6 @@ export default function AvailabilityModal({
       toast.error("Instructors are not available on Sundays");
       return;
     }
-
     const rangeEvents = [];
     let x = courseTimeDuration / 15;
     let y = courseduration + Math.floor((positionInWeek + courseduration) / 7);
