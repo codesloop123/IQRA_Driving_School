@@ -29,29 +29,29 @@ export default function AdmissionCard() {
   const [dobError, setDobError] = useState("");
   const [refNo, setRefNo] = useState("");
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    fatherName: "",
-    cnic: "",
-    gender: "",
-    dob: "",
-    cellNumber: "",
-    address: "",
+    firstName: "John",
+    lastName: "Doe",
+    fatherName: "Robert Doe",
+    cnic: "12345-6789012-3",
+    gender: "Male",
+    dob: "1995-01-01", // Use YYYY-MM-DD format for dates
+    cellNumber: "+92 300 1234567",
+    address: "123 Main Street, Islamabad",
     instructor: null,
-    courseduration: "",
-    courseTimeDuration: "",
-    startDate: "",
+    courseduration: "", // Example: 30 days
+    courseTimeDuration: "", // Example: 90 minutes
+    startDate: "", // Example date
     startTime: "",
-    paymentMethod: "",
-    totalPayment: "",
-    paymentReceived: "",
-    paymentInInstallments: false,
-    remainingPayment: "",
+    paymentMethod: "Cash",
+    totalPayment: "10000", // Total payment in PKR
+    paymentReceived: "5000", // Received payment in PKR
+    paymentInInstallments: true,
+    remainingPayment: "", // Remaining payment in PKR
     manager: user,
-    status: true,
-    discount: "",
-    course: "",
-    vehicle: "",
+    status: true, // Active status
+    discount: "500", // Discount in PKR
+    course: "Basic Driving Course",
+    vehicle: "Toyota Corolla",
   });
 
   // Function to format Date to accordingly
@@ -498,27 +498,27 @@ export default function AdmissionCard() {
     setPriceIdx("");
     setRefNo("");
     setFormData({
-      firstName: "",
-      lastName: "",
-      fatherName: "",
-      cnic: "",
-      gender: "",
-      dob: "",
-      cellNumber: "",
-      address: "",
+      firstName: "John",
+      lastName: "Doe",
+      fatherName: "Robert Doe",
+      cnic: "12345-6789012-3",
+      gender: "Male",
+      dob: "1995-01-01", // Use YYYY-MM-DD format for dates
+      cellNumber: "+92 300 1234567",
+      address: "123 Main Street, Islamabad",
       instructor: null,
-      courseduration: "",
-      courseTimeDuration: "",
-      startDate: "",
+      courseduration: "", // Example: 30 days
+      courseTimeDuration: "", // Example: 90 minutes
+      startDate: "", // Example date
       startTime: "",
-      paymentMethod: "",
-      totalPayment: "",
-      paymentReceived: "",
-      paymentInInstallments: false,
-      remainingPayment: "",
+      paymentMethod: "Cash",
+      totalPayment: "", // Total payment in PKR
+      paymentReceived: "", // Received payment in PKR
+      paymentInInstallments: true,
+      remainingPayment: "", // Remaining payment in PKR
       manager: user,
-      status: true,
-      discount: "",
+      status: true, // Active status
+      discount: "500", // Discount in PKR
       course: "",
       vehicle: "",
     });

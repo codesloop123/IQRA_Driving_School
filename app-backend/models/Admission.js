@@ -36,7 +36,7 @@ const AdmissionSchema = new mongoose.Schema({
   endTime: { type: String, required: true },
   paymentMethod: {
     type: String,
-    enum: ["cash", "bank transfer", "easypaisa"],
+    enum: ["Cash", "bank transfer", "easypaisa"],
     required: true,
   },
   totalPayment: { type: Number, required: true },

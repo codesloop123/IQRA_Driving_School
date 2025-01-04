@@ -87,11 +87,11 @@ export default function AvailabilityModal({
     changeInstructor,
   ]);
 
-  useEffect(() => {
-    if (selectedInstructor && typeof stableChangeInstructor === "function") {
-      stableChangeInstructor(selectedInstructor);
-    }
-  }, [selectedInstructor, stableChangeInstructor]);
+  // useEffect(() => {
+  //   if (selectedInstructor && typeof stableChangeInstructor === "function") {
+  //     stableChangeInstructor(selectedInstructor);
+  //   }
+  // }, [selectedInstructor, stableChangeInstructor]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -105,7 +105,8 @@ export default function AvailabilityModal({
         console.error("Instructor not found!");
         return;
       }
-      setSelectedInstructor((prev) => selectedInstructor_1);
+      setSelectedInstructor(selectedInstructor_1);
+      stableChangeInstructor(selectedInstructor_1);
       console.log(selectedInstructor);
 
       const filteredSlots = selectedInstructor_1.bookedSlots || [];
@@ -131,30 +132,34 @@ export default function AvailabilityModal({
   };
 
   const handleSelectSlot = ({ start }) => {
-    console.log("Slot input:", start);
     if (!start) {
       console.error("Invalid start time received from slot selection.");
       return;
     }
     const startDateTime = new Date(start);
+    const positionInWeek = startDateTime.getDay();
+    if (positionInWeek === 0) {
+      toast.error("Instructors are not available on Sundays");
+      return;
+    }
+
     const rangeEvents = [];
     let x = courseTimeDuration / 15;
+    let y = courseduration + Math.floor((positionInWeek + courseduration) / 7);
+    console.log(y);
     for (let verticalOffset = 0; verticalOffset < x; verticalOffset++) {
-      for (
-        let horizontalOffset = 0;
-        horizontalOffset < courseduration;
-        horizontalOffset++
-      ) {
+      for (let horizontalOffset = 0; horizontalOffset < y; horizontalOffset++) {
         const eventStart = new Date(startDateTime);
         const eventEnd = new Date(startDateTime);
 
         eventStart.setMinutes(startDateTime.getMinutes() + verticalOffset * 15);
         eventEnd.setMinutes(eventStart.getMinutes() + 15);
-
+        console.log(verticalOffset, x);
         let adjustedDate = startDateTime.getDate() + horizontalOffset;
         eventStart.setDate(adjustedDate);
         eventEnd.setDate(adjustedDate);
 
+        console.log(eventStart);
         if (eventStart.getDay() === 0) {
           continue;
         }
