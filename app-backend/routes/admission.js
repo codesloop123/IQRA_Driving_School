@@ -48,7 +48,6 @@ router.post("/add", async (req, res) => {
       paymentMethod,
       totalPayment,
       paymentReceived,
-      paymentInInstallments,
       remainingPayment,
       discount,
       manager,
@@ -73,7 +72,6 @@ router.post("/add", async (req, res) => {
       !paymentMethod ||
       !totalPayment ||
       !paymentReceived ||
-      paymentInInstallments === undefined ||
       remainingPayment === undefined ||
       discount === undefined ||
       !manager ||
@@ -83,6 +81,7 @@ router.post("/add", async (req, res) => {
     ) {
       return res.status(400).json({ message: "All fields are required." });
     }
+
     const referenceNumber = await generateReferenceNumber(
       manager.branch.branchCode,
       instructor.lecturerCode
@@ -142,6 +141,7 @@ router.post("/add", async (req, res) => {
     }
     instructorDoc.bookedSlots.push(...bookedSlots);
     await instructorDoc.save();
+    console.log(endDate);
     const admission = new Admission({
       firstName,
       lastName,
@@ -161,7 +161,6 @@ router.post("/add", async (req, res) => {
       paymentMethod,
       totalPayment,
       paymentReceived,
-      paymentInInstallments,
       remainingPayment,
       discount,
       referenceNumber,
@@ -176,7 +175,7 @@ router.post("/add", async (req, res) => {
       status: true,
       message: "Admission booked successfully.",
       bookedSlots,
-      refNumber: admission.referenceNumber
+      refNumber: admission.referenceNumber,
     });
   } catch (error) {
     console.error("Error adding admission:", error);
@@ -217,14 +216,13 @@ const calculateEndDate = (startDate, durationDays) => {
   return formatDate(start);
 };
 const formatDate = (date) => {
-  return date.toISOString().split("T")[0];
+  return date.toISOString();
 };
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
   try {
     const admissions = await Admission.find({ "manager.branch._id": id });
     console.log("admissions>>>>>>>>>>>>");
-    console.log(admissions);
     res.status(200).json({ status: true, admissions: admissions });
   } catch (error) {
     console.error("Error fetching admissions:", error);

@@ -6,6 +6,7 @@ const router = express.Router();
 router.get("/payments/:branch", async (req, res) => {
   const { branch } = req.params;
   const today = new Date();
+  console.log(today);
   try {
     // Fetch admissions with a balance due, where the course is ongoing, and the branch matches
     const admissions = await Admission.find({

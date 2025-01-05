@@ -308,16 +308,7 @@ export default function AlertTable({ color, title }) {
                     >
                       End Date
                     </th>
-                    <th
-                      className={
-                        "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
-                        (color === "light"
-                          ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
-                          : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
-                      }
-                    >
-                      Payment In Installments
-                    </th>
+
                     <th
                       className={
                         "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
@@ -368,17 +359,6 @@ export default function AlertTable({ color, title }) {
                       </td>
                       <td className="border-t-0 px-6  align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                         {format(new Date(alert?.endDate), "MM/dd/yyyy")}
-                      </td>
-                      <td className="border-t-0 px-6  align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        {alert?.paymentInInstallments ? (
-                          <div className="flex justify-center items-center">
-                            <FaCheckCircle className="w-5 h-5 text-center text-emerald-500" />
-                          </div>
-                        ) : (
-                          <div className="flex justify-center items-center">
-                            <MdCancel className="w-5 h-5 text-center text-red-500" />
-                          </div>
-                        )}
                       </td>
                       <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                         <button
