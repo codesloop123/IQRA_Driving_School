@@ -67,6 +67,7 @@ export default function AvailabilityModal({
   area,
   phone,
   car,
+  additionalTime,
 }) {
   const [modalData, setModalData] = useState([]);
   const [openModal, setOpenModal] = useState(false);
@@ -143,7 +144,7 @@ export default function AvailabilityModal({
       return;
     }
     const rangeEvents = [];
-    let x = courseTimeDuration / 15;
+    let x = courseTimeDuration + additionalTime / 15;
     let y = courseduration + Math.floor((positionInWeek + courseduration) / 7);
     console.log(y);
     for (let verticalOffset = 0; verticalOffset < x; verticalOffset++) {

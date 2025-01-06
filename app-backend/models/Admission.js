@@ -44,6 +44,8 @@ const AdmissionSchema = new mongoose.Schema({
   discount: { type: Number },
   remainingPayment: { type: Number, required: true },
   dateRegistered: { type: Date, default: Date.now },
+  pickanddrop: { type: Boolean, default: false, required: true },
+  pickanddropCharges: { type: Number },
   manager: {
     type: managerSchema,
     required: true,

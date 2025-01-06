@@ -43,16 +43,19 @@ export default function AdmissionCard() {
     startDate: "", // Example date
     startTime: "",
     paymentMethod: "Cash",
-    totalPayment: "10000", // Total payment in PKR
-    paymentReceived: "5000", // Received payment in PKR
+    totalPayment: "", // Total payment in PKR
+    paymentReceived: "", // Received payment in PKR
     remainingPayment: "", // Remaining payment in PKR
     manager: user,
+    pickanddrop: false,
+    pickanddropCharges: "",
     status: true, // Active status
     discount: "40", // Discount in PKR
     course: "Basic Driving Course",
     vehicle: "Toyota Corolla",
   });
 
+  const [additionalTime, setAdditionalTime] = useState(0);
   // Function to format Date to accordingly
   const formatDate = (date) => {
     const year = date.getFullYear();
@@ -135,6 +138,14 @@ export default function AdmissionCard() {
         courseTimeDuration: courses[value]?.duration,
         vehicle: courses[value]?.vehicle,
       });
+    } else if (
+      name === "additionalTime" &&
+      formData?.courseTimeDuration &&
+      value >= 0
+    ) {
+      const number = Number(value);
+
+      setAdditionalTime(number);
     } else if (name === "startTime") {
       const [hours, minutes] = value.split(":").map(Number);
       if (minutes !== 0 && minutes !== 30 && minutes !== 15 && minutes !== 45) {
@@ -232,6 +243,12 @@ export default function AdmissionCard() {
         ...prev,
         remainingPayment: numericValue,
       }));
+    } else if (name === "pickanddropcharges") {
+      const numericValue = Number(value);
+      setFormData((prev) => ({
+        ...prev,
+        pickanddropCharges: numericValue,
+      }));
     } else {
       setFormData({
         ...formData,
@@ -282,13 +299,11 @@ export default function AdmissionCard() {
       const bookedSlot = bookedSlots[i];
       const { startTime, endTime } = bookedSlot;
 
-      // Ensure that booked start and end times are valid Date objects
       if (!(startTime instanceof Date) || !(endTime instanceof Date)) {
         console.error("Booked start and end times must be Date objects.");
         continue; // Skip this slot if invalid
       }
 
-      // Check for collision
       if (
         isWithinInterval(selectedStartTime, {
           start: startTime,
@@ -525,9 +540,13 @@ export default function AdmissionCard() {
   useEffect(() => {
     if (!openPreview) cleanUpFunction();
   }, [openPreview]);
+  console.log(formData.courseTimeDuration);
   const handleSubmit = (e) => {
     e.preventDefault();
-
+    setFormData((prev) => ({
+      ...prev,
+      courseTimeDuration: formData?.courseTimeDuration + additionalTime,
+    }));
     const { instructor, startDate, startTime } = formData;
     if (!instructor) {
       toast.error("Choose Instructor first");
@@ -543,6 +562,7 @@ export default function AdmissionCard() {
       return;
     }
 
+    console.log(formData);
     dispatch(postAdmission({ formData }))
       .then((response) => {
         setRefNo(response?.payload?.refNumber);
@@ -558,11 +578,19 @@ export default function AdmissionCard() {
     dispatch(fetchCourses());
   }, []);
   useEffect(() => {
+    if (!formData?.pickanddrop) {
+      setFormData((prev) => ({ ...prev, pickanddropCharges: "" }));
+    }
+  }, [formData?.pickanddrop]);
+
+  useEffect(() => {
+    const total = formData?.pickanddropCharges
+      ? Number(formData?.pickanddropCharges) + formData?.totalPayment
+      : formData?.totalPayment;
     const discountedTotal = formData.discount
-      ? parseFloat(formData.totalPayment || 0) -
-        parseFloat(formData.totalPayment || 0) *
-          (parseFloat(formData.discount || 0) / 100)
-      : parseFloat(formData.totalPayment || 0);
+      ? parseFloat(total || 0) -
+        parseFloat(total || 0) * (parseFloat(formData.discount || 0) / 100)
+      : parseFloat(total || 0);
     const remaining =
       discountedTotal - parseFloat(formData.paymentReceived || 0);
 
@@ -571,7 +599,9 @@ export default function AdmissionCard() {
       remainingPayment: remaining >= 0 ? remaining : 0,
     }));
   }, [formData.totalPayment, formData.paymentReceived, formData.discount]);
-
+  const total = formData?.pickanddropCharges
+    ? Number(formData?.pickanddropCharges) + formData?.totalPayment
+    : formData?.totalPayment;
   return (
     <>
       <div className="relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded-lg bg-blueGray-100 border-0">
@@ -762,99 +792,6 @@ export default function AdmissionCard() {
                 </div>
               </div>
               <h6 className="text-blueGray-700 text-center text-lg w-full pl-4 my-6 font-bold">
-                Instructor
-              </h6>
-              <div className="w-full lg:w-6/12 px-4">
-                <div className="relative w-full mb-3">
-                  <div className="flex justify-between gap-2">
-                    <button
-                      onClick={() => {
-                        if (
-                          formData?.courseTimeDuration > 0 &&
-                          formData?.courseduration > 0
-                        ) {
-                          setOpen(true);
-                        } else {
-                          toast.error("Fill Course Duration and Time Duration");
-                        }
-                      }}
-                      className="px-6 py-3 bg-lightBlue-600 item-self mx-auto text-white font-bold rounded-md shadow hover:bg-lightBlue-700 transition-all"
-                    >
-                      Book Instructor/Slots
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <div className="w-full lg:w-6/12 px-4">
-                <div className="relative w-full mb-3">
-                  <label
-                    className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
-                    htmlFor="courseTimeDuration"
-                  >
-                    Time Duration/Day
-                  </label>
-                  <input
-                    readOnly
-                    required
-                    type="number"
-                    id="courseTimeDuration"
-                    name="courseTimeDuration"
-                    value={formData.courseTimeDuration}
-                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
-                  />
-                </div>
-              </div>{" "}
-              <div className="w-full lg:w-6/12 px-4">
-                <div className="relative w-full mb-3">
-                  <label
-                    className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
-                    htmlFor="startDate"
-                  >
-                    Start Date
-                  </label>
-                  <input
-                    readOnly
-                    required
-                    type="date"
-                    id="startDate"
-                    name="startDate"
-                    value={formData.startDate}
-                    min={new Date().toISOString().split("T")[0]}
-                    onChange={handleChange}
-                    // readOnly
-                    placeholder="Select Start Date"
-                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150 "
-                  />
-                  {error && (
-                    <p className="text-red-500 text-xs italic mt-2">{error}</p>
-                  )}
-                </div>
-              </div>
-              <div className="w-full lg:w-6/12 px-4">
-                <div className="relative w-full mb-3">
-                  <label
-                    className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
-                    htmlFor="startTime"
-                  >
-                    Start Time
-                  </label>
-                  <input
-                    readOnly
-                    required
-                    type="time"
-                    id="startTime"
-                    name="startTime"
-                    value={formData.startTime}
-                    onChange={handleChange}
-                    placeholder="Select Start Time"
-                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
-                  />
-                  {timeError && (
-                    <p className="text-red-500 text-xs mt-1">{timeError}</p>
-                  )}
-                </div>
-              </div>
-              <h6 className="text-blueGray-700 text-center text-lg w-full pl-4 my-6 font-bold">
                 Course
               </h6>
               <div className="w-full lg:w-6/12 px-4">
@@ -930,10 +867,126 @@ export default function AdmissionCard() {
                 </div>
               </div>
               <h6 className="text-blueGray-700 text-center text-lg w-full pl-4 my-6 font-bold">
+                Instructor
+              </h6>
+              <div className="w-full lg:w-6/12 px-4">
+                <div className="relative w-full mb-3">
+                  <div className="flex justify-between gap-2">
+                    <button
+                      onClick={() => {
+                        if (
+                          formData?.courseTimeDuration > 0 &&
+                          formData?.courseduration > 0
+                        ) {
+                          setOpen(true);
+                        } else {
+                          toast.error("Fill Course Duration and Time Duration");
+                        }
+                      }}
+                      className="px-6 py-3 bg-lightBlue-600 item-self mx-auto text-white font-bold rounded-md shadow hover:bg-lightBlue-700 transition-all"
+                    >
+                      Book Instructor/Slots
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div className="w-full lg:w-6/12 px-4">
+                <div className="relative w-full mb-3">
+                  <label
+                    className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                    htmlFor="courseTimeDuration"
+                  >
+                    Time Duration/Day
+                  </label>
+                  <input
+                    readOnly
+                    required
+                    type="number"
+                    id="courseTimeDuration"
+                    name="courseTimeDuration"
+                    value={formData.courseTimeDuration + additionalTime}
+                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                  />
+                </div>
+              </div>
+              <div className="w-full lg:w-4/12 px-4">
+                <div className="relative w-full mb-3">
+                  <label
+                    className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                    htmlFor="startDate"
+                  >
+                    Start Date
+                  </label>
+                  <input
+                    readOnly
+                    required
+                    type="date"
+                    id="startDate"
+                    name="startDate"
+                    value={formData.startDate}
+                    min={new Date().toISOString().split("T")[0]}
+                    onChange={handleChange}
+                    // readOnly
+                    placeholder="Select Start Date"
+                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150 "
+                  />
+                  {error && (
+                    <p className="text-red-500 text-xs italic mt-2">{error}</p>
+                  )}
+                </div>
+              </div>
+              <div className="w-full lg:w-4/12 px-4">
+                <div className="relative w-full mb-3">
+                  <label
+                    className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                    htmlFor="startTime"
+                  >
+                    Start Time
+                  </label>
+                  <input
+                    readOnly
+                    required
+                    type="time"
+                    id="startTime"
+                    name="startTime"
+                    value={formData.startTime}
+                    onChange={handleChange}
+                    placeholder="Select Start Time"
+                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                  />
+                  {timeError && (
+                    <p className="text-red-500 text-xs mt-1">{timeError}</p>
+                  )}
+                </div>
+              </div>
+              <div className="w-full lg:w-4/12 px-4">
+                <div className="relative w-full mb-3">
+                  <label
+                    className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                    htmlFor="additionalTime"
+                  >
+                    Additional Time
+                  </label>
+                  <input
+                    type="number"
+                    id="additionalTime"
+                    name="additionalTime"
+                    value={additionalTime}
+                    onChange={handleChange}
+                    min={0}
+                    placeholder="Enter Additional Time (mins)"
+                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                  />
+                  {timeError && (
+                    <p className="text-red-500 text-xs mt-1">{timeError}</p>
+                  )}
+                </div>
+              </div>
+              <h6 className="text-blueGray-700 text-center text-lg w-full pl-4 my-6 font-bold">
                 Payment
               </h6>
-              <div className="w-full  px-4">
-                <div className="relative w-full lg:w-6/12 mb-3">
+              <div className="w-full lg:w-4/12 px-4">
+                <div className="relative w-full mb-3">
                   <label
                     className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
                     htmlFor="paymentMethod"
@@ -959,6 +1012,49 @@ export default function AdmissionCard() {
               </div>
               <div className="w-full lg:w-4/12 px-4">
                 <div className="relative w-full mb-3">
+                  <div className="flex items-center mt-10">
+                    <input
+                      id="pickanddrop"
+                      name="pickanddrop"
+                      type="checkbox"
+                      checked={formData.pickanddrop}
+                      onChange={handleChange}
+                      aria-describedby="comments-description"
+                      className="h-6 w-6 rounded border border-gray-300 bg-white checked:border-indigo-600 checked:bg-indigo-600 focus:outline-none"
+                    />
+                    <label
+                      htmlFor="pickanddrop"
+                      className="uppercase text-blueGray-600 text-xs font-bold px-2"
+                    >
+                      Pick And Drop
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div className="w-full lg:w-4/12 px-4">
+                {formData?.pickanddrop && (
+                  <div className="relative w-full mb-3">
+                    <label
+                      className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                      htmlFor="pickanddropcharges"
+                    >
+                      Pick And Drop Charges
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      id="pickanddropcharges"
+                      name="pickanddropcharges"
+                      value={formData.pickanddropCharges}
+                      placeholder="Enter Pick and Charges"
+                      onChange={handleChange}
+                      className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                    />
+                  </div>
+                )}
+              </div>
+              <div className="w-full lg:w-4/12 px-4">
+                <div className="relative w-full mb-3">
                   <label
                     className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
                     htmlFor="totalPayment"
@@ -970,8 +1066,9 @@ export default function AdmissionCard() {
                     readOnly
                     type="number"
                     min={1}
+                    id="totalPayment"
                     name="totalPayment"
-                    value={formData.totalPayment}
+                    value={total}
                     onChange={handleChange}
                     className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
                   />
@@ -998,27 +1095,7 @@ export default function AdmissionCard() {
                   />
                 </div>
               </div>
-              <div className="w-full lg:w-4/12 px-4">
-                <div className="relative w-full mb-3">
-                  <div className="flex items-center mt-10">
-                    {/* <input
-                      id="paymentInInstallments"
-                      name="paymentInInstallments"
-                      type="checkbox"
-                      checked={formData.paymentInInstallments}
-                      onChange={handleChange}
-                      aria-describedby="comments-description"
-                      className="h-6 w-6 rounded border border-gray-300 bg-white checked:border-indigo-600 checked:bg-indigo-600 focus:outline-none"
-                    />
-                    <label
-                      htmlFor="paymentInInstallments"
-                      className="uppercase text-blueGray-600 text-xs font-bold px-2"
-                    >
-                      Payment In Installments
-                    </label> */}
-                  </div>
-                </div>
-              </div>
+              <div className="w-full lg:w-4/12 px-4"></div>
               <div className="w-full lg:w-4/12 px-4">
                 <div className="relative w-full mb-3">
                   <label
@@ -1060,8 +1137,7 @@ export default function AdmissionCard() {
               <div className="w-full lg:w-4/12 px-4">
                 <p className="mt-8">
                   Discounted Total:{" "}
-                  {formData.totalPayment -
-                    formData.totalPayment * (formData?.discount / 100) || 0}
+                  {total - total * (formData?.discount / 100) || 0}
                 </p>
               </div>
             </div>
@@ -1123,6 +1199,7 @@ export default function AdmissionCard() {
             phone={formData?.cellNumber}
             area={formData?.address}
             changeInstructor={changeInstructor}
+            additionalTime={additionalTime}
           />
         )}
     </>

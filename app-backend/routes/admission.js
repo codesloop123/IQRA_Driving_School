@@ -54,6 +54,8 @@ router.post("/add", async (req, res) => {
       course,
       vehicle,
       status,
+      pickanddrop,
+      pickanddropCharges,
     } = req.body;
     if (
       !firstName ||
@@ -77,7 +79,9 @@ router.post("/add", async (req, res) => {
       !manager ||
       !status ||
       !course ||
-      !vehicle
+      !vehicle ||
+      !pickanddrop ||
+      pickanddropCharges === undefined
     ) {
       return res.status(400).json({ message: "All fields are required." });
     }
@@ -168,6 +172,8 @@ router.post("/add", async (req, res) => {
       vehicle,
       course,
       status,
+      pickanddrop,
+      pickanddropCharges,
     });
 
     await admission.save();
