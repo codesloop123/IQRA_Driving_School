@@ -21,6 +21,7 @@ export default function AlertTable({ color, title }) {
   const { isAlertLoading, alerts } = useSelector((state) => state.alert);
   // const [idx, setIdx] = useState(0); to be added in attendance
   const [inputValue, setInputValue] = useState();
+  const [dueDate, setDueDate] = useState();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
   const { user } = useSelector((state) => state.auth);
@@ -41,16 +42,32 @@ export default function AlertTable({ color, title }) {
 
   const handleFormSubmit = (event) => {
     event.preventDefault();
+
     dispatch(
       patchAlert({
+        paymentDueDate:
+          inputValue < alerts[selectedRow]?.remainingPayment ? dueDate : null,
         newAmountReceived: inputValue,
         id: alerts[selectedRow]?._id,
       })
-    ).then(() => dispatch(fetchAlert(user?.branch)));
+    ).then(() => {
+      dispatch(fetchAlert(user?.branch));
+      setDueDate(null);
+    });
     setInputValue();
     closeModal();
   };
 
+  function checkDate() {
+    const today = new Date();
+    const date = new Date(dueDate);
+    today.setHours(0, 0, 0, 0);
+    return date > today;
+  }
+  function getDate(str) {
+    const date = new Date(str);
+    return date.toISOString().split("T")[0];
+  }
   // const navigateButtonHandler = (action) => {
   //   if (action === "INCREMENT")
   //     setIdx((idx) => Math.min(branches.length - 1, idx + 1));
@@ -143,14 +160,37 @@ export default function AlertTable({ color, title }) {
                     </p>
                   )}
                 </div>
-
+                {inputValue < alerts[selectedRow]?.remainingPayment && (
+                  <div className="mb-4">
+                    <label
+                      htmlFor="dueDate"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Next Due Date
+                    </label>
+                    <input
+                      type="date"
+                      id="dueDate"
+                      value={dueDate}
+                      onChange={(e) => setDueDate(e.target.value)}
+                      className="mt-2 block w-full border border-gray-300 rounded-md p-2 "
+                      required
+                    />
+                    {!checkDate() && (
+                      <p style={{ color: "#cf2b02" }}>
+                        Date can not be less than today
+                      </p>
+                    )}
+                  </div>
+                )}
                 <div className="mt-4 flex justify-end">
                   <button
                     type="submit"
                     className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
                     disabled={
                       0 > inputValue ||
-                      alerts[selectedRow]?.remainingPayment < inputValue
+                      alerts[selectedRow]?.remainingPayment < inputValue ||
+                      !checkDate()
                     }
                   >
                     Submit
@@ -286,6 +326,16 @@ export default function AlertTable({ color, title }) {
                           : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
                       }
                     >
+                      Payment Due Date
+                    </th>
+                    <th
+                      className={
+                        "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
+                        (color === "light"
+                          ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                          : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
+                      }
+                    >
                       Manager
                     </th>
                     <th
@@ -350,6 +400,11 @@ export default function AlertTable({ color, title }) {
                       </td>
                       <td className="border-t-0 px-6  align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                         {alert?.remainingPayment}
+                      </td>
+                      <td className="border-t-0 px-6  align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        {alert?.paymentDueDate
+                          ? getDate(alert?.paymentDueDate)
+                          : "N/A"}
                       </td>
                       <td className="border-t-0 px-6  align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                         {alert?.manager?.name}

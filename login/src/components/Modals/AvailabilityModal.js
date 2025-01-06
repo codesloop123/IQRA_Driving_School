@@ -144,7 +144,7 @@ export default function AvailabilityModal({
       return;
     }
     const rangeEvents = [];
-    let x = courseTimeDuration + additionalTime / 15;
+    let x = parseInt((courseTimeDuration + additionalTime) / 15);
     let y = courseduration + Math.floor((positionInWeek + courseduration) / 7);
     console.log(y);
     for (let verticalOffset = 0; verticalOffset < x; verticalOffset++) {

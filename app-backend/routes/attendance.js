@@ -103,7 +103,6 @@ router.get("/:branch/:date", async (req, res) => {
         },
       },
     ]);
-    console.log(attendanceRecord);
     if (!attendanceRecord) {
       return res
         .status(404)

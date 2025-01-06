@@ -56,7 +56,10 @@ router.post("/add", async (req, res) => {
       status,
       pickanddrop,
       pickanddropCharges,
+      paymentDueDate,
     } = req.body;
+
+    console.log(pickanddrop);
     if (
       !firstName ||
       !lastName ||
@@ -80,12 +83,15 @@ router.post("/add", async (req, res) => {
       !status ||
       !course ||
       !vehicle ||
-      !pickanddrop ||
-      pickanddropCharges === undefined
+      pickanddrop === undefined
     ) {
       return res.status(400).json({ message: "All fields are required." });
     }
 
+    if (remainingPayment > 0 && paymentDueDate === undefined)
+      return res
+        .status(400)
+        .json({ message: "Please add the Paymen Due Date" });
     const referenceNumber = await generateReferenceNumber(
       manager.branch.branchCode,
       instructor.lecturerCode
@@ -98,11 +104,8 @@ router.post("/add", async (req, res) => {
     }
     const { startTime: availableStart, endTime: availableEnd } =
       instructorDoc.availability;
-    console.log(availableStart, availableEnd, "availability>>>>>>>>>>>");
     const courseStartTime = startTime;
-    console.log(courseStartTime, "courseStartTime>>>>>>>>>>>");
     const courseEndTime = calculateEndTime(startTime, courseTimeDuration);
-    console.log(courseEndTime, "courseEndTIme>>>>>>>>");
     if (courseStartTime < availableStart || courseEndTime > availableEnd) {
       return res.status(400).json({
         status: false,
@@ -145,7 +148,6 @@ router.post("/add", async (req, res) => {
     }
     instructorDoc.bookedSlots.push(...bookedSlots);
     await instructorDoc.save();
-    console.log(endDate);
     const admission = new Admission({
       firstName,
       lastName,
@@ -173,7 +175,8 @@ router.post("/add", async (req, res) => {
       course,
       status,
       pickanddrop,
-      pickanddropCharges,
+      pickanddropCharges: pickanddrop ? pickanddropCharges : null,
+      paymentDueDate: paymentDueDate ? paymentDueDate : null,
     });
 
     await admission.save();
@@ -228,10 +231,8 @@ router.get("/:id", async (req, res) => {
   const { id } = req.params;
   try {
     const admissions = await Admission.find({ "manager.branch._id": id });
-    console.log("admissions>>>>>>>>>>>>");
     res.status(200).json({ status: true, admissions: admissions });
   } catch (error) {
-    console.error("Error fetching admissions:", error);
     res.status(500).json({ msg: "Server error" });
   }
 });

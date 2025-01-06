@@ -28,11 +28,15 @@ export const fetchAlert = createAsyncThunk(
 
 export const patchAlert = createAsyncThunk(
   "alert/patch",
-  async ({ id, newAmountReceived }, { dispatch, rejectWithValue }) => {
+  async (
+    { id, newAmountReceived, paymentDueDate },
+    { dispatch, rejectWithValue }
+  ) => {
     try {
       dispatch(setAlertLoader(true));
       const response = await axiosInstance.patch(`/alerts/complete/${id}`, {
         newAmountReceived,
+        paymentDueDate,
       });
       if (response.status === 200) {
         console.log(response, "response data");

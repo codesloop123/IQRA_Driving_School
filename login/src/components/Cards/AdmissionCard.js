@@ -53,6 +53,7 @@ export default function AdmissionCard() {
     discount: "40", // Discount in PKR
     course: "Basic Driving Course",
     vehicle: "Toyota Corolla",
+    paymentDueDate: null,
   });
 
   const [additionalTime, setAdditionalTime] = useState(0);
@@ -72,7 +73,6 @@ export default function AdmissionCard() {
   };
 
   const changeInstructor = (instructor) => {
-    // console.log("Here is the instructure",instructor);
     setFormData({
       ...formData,
       instructor: instructor,
@@ -130,6 +130,8 @@ export default function AdmissionCard() {
         ...formData,
         instructor: selectedInstructor,
       });
+    } else if (name === "paymentDueDate") {
+      setFormData((prev) => ({ ...prev, paymentDueDate: value }));
     } else if (name === "course") {
       setIdx(value);
       setFormData({
@@ -374,7 +376,6 @@ export default function AdmissionCard() {
   //     // Using FileSaver.js to trigger the download
   //     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
   //     saveAs(blob, 'admissionForm(filled).pdf');
-  //     console.log("Admission PDF filled and download initiated.");
 
   //   } catch (error) {
   //     console.error("Error filling PDF:", error);
@@ -498,8 +499,6 @@ export default function AdmissionCard() {
         iframe.contentWindow?.focus();
         iframe.contentWindow?.print();
       };
-
-      console.log("Print dialog for the generated PDF is displayed.");
     } catch (error) {
       console.error("Error creating invoice PDF:", error);
     }
@@ -534,18 +533,23 @@ export default function AdmissionCard() {
       discount: "40", // Discount in PKR
       course: "",
       vehicle: "",
+
+      pickanddrop: false,
+      pickanddropCharges: "",
+      paymentDueDate: "",
     });
   };
 
   useEffect(() => {
     if (!openPreview) cleanUpFunction();
   }, [openPreview]);
-  console.log(formData.courseTimeDuration);
   const handleSubmit = (e) => {
     e.preventDefault();
     setFormData((prev) => ({
       ...prev,
       courseTimeDuration: formData?.courseTimeDuration + additionalTime,
+      paymentDueDate:
+        formData?.remainingPayment > 0 ? formData?.paymentDueDate : null,
     }));
     const { instructor, startDate, startTime } = formData;
     if (!instructor) {
@@ -562,11 +566,13 @@ export default function AdmissionCard() {
       return;
     }
 
-    console.log(formData);
     dispatch(postAdmission({ formData }))
       .then((response) => {
-        setRefNo(response?.payload?.refNumber);
-        setOpenPreview(true);
+        console.log(response);
+        if (response.status === 200) {
+          setRefNo(response?.payload?.refNumber);
+          setOpenPreview(true);
+        }
       })
       .catch((error) => {
         console.error("Submission failed:", error);
@@ -1095,7 +1101,26 @@ export default function AdmissionCard() {
                   />
                 </div>
               </div>
-              <div className="w-full lg:w-4/12 px-4"></div>
+              <div className="w-full lg:w-4/12 px-4">
+                {formData?.remainingPayment > 0 && (
+                  <div className="relative w-full mb-3">
+                    <label
+                      className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                      htmlFor="paymentDueDate"
+                    >
+                      Due Date For Remaining Pay
+                    </label>
+                    <input
+                      type="date"
+                      id="paymentDueDate"
+                      name="paymentDueDate"
+                      value={formData?.paymentDueDate}
+                      onChange={handleChange}
+                      className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                    />
+                  </div>
+                )}
+              </div>
               <div className="w-full lg:w-4/12 px-4">
                 <div className="relative w-full mb-3">
                   <label

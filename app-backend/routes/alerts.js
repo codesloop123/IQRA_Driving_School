@@ -6,7 +6,6 @@ const router = express.Router();
 router.get("/payments/:branch", async (req, res) => {
   const { branch } = req.params;
   const today = new Date();
-  console.log(today);
   try {
     // Fetch admissions with a balance due, where the course is ongoing, and the branch matches
     const admissions = await Admission.find({
@@ -14,7 +13,6 @@ router.get("/payments/:branch", async (req, res) => {
       remainingPayment: { $gt: 0 },
       endDate: { $gte: today },
     });
-    console.log(admissions);
     res.status(200).json(admissions);
   } catch (error) {
     console.error("Error fetching payment alerts:", error);
@@ -25,18 +23,18 @@ router.get("/payments/:branch", async (req, res) => {
 // Route to mark a payment as complete by updating amountReceived and remainingAmount
 router.patch("/complete/:id", async (req, res) => {
   const { id } = req.params;
-  const { newAmountReceived } = req.body; // New amount received during this payment
+  const { newAmountReceived, paymentDueDate } = req.body; // New amount received during this payment
 
+  console.log(paymentDueDate);
+  if (!paymentDueDate)
+    return res.status(400).json({ message: "Due Date Not Entered" });
   try {
     // Find the admission by ID
     const admission = await Admission.findById(id);
 
     if (!admission) {
-      return res.status(404).json({ msg: "Admission not found" });
+      return res.status(404).json({ message: "Admission not found" });
     }
-
-    console.log(`New amount received: ${newAmountReceived}`);
-    console.log(`Previous amount received: ${admission.paymentReceived}`);
 
     // Calculate the updated total amount received
     const updatedAmountReceived =
@@ -47,14 +45,11 @@ router.patch("/complete/:id", async (req, res) => {
     const updatedRemainingAmount =
       admission.totalPayment - updatedAmountReceived;
 
-    // Log the calculated values to check them
-    console.log(`Updated total amount received: ${updatedAmountReceived}`);
-    console.log(`Updated remaining amount: ${updatedRemainingAmount}`);
-
     // Update the admission with new values
     admission.paymentReceived = updatedAmountReceived;
     admission.remainingPayment =
       updatedRemainingAmount > 0 ? updatedRemainingAmount : 0;
+    admission.paymentDueDate = paymentDueDate;
 
     // Save the updated admission
     await admission.save();
