@@ -23,7 +23,7 @@ export default function HeaderStats() {
                 <div className="w-full lg:w-6/12 xl:w-3/12 px-4">
                   <CardStats
                     statSubtitle="Branches"
-                    statTitle={branches?.length || 0}
+                    statTitle={`${branches?.length || 0}`}
                     statArrow="up"
                     statPercent="3.48"
                     statPercentColor="text-emerald-500"
@@ -44,8 +44,8 @@ export default function HeaderStats() {
                   statSubtitle="Instructors"
                   statTitle={
                     user?.role === "manager"
-                      ? branchInstructors?.length
-                      : instructors?.length || 0
+                      ? `${branchInstructors?.length || 0}`
+                      : `${instructors?.length || 0 }`
                   }
                   statArrow="down"
                   statPercent="3.48"
@@ -59,7 +59,7 @@ export default function HeaderStats() {
                 <div className="w-full lg:w-6/12 xl:w-3/12 px-4">
                   <CardStats
                     statSubtitle="Managers"
-                    statTitle={users?.length || 0}
+                    statTitle={`${users?.length || 0}`}
                     statArrow="down"
                     statPercent="1.10"
                     statPercentColor="text-orange-500"
@@ -81,8 +81,8 @@ export default function HeaderStats() {
                   statSubtitle="Cars"
                   statTitle={
                     user?.role === "manager"
-                      ? branchvehicle?.length
-                      : vehicles?.length || 0
+                      ? `${branchvehicle?.length || 0}`
+                      : `${vehicles?.length || 0}`
                   }
                   statArrow="down"
                   statPercent="1.10"
