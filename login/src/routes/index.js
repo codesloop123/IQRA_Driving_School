@@ -164,7 +164,7 @@ let routes = [
     path:"/schedules",
     component:Schedules,
     layout: "admin",
-    isMenu: true,
+    isMenu: false,
   }
 ];
 export default routes;
