@@ -162,7 +162,8 @@ let routes = [
   },
   {
     path:"/schedules",
-    component:Schedules,
+    name:"Schedule",
+    component: Schedules,
     layout: "admin",
     isMenu: false,
   }

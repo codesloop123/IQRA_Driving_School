@@ -269,26 +269,29 @@ export default function Sidebar() {
                 </>
               )}
               {user?.role === "manager" && (
-                <li className="items-center">
-                  <Link
-                    className={
-                      "text-xs uppercase py-3 font-bold block " +
-                      (window.location.href.indexOf("/addmission") !== -1
-                        ? "text-lightBlue-500 hover:text-lightBlue-600"
-                        : "text-blueGray-700 hover:text-blueGray-500")
-                    }
-                    to="/addmission"
-                  >
-                    <i
+                <>
+                
+                  <li className="items-center">
+                    <Link
                       className={
-                        "fas fa-file mr-2 text-sm " +
+                        "text-xs uppercase py-3 font-bold block " +
                         (window.location.href.indexOf("/addmission") !== -1
-                          ? "opacity-75"
-                          : "text-blueGray-300")
+                          ? "text-lightBlue-500 hover:text-lightBlue-600"
+                          : "text-blueGray-700 hover:text-blueGray-500")
                       }
-                    ></i>{" "}
-                    Admission
-                  </Link>
+                      to="/addmission"
+                    >
+                      <i
+                        className={
+                          "fas fa-file mr-2 text-sm " +
+                          (window.location.href.indexOf("/addmission") !== -1
+                            ? "opacity-75"
+                            : "text-blueGray-300")
+                        }
+                      ></i>{" "}
+                      Admission
+                    </Link>
+                  </li>
 
                   <li className="items-center">
                     <Link
@@ -311,6 +314,7 @@ export default function Sidebar() {
                       Alert
                     </Link>
                   </li>
+
                   <li className="items-center">
                     <Link
                       className={
@@ -332,49 +336,52 @@ export default function Sidebar() {
                       Attendance
                     </Link>
                   </li>
+
                   <li className="items-center">
-                  <Link
-                    className={
-                      "text-xs uppercase py-3 font-bold block " +
-                      (window.location.href.indexOf("/addmissions") !== -1
-                        ? "text-lightBlue-500 hover:text-lightBlue-600"
-                        : "text-blueGray-700 hover:text-blueGray-500")
-                    }
-                    to="/addmissions"
-                  >
-                    <i
+                    <Link
                       className={
-                        "fas fa-users mr-2 text-sm " +
+                        "text-xs uppercase py-3 font-bold block " +
                         (window.location.href.indexOf("/addmissions") !== -1
-                          ? "opacity-75"
-                          : "text-blueGray-300")
+                          ? "text-lightBlue-500 hover:text-lightBlue-600"
+                          : "text-blueGray-700 hover:text-blueGray-500")
                       }
-                    ></i>
-                    Students
-                  </Link>
+                      to="/addmissions"
+                    >
+                      <i
+                        className={
+                          "fas fa-users mr-2 text-sm " +
+                          (window.location.href.indexOf("/addmissions") !== -1
+                            ? "opacity-75"
+                            : "text-blueGray-300")
+                        }
+                      ></i>
+                      Students
+                    </Link>
                   </li>
+
                   <li className="items-center">
-                  <Link
-                    className={
-                      "text-xs uppercase py-3 font-bold block " +
-                      (window.location.href.indexOf("/schedules") !== -1
-                        ? "text-lightBlue-500 hover:text-lightBlue-600"
-                        : "text-blueGray-700 hover:text-blueGray-500")
-                    }
-                    to="/schedules"
-                  >
-                    <i
+                    <Link
                       className={
-                        "fa-solid fa-calendar mr-2" +
+                        "text-xs uppercase py-3 font-bold block " +
                         (window.location.href.indexOf("/schedules") !== -1
-                          ? " opacity-75"
-                          : " text-blueGray-300")
+                          ? "text-lightBlue-500 hover:text-lightBlue-600"
+                          : "text-blueGray-700 hover:text-blueGray-500")
                       }
-                    ></i>{" "}
+                      to="/schedules"
+                    >
+                      <i
+                        className={
+                          "fa-solid fa-calendar mr-2 text-sm" +
+                          (window.location.href.indexOf("/schedules") !== -1
+                            ? " opacity-75"
+                            : " text-blueGray-300")
+                        }
+                      ></i>{" "}
                       Schedule
-                  </Link>
+                    </Link>
                   </li>
-                </li>
+
+                </>
               )}
             </ul>
           </div>
