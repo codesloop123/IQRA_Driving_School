@@ -1170,7 +1170,7 @@ export default function AdmissionCard() {
               <button
                 type="submit"
                 disabled={registerLoading}
-                class="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
+                className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
               >
                 {registerLoading ? (
                   <svg

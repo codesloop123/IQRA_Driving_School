@@ -12,7 +12,8 @@ export default function Admission({ routeName }) {
         <div className="px-4 md:px-10 mx-auto w-full -m-24">
           <div className="flex flex-wrap mt-4">
             <div className="w-full mb-12 px-4">
-              <ScheduleCalendar />
+              {/* <ScheduleCalendar /> */}
+              <div>Hello</div>
             </div>
           </div>
           <FooterAdmin />
