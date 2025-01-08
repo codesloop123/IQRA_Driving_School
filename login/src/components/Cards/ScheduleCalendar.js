@@ -8,12 +8,6 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 
 const localizer = momentLocalizer(moment);
 
-const TIME_SLOTS = Array.from({ length: 17 }, (_, i) => {
-  const hour = Math.floor(i / 2) + 9;
-  const minutes = i % 2 === 0 ? '00' : '30';
-  return `${hour.toString().padStart(2, '0')}:${minutes}`;
-});
-
 export default function ScheduleCalendar({ color, title }) {
   const dispatch = useDispatch();
   const { instructors, loading } = useSelector((state) => state.instructor);
@@ -34,24 +28,27 @@ export default function ScheduleCalendar({ color, title }) {
     if (!loading && instructors.length > 0) {
       const formattedEvents = instructors.flatMap((instructor) =>
         instructor.bookedSlots.map((slot) => ({
-          id: slot.id,
-          title: `${slot.studentName} - Class ${slot.classNumber} of ${slot.totalClasses}`,
+          id: `${instructor._id}-${slot.date}-${slot.startTime}`, // Unique ID
+          title: `${instructor.name} - ${slot.startTime} to ${slot.endTime}`,
           start: new Date(`${slot.date}T${slot.startTime}:00`),
           end: new Date(`${slot.date}T${slot.endTime}:00`),
-          studentName: slot.studentName,
-          status: slot.status,
-          classNumber: slot.classNumber,
-          totalClasses: slot.totalClasses,
-          instructorId: instructor.id,
-          resourceId: instructor.id,
+          instructorName: instructor.name,
+          instructorId: instructor._id,
+          branchName: instructor.branch?.name || 'N/A', // Optional branch name
+          status: slot.status || 'booked', // Default status if not provided
         }))
       );
 
       const filteredEvents = formattedEvents.filter((event) => {
+        const rangeStart = new Date(dateRange.start);
+        const rangeEnd = new Date(dateRange.end);
+
         if (selectedInstructor && event.instructorId !== selectedInstructor) return false;
-        if (filters.studentName && !event.studentName.toLowerCase().includes(filters.studentName.toLowerCase())) return false;
+        if (filters.studentName && !event.instructorName.toLowerCase().includes(filters.studentName.trim().toLowerCase())) return false;
         if (filters.status !== 'all' && event.status !== filters.status) return false;
         if (filters.showAvailableOnly && event.status !== 'available') return false;
+        if (event.start < rangeStart || event.start > rangeEnd) return false;
+
         return true;
       });
 
@@ -62,12 +59,12 @@ export default function ScheduleCalendar({ color, title }) {
         if (event.status === 'missed') {
           acc.push({
             type: 'error',
-            message: `${event.studentName} missed Class ${event.classNumber} - Needs rescheduling`,
+            message: `${event.instructorName} missed a slot on ${event.start.toLocaleDateString()}`,
           });
         } else if (event.status === 'pending_reschedule') {
           acc.push({
             type: 'warning',
-            message: `Rescheduling needed for ${event.studentName}'s Class ${event.classNumber}`,
+            message: `Rescheduling needed for ${event.instructorName}'s slot on ${event.start.toLocaleDateString()}`,
           });
         }
         return acc;
@@ -86,16 +83,16 @@ export default function ScheduleCalendar({ color, title }) {
   };
 
   const eventStyleGetter = (event) => {
-    let backgroundColor = '#3174ad'; // default
+    let backgroundColor = '#3174ad'; // Default color
     switch (event.status) {
       case 'completed':
-        backgroundColor = '#10B981'; // green
+        backgroundColor = '#10B981'; // Green
         break;
       case 'missed':
-        backgroundColor = '#EF4444'; // red
+        backgroundColor = '#EF4444'; // Red
         break;
       case 'pending_reschedule':
-        backgroundColor = '#F59E0B'; // yellow
+        backgroundColor = '#F59E0B'; // Yellow
         break;
       default:
         break;
@@ -129,7 +126,7 @@ export default function ScheduleCalendar({ color, title }) {
           >
             <option value="">Select Instructor</option>
             {instructors.map((instructor) => (
-              <option key={instructor.id} value={instructor.id}>
+              <option key={instructor._id} value={instructor._id}>
                 {instructor.name}
               </option>
             ))}
@@ -148,7 +145,7 @@ export default function ScheduleCalendar({ color, title }) {
 
           <input
             type="text"
-            placeholder="Search by student name"
+            placeholder="Search by Student Name"
             value={filters.studentName}
             onChange={(e) => setFilters({ ...filters, studentName: e.target.value })}
             className="border rounded px-3 py-2 w-full"
@@ -213,4 +210,3 @@ ScheduleCalendar.propTypes = {
   color: PropTypes.oneOf(["light", "dark"]),
   title: PropTypes.string.isRequired,
 };
-
