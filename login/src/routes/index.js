@@ -15,6 +15,7 @@ import Managers from "views/admin/Managers";
 import Users from "views/admin/Users";
 import Login from "views/auth/Login";
 import SortFinancesByDate from "../views/admin/SortFinancesByDate";
+import Schedules from "../views/admin/Schedules";
 
 import AddCourse from "views/admin/AddCourse";
 import AddAttendance from "views/admin/AddAttendance";
@@ -159,5 +160,11 @@ let routes = [
     layout: "auth",
     isMenu: false,
   },
+  {
+    path:"/schedules",
+    component:Schedules,
+    layout: "admin",
+    isMenu: true,
+  }
 ];
 export default routes;
