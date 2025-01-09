@@ -133,7 +133,7 @@ router.post("/add", async (req, res) => {
     if (remainingPayment > 0 && paymentDueDate === undefined)
       return res
         .status(400)
-        .json({ message: "Please add the Paymen Due Date" });
+        .json({ message: "Please add the Payment Due Date" });
     const referenceNumber = await generateReferenceNumber(
       manager.branch.branchCode,
       instructor.lecturerCode
@@ -148,6 +148,7 @@ router.post("/add", async (req, res) => {
       instructorDoc.availability;
     const courseStartTime = startTime;
     const courseEndTime = calculateEndTime(startTime, courseTimeDuration);
+    console.log(courseTimeDuration);
     if (courseStartTime < availableStart || courseEndTime > availableEnd) {
       return res.status(400).json({
         status: false,
@@ -166,6 +167,7 @@ router.post("/add", async (req, res) => {
         date: formatDate(currentStartDate),
         startTime: courseStartTime,
         endTime: courseEndTime,
+        refNo: referenceNumber,
       });
 
       currentStartDate.setDate(currentStartDate.getDate() + 1);
@@ -199,7 +201,7 @@ router.post("/add", async (req, res) => {
       dob,
       cellNumber,
       address,
-      instructor,
+      instructor: instructor._id,
       courseduration,
       courseTimeDuration,
       startDate,
@@ -247,37 +249,39 @@ router.post("/add", async (req, res) => {
   }
 });
 const calculateEndTime = (startTime, duration) => {
-  const durationNumber = parseInt(duration, 10);
-  let [hours, minutes] = startTime.split(":").map(Number);
-  if (duration.length === 1) {
-    hours += durationNumber;
-  } else if (duration.length === 2) {
-    minutes += durationNumber;
-  }
-  if (minutes >= 60) {
-    hours += Math.floor(minutes / 60);
-    minutes = minutes % 60;
-  }
-  if (hours > 12) {
-    hours = hours % 12;
-  }
-  const formattedHours = hours.toString().padStart(2, "0");
-  const formattedMinutes = minutes.toString().padStart(2, "0");
-  return `${formattedHours}:${formattedMinutes}`;
+  const [hours, minutes] = startTime.split(":").map(Number);
+
+  // Parse the duration
+  const durationMinutes = parseInt(duration, 10);
+
+  // Calculate the new time
+  const totalMinutes = hours * 60 + minutes + durationMinutes;
+
+  // Convert back to hours and minutes
+  const newHours = Math.floor(totalMinutes / 60) % 24; // Use % 24 to wrap around midnight
+  const newMinutes = totalMinutes % 60;
+
+  // Format the result in HH:MM
+  const formattedTime = `${String(newHours).padStart(2, "0")}:${String(
+    newMinutes
+  ).padStart(2, "0")}`;
+
+  return formattedTime;
 };
 
-const calculateEndDate = (startDate, durationDays) => {
-  const start = new Date(startDate);
-  let daysAdded = 0;
+const calculateEndDate = (startDate, durationInDays) => {
+  // Parse the input date
+  const date = new Date(startDate);
+  // Add the duration to the date
+  --durationInDays;
+  date.setDate(date.getDate() + parseInt(durationInDays, 10));
 
-  while (daysAdded < durationDays) {
-    start.setDate(start.getDate() + 1);
-    if (start.getDay() !== 0) {
-      daysAdded++;
-    }
-  }
+  // Format the result in YYYY-MM-DD
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-indexed
+  const day = String(date.getDate()).padStart(2, "0");
 
-  return formatDate(start);
+  return `${year}-${month}-${day}`;
 };
 const formatDate = (date) => {
   return date.toISOString();

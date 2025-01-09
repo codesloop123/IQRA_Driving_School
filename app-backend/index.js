@@ -12,7 +12,9 @@ mongoose
       socketTimeoutMS: 45000,
     }
   )
-  .then(() => console.log("MongoDB connected for userAuthDB"))
+  .then(async () => {
+    console.log("MongoDB connected for userAuthDB");
+  })
   .catch((err) => console.log(err));
 
 app.use(cors());

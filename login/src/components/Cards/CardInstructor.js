@@ -18,7 +18,7 @@ export default function CardInstructor() {
     branch: null,
     vehicle: null,
     status: true,
-    lecturerCode:"",
+    lecturerCode: "",
     availability: { startTime: "09:00", endTime: "17:00" },
   });
   console.log(formData, "vehicle formdata>>>>>>>>>>>>>");
@@ -108,7 +108,6 @@ export default function CardInstructor() {
                 </div>
               </div>
 
-
               <div className="w-full lg:w-6/12 px-4">
                 <div className="relative w-full mb-3">
                   <label
@@ -128,7 +127,6 @@ export default function CardInstructor() {
                 </div>
               </div>
 
-
               <div className="w-full lg:w-6/12 px-4">
                 <div className="relative w-full mb-3">
                   <label
@@ -140,7 +138,7 @@ export default function CardInstructor() {
                   <select
                     id="branch-select"
                     name="branch"
-                    value={formData?.branch?.name || ""}
+                    value={formData?.branch || ""}
                     onChange={handleChange}
                     className="border-0 px-3 py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
                   >

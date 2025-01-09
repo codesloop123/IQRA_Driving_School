@@ -2,7 +2,7 @@
 const mongoose = require("mongoose");
 const NotificationSchema = new mongoose.Schema({
   message: { type: String, required: true },
-  status: { type: Boolean, required: true },
+  status: { type: Boolean, required: true }, // status
   eventDate: {
     type: Date,
     required: true,

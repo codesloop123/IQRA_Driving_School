@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import PropTypes from 'prop-types';
-import { useDispatch, useSelector } from 'react-redux';
-import { Calendar, momentLocalizer } from 'react-big-calendar';
-import moment from 'moment';
-import { fetchInstructors } from 'store/instructor/action';
+import React, { useEffect, useState } from "react";
+import PropTypes from "prop-types";
+import { useDispatch, useSelector } from "react-redux";
+import { Calendar, momentLocalizer } from "react-big-calendar";
+import moment from "moment";
+import { fetchInstructors } from "store/instructor/action";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
 const localizer = momentLocalizer(moment);
@@ -12,14 +12,14 @@ export default function ScheduleCalendar({ color = "light", title }) {
   const dispatch = useDispatch();
   const { instructors, loading } = useSelector((state) => state.instructor);
   const [events, setEvents] = useState([]);
-  const [selectedInstructor, setSelectedInstructor] = useState('');
+  const [selectedInstructor, setSelectedInstructor] = useState("");
   const [dateRange, setDateRange] = useState({
-    start: moment().format('YYYY-MM-DD'),
-    end: moment().add(6, 'days').format('YYYY-MM-DD'),
+    start: moment().format("YYYY-MM-DD"),
+    end: moment().add(6, "days").format("YYYY-MM-DD"),
   });
   const [filters, setFilters] = useState({
-    status: 'all',
-    studentName: '',
+    status: "all",
+    studentName: "",
     showAvailableOnly: false,
   });
   const [alerts, setAlerts] = useState([]);
@@ -42,10 +42,19 @@ export default function ScheduleCalendar({ color = "light", title }) {
       );
 
       const filteredEvents = formattedEvents.filter((event) => {
-        if (selectedInstructor && event.instructorId !== selectedInstructor) return false;
-        if (filters.studentName && !event.studentName.toLowerCase().includes(filters.studentName.toLowerCase())) return false;
-        if (filters.status !== 'all' && event.status !== filters.status) return false;
-        if (filters.showAvailableOnly && event.status !== 'available') return false;
+        if (selectedInstructor && event.instructorId !== selectedInstructor)
+          return false;
+        if (
+          filters.studentName &&
+          !event.studentName
+            .toLowerCase()
+            .includes(filters.studentName.toLowerCase())
+        )
+          return false;
+        if (filters.status !== "all" && event.status !== filters.status)
+          return false;
+        if (filters.showAvailableOnly && event.status !== "available")
+          return false;
         return true;
       });
 
@@ -53,14 +62,14 @@ export default function ScheduleCalendar({ color = "light", title }) {
 
       // Check for alerts
       const newAlerts = formattedEvents.reduce((acc, event) => {
-        if (event.status === 'missed') {
+        if (event.status === "missed") {
           acc.push({
-            type: 'error',
+            type: "error",
             message: `${event.studentName} missed Class ${event.classNumber} - Needs rescheduling`,
           });
-        } else if (event.status === 'pending_reschedule') {
+        } else if (event.status === "pending_reschedule") {
           acc.push({
-            type: 'warning',
+            type: "warning",
             message: `Rescheduling needed for ${event.studentName}'s Class ${event.classNumber}`,
           });
         }
@@ -80,16 +89,16 @@ export default function ScheduleCalendar({ color = "light", title }) {
   };
 
   const eventStyleGetter = (event) => {
-    let backgroundColor = '#3174ad'; // default
+    let backgroundColor = "#3174ad"; // default
     switch (event.status) {
-      case 'completed':
-        backgroundColor = '#10B981'; // green
+      case "completed":
+        backgroundColor = "#10B981"; // green
         break;
-      case 'missed':
-        backgroundColor = '#EF4444'; // red
+      case "missed":
+        backgroundColor = "#EF4444"; // red
         break;
-      case 'pending_reschedule':
-        backgroundColor = '#F59E0B'; // yellow
+      case "pending_reschedule":
+        backgroundColor = "#F59E0B"; // yellow
         break;
       default:
         break;
@@ -98,17 +107,21 @@ export default function ScheduleCalendar({ color = "light", title }) {
   };
 
   return (
-    <div className={
-      "relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded " +
-      (color === "light" ? "bg-white" : "bg-lightBlue-900 text-white")
-    }>
+    <div
+      className={
+        "relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded " +
+        (color === "light" ? "bg-white" : "bg-lightBlue-900 text-white")
+      }
+    >
       <div className="rounded-t mb-0 px-4 py-3 border-0">
         <div className="flex flex-wrap items-center">
           <div className="relative w-full max-w-full flex-grow flex-1">
-            <h3 className={
-              "font-semibold text-lg " +
-              (color === "light" ? "text-blueGray-700" : "text-white")
-            }>
+            <h3
+              className={
+                "font-semibold text-lg " +
+                (color === "light" ? "text-blueGray-700" : "text-white")
+              }
+            >
               {title}
             </h3>
           </div>
@@ -119,7 +132,7 @@ export default function ScheduleCalendar({ color = "light", title }) {
           <select
             value={selectedInstructor}
             onChange={(e) => setSelectedInstructor(e.target.value)}
-            className="border rounded px-3 py-2 w-full"
+            className="border rounded px-3 py-2 w-full my-2"
           >
             <option value="">Select Instructor</option>
             {instructors.map((instructor) => (
@@ -132,7 +145,7 @@ export default function ScheduleCalendar({ color = "light", title }) {
           <select
             value={filters.status}
             onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-            className="border rounded px-3 py-2 w-full"
+            className="border rounded px-3 py-2 w-full  my-2"
           >
             <option value="all">All Status</option>
             <option value="completed">Completed</option>
@@ -144,15 +157,19 @@ export default function ScheduleCalendar({ color = "light", title }) {
             type="text"
             placeholder="Search by student name"
             value={filters.studentName}
-            onChange={(e) => setFilters({ ...filters, studentName: e.target.value })}
-            className="border rounded px-3 py-2 w-full"
+            onChange={(e) =>
+              setFilters({ ...filters, studentName: e.target.value })
+            }
+            className="border rounded px-3 py-2 w-full  my-2"
           />
 
           <div className="flex items-center">
             <input
               type="checkbox"
               checked={filters.showAvailableOnly}
-              onChange={(e) => setFilters({ ...filters, showAvailableOnly: e.target.checked })}
+              onChange={(e) =>
+                setFilters({ ...filters, showAvailableOnly: e.target.checked })
+              }
               className="mr-2"
             />
             <span>Show Available Only</span>
@@ -165,9 +182,9 @@ export default function ScheduleCalendar({ color = "light", title }) {
             <div
               key={index}
               className={`p-4 rounded mb-2 ${
-                alert.type === 'error' 
-                  ? 'bg-red-100 text-red-700 border border-red-400'
-                  : 'bg-yellow-100 text-yellow-700 border border-yellow-400'
+                alert.type === "error"
+                  ? "bg-red-100 text-red-700 border border-red-400"
+                  : "bg-yellow-100 text-yellow-700 border border-yellow-400"
               }`}
             >
               {alert.message}
@@ -177,7 +194,7 @@ export default function ScheduleCalendar({ color = "light", title }) {
       </div>
 
       {/* Calendar */}
-      <div className="px-4 pb-4" style={{ height: '80vh' }}>
+      <div className="px-4 pb-4" style={{ height: "80vh" }}>
         <Calendar
           localizer={localizer}
           events={events}
@@ -189,7 +206,7 @@ export default function ScheduleCalendar({ color = "light", title }) {
           timeslots={1}
           min={new Date(2024, 0, 1, 9, 0, 0)}
           max={new Date(2024, 0, 1, 17, 0, 0)}
-          views={['week', 'day']}
+          views={["week", "day"]}
           defaultView="week"
           selectable
           resizable

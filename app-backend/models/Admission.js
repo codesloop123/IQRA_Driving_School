@@ -23,7 +23,8 @@ const AdmissionSchema = new mongoose.Schema({
   cellNumber: { type: String, required: true },
   address: { type: String, required: true },
   instructor: {
-    type: InstructorSchema,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Instructor",
     required: true,
   },
   vehicle: { type: String, required: true },

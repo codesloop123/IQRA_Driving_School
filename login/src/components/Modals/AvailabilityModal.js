@@ -83,7 +83,7 @@ export default function AvailabilityModal({
 
   const [highlightedEvents, setHighlightedEvents] = useState([]);
   const [newEvents, setNewEvents] = useState([]);
-
+  console.log(highlightedEvents);
   const stableChangeInstructor = useCallback(changeInstructor, [
     changeInstructor,
   ]);
@@ -108,19 +108,31 @@ export default function AvailabilityModal({
       }
       setSelectedInstructor(selectedInstructor_1);
       stableChangeInstructor(selectedInstructor_1);
-      console.log(selectedInstructor);
 
       const filteredSlots = selectedInstructor_1.bookedSlots || [];
       if (filteredSlots.length > 0) {
         const mergedSlots = mergeSlots(filteredSlots);
+        // Mapping mergedSlots to create a newEventsList for the calendar
+        const newEventsList = mergedSlots.map((slot) => {
+          // Create a Date object for the date and set the start and end times
+          const startDate = new Date(slot.date);
+          const [startHour, startMinute] = slot.startTime
+            .split(":")
+            .map(Number);
+          startDate.setHours(startHour, startMinute, 0, 0); // Set hours and minutes
 
-        const newEventsList = mergedSlots.map((slot) => ({
-          title: `Booked ${slot.startTime} to ${slot.endTime}`,
-          start: new Date(`${slot.date}T${slot.startTime}`),
-          end: new Date(`${slot.date}T${slot.endTime}`),
-          color: generateRandomColor(),
-          tooltip: `Booked from ${slot.startTime} to ${slot.endTime}`,
-        }));
+          const endDate = new Date(slot.date);
+          const [endHour, endMinute] = slot.endTime.split(":").map(Number);
+          endDate.setHours(endHour, endMinute, 0, 0); // Set hours and minutes
+
+          return {
+            title: `Booked ${slot.startTime} to ${slot.endTime}`,
+            start: startDate,
+            end: endDate,
+            color: generateRandomColor(),
+            tooltip: `Booked from ${slot.startTime} to ${slot.endTime}`,
+          };
+        });
 
         setHighlightedEvents(newEventsList);
       } else {
@@ -146,31 +158,30 @@ export default function AvailabilityModal({
     const rangeEvents = [];
     let x = parseInt((courseTimeDuration + additionalTime) / 15);
     let y = courseduration + Math.floor((positionInWeek + courseduration) / 7);
-    console.log(y);
     for (let verticalOffset = 0; verticalOffset < x; verticalOffset++) {
       for (let horizontalOffset = 0; horizontalOffset < y; horizontalOffset++) {
-        const eventStart = new Date(startDateTime);
-        const eventEnd = new Date(startDateTime);
+        const eventStart = new Date(startDateTime.getTime()); // Clone startDateTime
+        const eventEnd = new Date(startDateTime.getTime()); // Clone startDateTime
 
-        eventStart.setMinutes(startDateTime.getMinutes() + verticalOffset * 15);
-        eventEnd.setMinutes(eventStart.getMinutes() + 15);
-        console.log(verticalOffset, x);
-        let adjustedDate = startDateTime.getDate() + horizontalOffset;
-        eventStart.setDate(adjustedDate);
-        eventEnd.setDate(adjustedDate);
+        eventStart.setMinutes(eventStart.getMinutes() + verticalOffset * 15);
+        eventEnd.setMinutes(eventEnd.getMinutes() + 15 + verticalOffset * 15);
+        // Safely adjust the date
+        eventStart.setDate(eventStart.getDate() + horizontalOffset);
+        eventEnd.setDate(eventEnd.getDate() + horizontalOffset);
 
-        console.log(eventStart);
+        // Skip Sundays
         if (eventStart.getDay() === 0) {
           continue;
         }
 
-        let myEventsList = highlightedEvents;
+        let myEventsList = highlightedEvents || []; // Ensure highlightedEvents is defined
         if (myEventsList.length > 0) {
           const clash = myEventsList.some(
             (existingEvent) =>
-              (eventStart >= existingEvent.start &&
-                eventStart < existingEvent.end) ||
-              (eventEnd > existingEvent.start && eventEnd <= existingEvent.end)
+              (eventStart >= new Date(existingEvent.start) &&
+                eventStart < new Date(existingEvent.end)) ||
+              (eventEnd > new Date(existingEvent.start) &&
+                eventEnd <= new Date(existingEvent.end))
           );
 
           if (clash) {
@@ -190,8 +201,10 @@ export default function AvailabilityModal({
     }
 
     setNewEvents(rangeEvents);
-    const selectedDate = new Date(rangeEvents[0].start);
-    changeStartDateTime(selectedDate, rangeEvents[0].end);
+    if (rangeEvents.length > 0) {
+      const selectedDate = new Date(rangeEvents[0].start);
+      changeStartDateTime(selectedDate, rangeEvents[0].end);
+    }
   };
 
   function mergeSlots(slots) {
