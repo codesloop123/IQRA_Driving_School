@@ -3,6 +3,7 @@ import AttendanceTable from "components/Cards/AttendanceTable";
 import AdminNavbar from "../../components/Navbars/AdminNavbar";
 import HeaderStats from "components/Headers/HeaderStats";
 import FooterAdmin from "components/Footers/FooterAdmin";
+
 export default function Attendance({ routeName }) {
   return (
     <>
