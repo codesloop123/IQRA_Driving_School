@@ -14,7 +14,6 @@ export default function AdmissionTable({ color, title }) {
   const { registerLoading, admissions } = useSelector(
     (state) => state.admission
   );
-  console.log(admissions);
   useEffect(() => {
     dispatch(fetchAdmissions(user?.branch?._id));
   }, [user]);

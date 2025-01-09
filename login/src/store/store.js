@@ -12,6 +12,7 @@ import alertSlice from "./alerts/alertSlice";
 import Admission from "views/admin/Admission";
 import attendanceSlice from "./attendance/attendanceSlice";
 import courseSlice from "./courses/courseSlice";
+import notificationSlice from "./notifications/notificationSlice";
 const reducers = combineReducers({
   auth: authSlice,
   branch: branchSlice,
@@ -22,6 +23,7 @@ const reducers = combineReducers({
   course: courseSlice,
   attendance: attendanceSlice,
   finance: admissionSlice,
+  notification: notificationSlice,
 });
 
 const persistConfig = {

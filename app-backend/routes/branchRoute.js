@@ -4,6 +4,7 @@ const User = require("../models/User");
 const Instructor = require("../models/Instructor");
 const Vehicle = require("../models/Vehicle");
 const router = express.Router();
+const Notification = require("../models/Notification");
 
 // POST route to add a new instructor for a specific branch
 router.post("/add_branch", async (req, res) => {
@@ -21,6 +22,16 @@ router.post("/add_branch", async (req, res) => {
     const newBranch = new Branch({ name, branchCode });
     const savedBranch = await newBranch.save();
     if (savedBranch) {
+      const message = `Branch: ${name} Has Been Added Successfully`;
+      const eventDate = new Date();
+      const newNotification = new Notification({
+        message,
+        status: true,
+        eventDate,
+        branch: null,
+        role: "admin",
+      });
+      await newNotification.save();
       res
         .status(200)
         .json({ status: true, message: "Branch added successfully" });

@@ -25,6 +25,7 @@ app.use("/api/admissions", require("./routes/admission"));
 app.use("/api/attendance", require("./routes/attendance"));
 app.use("/api/alerts", require("./routes/alerts"));
 app.use("/api/courses/", require("./routes/courseRoute"));
+app.use("/api/notifications/", require("./routes/notificationRoute"));
 app.get("/", async (req, res) => {
   res.json("Hello DB");
 });

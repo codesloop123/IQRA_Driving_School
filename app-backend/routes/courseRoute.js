@@ -1,6 +1,7 @@
-const express = require("express");
 const Course = require("../models/Course");
+const express = require("express");
 const router = express.Router();
+const Notification = require("../models/Notification");
 
 router.post("/add", async (req, res) => {
   const { name, duration, pricelist, vehicle } = req.body;
@@ -23,6 +24,16 @@ router.post("/add", async (req, res) => {
     });
     const savedCourse = await newCourse.save();
     if (savedCourse) {
+      const message = `Course: ${name} Has Been Added Successfully`;
+      const eventDate = new Date();
+      const newNotification = new Notification({
+        message,
+        status: true,
+        eventDate,
+        branch: null,
+        role: "admin",
+      });
+      await newNotification.save();
       res
         .status(200)
         .json({ status: true, message: "Course added successfully" });

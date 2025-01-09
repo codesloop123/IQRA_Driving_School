@@ -10,8 +10,10 @@ import { fetchBranches } from "store/branch/actions";
 import { fetchInstructors } from "store/instructor/action";
 import { fetchVehicles } from "store/vehicle/actions";
 import { fetchUsers } from "store/auth/actions";
+import { fetchNotifications } from "store/notifications/actions";
 export default function Admin(props) {
   const { uid } = useSelector((state) => state.auth);
+  const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const history = useHistory();
   useEffect(() => {
@@ -23,7 +25,10 @@ export default function Admin(props) {
     dispatch(fetchBranches());
     dispatch(fetchInstructors());
     dispatch(fetchVehicles());
-    dispatch(fetchUsers());
+    dispatch(fetchUsers()).then(() => {
+      console.log(user?.role);
+      dispatch(fetchNotifications(user?.role));
+    });
   }, []);
   return (
     <>

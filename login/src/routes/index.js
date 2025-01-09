@@ -19,6 +19,7 @@ import SortFinancesByDate from "../views/admin/SortFinancesByDate";
 import AddCourse from "views/admin/AddCourse";
 import AddAttendance from "views/admin/AddAttendance";
 import Attendance from "views/admin/Attendance";
+import Notifications from "views/admin/Notifications";
 let routes = [
   {
     path: "/",
@@ -38,6 +39,13 @@ let routes = [
     path: "/attendance",
     component: Attendance,
     name: "Attendance",
+    layout: "admin",
+    isMenu: true,
+  },
+  {
+    path: "/notifications",
+    component: Notifications,
+    name: "Notifications",
     layout: "admin",
     isMenu: true,
   },

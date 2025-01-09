@@ -2,12 +2,14 @@ import React from "react";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { useDispatch } from "react-redux";
 import { signOutUser } from "store/auth/actions";
+
 export default function Navbar({ routeName }) {
   const history = useHistory();
   const dispatch = useDispatch();
   const handleLogout = () => {
     dispatch(signOutUser(history));
   };
+
   return (
     <>
       {/* Navbar */}
@@ -39,7 +41,7 @@ export default function Navbar({ routeName }) {
             <UserDropdown />
           </ul> */}
           <a
-            className="text-white text-sm hidden lg:inline-block font-semibold"
+            className="text-white text-sm px-2 lg:inline-block font-semibold"
             href="#pablo"
             onClick={handleLogout}
           >

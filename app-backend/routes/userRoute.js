@@ -2,6 +2,7 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const Notification = require("../models/Notification");
 
 const router = express.Router();
 
@@ -21,10 +22,22 @@ router.post("/add_User", async (req, res) => {
       status,
     });
 
-    await user.save();
-    res
-      .status(200)
-      .json({ status: true, message: "Manager registered successfully" });
+    const savedUser = await user.save();
+    if (savedUser) {
+      const message = `Manager: ${name} Has Been Added Successfully`;
+      const eventDate = new Date();
+      const newNotification = new Notification({
+        message,
+        status: true,
+        eventDate,
+        branch: branch._id,
+        role: "manager",
+      });
+      await newNotification.save();
+      res
+        .status(200)
+        .json({ status: true, message: "Manager registered successfully" });
+    }
   } catch (error) {
     console.error(error.message);
     res.status(500).send("Server error");

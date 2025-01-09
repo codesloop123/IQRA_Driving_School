@@ -2,6 +2,49 @@ const express = require("express");
 const Admission = require("../models/Admission");
 const router = express.Router();
 const Instructor = require("../models/Instructor");
+const Notification = require("../models/Notification");
+const cron = require("node-cron");
+cron.schedule("0 0 * * *", async () => {
+  // This cron job runs every day at midnight
+  await checkOverduePayments();
+});
+
+async function checkOverduePayments() {
+  const today = new Date("2025-01-01");
+  try {
+    const overdueAdmissions = await Admission.find({
+      paymentDueDate: { $lt: today },
+      remainingPayment: { $gt: 0 },
+    });
+
+    for (const admission of overdueAdmissions) {
+      const existingNotification = await Notification.findOne({
+        student: admission._id,
+        eventDate: admission.paymentDueDate,
+      });
+
+      if (!existingNotification) {
+        const newNotification = new Notification({
+          message: `Payment overdue for student: ${admission.firstName} ${admission.lastName}`,
+          status: false,
+          eventDate: admission.paymentDueDate,
+          student: admission._id,
+          branch: admission.branch, // Assuming 'branch' is a string in Admission
+          role: "manager", // Specify the role as needed
+        });
+
+        await newNotification.save();
+        console.log(`Notification created for admission ID: ${admission._id}`);
+      } else {
+        console.log(
+          `Notification already exists for admission ID: ${admission._id}`
+        );
+      }
+    }
+  } catch (error) {
+    console.error("Error checking overdue payments:", error);
+  }
+}
 const generateReferenceNumber = async (branchCode, lecturerCode) => {
   const currentMonth = new Date().getMonth() + 1;
   const currentYear = new Date().getFullYear().toString().slice(-2);
@@ -59,7 +102,6 @@ router.post("/add", async (req, res) => {
       paymentDueDate,
     } = req.body;
 
-    console.log(pickanddrop);
     if (
       !firstName ||
       !lastName ||
@@ -179,13 +221,26 @@ router.post("/add", async (req, res) => {
       paymentDueDate: paymentDueDate ? paymentDueDate : null,
     });
 
-    await admission.save();
-    res.status(200).json({
-      status: true,
-      message: "Admission booked successfully.",
-      bookedSlots,
-      refNumber: admission.referenceNumber,
-    });
+    const savedAdmission = await admission.save();
+    if (savedAdmission) {
+      const message = `Student: ${firstName} ${lastName} Has Been Added Successfully`;
+      const eventDate = new Date();
+      const newNotification = new Notification({
+        message,
+        status: true,
+        eventDate,
+        branch: null,
+        role: "admin",
+      });
+      const result = await newNotification.save();
+      console.log(result);
+      res.status(200).json({
+        status: true,
+        message: "Admission booked successfully.",
+        bookedSlots,
+        refNumber: admission.referenceNumber,
+      });
+    }
   } catch (error) {
     console.error("Error adding admission:", error);
     res.status(500).json({ status: false, message: "Internal server error." });

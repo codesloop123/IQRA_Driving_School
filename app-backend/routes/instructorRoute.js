@@ -3,12 +3,22 @@
 const express = require("express");
 const Instructor = require("../models/Instructor");
 const router = express.Router();
+const Notification = require("../models/Notification");
 
 // POST route to add a new instructor for a specific branch
 router.post("/add", async (req, res) => {
-  const { name, email, branch, vehicle, status, lecturerCode,availability } = req.body;
+  const { name, email, branch, vehicle, status, lecturerCode, availability } =
+    req.body;
 
-  if (!name || !email || !branch || !vehicle || !status || !availability || !lecturerCode) {
+  if (
+    !name ||
+    !email ||
+    !branch ||
+    !vehicle ||
+    !status ||
+    !availability ||
+    !lecturerCode
+  ) {
     return res.status(400).json({ msg: "Please enter all fields" });
   }
 
@@ -32,6 +42,16 @@ router.post("/add", async (req, res) => {
     // console.log(newInstructor);
     const savedInstructor = await newInstructor.save();
     if (savedInstructor) {
+      const message = `Instructor: ${name} Has Been Added Successfully`;
+      const eventDate = new Date();
+      const newNotification = new Notification({
+        message,
+        status: true,
+        eventDate,
+        branch: branch._id,
+        role: "manager",
+      });
+      await newNotification.save();
       res
         .status(200)
         .json({ status: true, message: "Instructor added successfully" });

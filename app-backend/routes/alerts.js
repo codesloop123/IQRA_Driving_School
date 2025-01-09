@@ -1,6 +1,7 @@
 const express = require("express");
 const Admission = require("../models/Admission");
 const router = express.Router();
+const Notification = require("../models/Notification");
 
 // Route to fetch payment alerts for a specific branch
 router.get("/payments/:branch", async (req, res) => {
@@ -13,6 +14,7 @@ router.get("/payments/:branch", async (req, res) => {
       remainingPayment: { $gt: 0 },
       endDate: { $gte: today },
     });
+    console.log(admissions);
     res.status(200).json(admissions);
   } catch (error) {
     console.error("Error fetching payment alerts:", error);
@@ -52,13 +54,27 @@ router.patch("/complete/:id", async (req, res) => {
     admission.paymentDueDate = paymentDueDate;
 
     // Save the updated admission
-    await admission.save();
+    const newAdmission = await admission.save();
+    if (newAdmission) {
+      let message = `Payment ${newAmountReceived} Has Been Added To ${admission?.firstName} ${admission?.lastName}'s Account Successfully.`;
+      if (updatedRemainingAmount > 0)
+        message += `New Balance is ${updatedRemainingAmount}`;
 
-    res.status(200).json({
-      msg: "Payment completed and balance updated",
-      updatedAmountReceived,
-      updatedRemainingAmount,
-    });
+      const eventDate = new Date();
+      const newNotification = new Notification({
+        message,
+        status: true,
+        eventDate,
+        branch: null,
+        role: "admin",
+      });
+      await newNotification.save();
+      res.status(200).json({
+        msg: "Payment completed and balance updated",
+        updatedAmountReceived,
+        updatedRemainingAmount,
+      });
+    }
   } catch (error) {
     console.error("Error completing the payment:", error);
     res.status(500).json({ msg: "Server error" });
