@@ -1,5 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const Instructor = require("./models/Instructor");
 const cors = require("cors");
 const app = express();
 mongoose
@@ -14,6 +15,16 @@ mongoose
   )
   .then(async () => {
     console.log("MongoDB connected for userAuthDB");
+    // const Attendance = mongoose.model("Attendance");
+    // await Attendance.deleteMany({}); // Delete all documents in the "Attendance" collection
+    // console.log("All entries deleted from the Attendance collection.");
+
+    // await Instructor.updateOne(
+    //   { name: "Ustad" }, // Find the instructor by name
+    //   { $set: { bookedSlots: [] } } // Clear all booked slots
+    // );
+    // const instructor = await Instructor.findOne({ name: "Ustad" });
+    // console.log(instructor.bookedSlots); // Should log an empty array
   })
   .catch((err) => console.log(err));
 

@@ -545,6 +545,7 @@ export default function AdmissionCard() {
   }, [openPreview]);
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log("works");
     setFormData((prev) => ({
       ...prev,
       courseTimeDuration: formData?.courseTimeDuration + additionalTime,
@@ -568,8 +569,7 @@ export default function AdmissionCard() {
 
     dispatch(postAdmission({ formData }))
       .then((response) => {
-        console.log(response);
-        if (response.status === 200) {
+        if (response?.payload?.status === true) {
           setRefNo(response?.payload?.refNumber);
           setOpenPreview(true);
         }
@@ -889,6 +889,7 @@ export default function AdmissionCard() {
                           toast.error("Fill Course Duration and Time Duration");
                         }
                       }}
+                      type="button"
                       className="px-6 py-3 bg-lightBlue-600 item-self mx-auto text-white font-bold rounded-md shadow hover:bg-lightBlue-700 transition-all"
                     >
                       Book Instructor/Slots

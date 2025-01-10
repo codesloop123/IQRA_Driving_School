@@ -129,11 +129,11 @@ router.post("/add", async (req, res) => {
     ) {
       return res.status(400).json({ message: "All fields are required." });
     }
-
-    if (remainingPayment > 0 && paymentDueDate === undefined)
+    if (remainingPayment > 0 && !paymentDueDate) {
       return res
         .status(400)
         .json({ message: "Please add the Payment Due Date" });
+    }
     const referenceNumber = await generateReferenceNumber(
       manager.branch.branchCode,
       instructor.lecturerCode
@@ -148,7 +148,6 @@ router.post("/add", async (req, res) => {
       instructorDoc.availability;
     const courseStartTime = startTime;
     const courseEndTime = calculateEndTime(startTime, courseTimeDuration);
-    console.log(courseTimeDuration);
     if (courseStartTime < availableStart || courseEndTime > availableEnd) {
       return res.status(400).json({
         status: false,
@@ -190,6 +189,7 @@ router.post("/add", async (req, res) => {
           "Some slots are already booked for the selected date and time.",
       });
     }
+    console.log(bookedSlots);
     instructorDoc.bookedSlots.push(...bookedSlots);
     await instructorDoc.save();
     const admission = new Admission({
@@ -235,8 +235,7 @@ router.post("/add", async (req, res) => {
         role: "admin",
       });
       const result = await newNotification.save();
-      console.log(result);
-      res.status(200).json({
+      return res.status(200).json({
         status: true,
         message: "Admission booked successfully.",
         bookedSlots,
@@ -245,7 +244,9 @@ router.post("/add", async (req, res) => {
     }
   } catch (error) {
     console.error("Error adding admission:", error);
-    res.status(500).json({ status: false, message: "Internal server error." });
+    return res
+      .status(500)
+      .json({ status: false, message: "Internal server error." });
   }
 });
 const calculateEndTime = (startTime, duration) => {
