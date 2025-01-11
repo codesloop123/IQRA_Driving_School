@@ -33,7 +33,7 @@ const InstructorSchema = new mongoose.Schema(
           default: "Pending",
         },
         refNo: {
-          type: String, // Reference to Student document
+          type: String, // Reference to Instructor document
           required: true,
         },
       },
