@@ -10,6 +10,12 @@ import { start } from "@popperjs/core";
 import { fetchCourses } from "store/courses/actions";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import admissionFormPdf from "../../assets/pdf/admissionForm.pdf";
+import {
+  generateRandomBirthdate,
+  generateRandomCnic,
+  generateRandomFirstName,
+  generateRandomLastName,
+} from "components/Utils/AdmissionGeneration";
 import PDFModal from "components/Modals/PDFModal";
 export default function AdmissionCard() {
   const dispatch = useDispatch();
@@ -29,12 +35,12 @@ export default function AdmissionCard() {
   const [dobError, setDobError] = useState("");
   const [refNo, setRefNo] = useState("");
   const [formData, setFormData] = useState({
-    firstName: "John",
-    lastName: "Doe",
+    firstName: generateRandomFirstName(),
+    lastName: generateRandomLastName(),
     fatherName: "Robert Doe",
-    cnic: "12345-6789012-3",
+    cnic: generateRandomCnic(),
     gender: "Male",
-    dob: "1995-01-01", // Use YYYY-MM-DD format for dates
+    dob: generateRandomBirthdate(), // Use YYYY-MM-DD format for dates
     cellNumber: "+92 300 1234567",
     address: "123 Main Street, Islamabad",
     instructor: null,
@@ -511,12 +517,12 @@ export default function AdmissionCard() {
     setPriceIdx("");
     setRefNo("");
     setFormData({
-      firstName: "John",
-      lastName: "Doe",
+      firstName: generateRandomFirstName(),
+      lastName: generateRandomLastName(),
       fatherName: "Robert Doe",
-      cnic: "12345-6789012-3",
+      cnic: generateRandomCnic(),
       gender: "Male",
-      dob: "1995-01-01", // Use YYYY-MM-DD format for dates
+      dob: generateRandomBirthdate(),
       cellNumber: "+92 300 1234567",
       address: "123 Main Street, Islamabad",
       instructor: null,

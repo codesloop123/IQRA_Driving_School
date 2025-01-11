@@ -274,7 +274,7 @@ const calculateEndDate = (startDate, durationInDays) => {
   // Parse the input date
   const date = new Date(startDate);
   // Add the duration to the date
-  --durationInDays;
+  durationInDays;
   date.setDate(date.getDate() + parseInt(durationInDays, 10));
 
   // Format the result in YYYY-MM-DD

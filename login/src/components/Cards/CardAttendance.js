@@ -16,8 +16,8 @@ export default function CardAttendance() {
   const [attendanceData, setAttendanceData] = useState([]);
 
   useEffect(() => {
-    dispatch(fetchAttendees(user?.branch?._id));
-  }, []);
+    if (date) dispatch(fetchAttendees({ branchid: user?.branch?._id, date }));
+  }, [date]);
   useEffect(() => {
     setAttendanceData(students);
   }, [students]);
@@ -34,7 +34,6 @@ export default function CardAttendance() {
       setAttendanceData(updatedData);
     }
   };
-
   const handleSave = () => {
     dispatch(
       postAttendance({
@@ -131,6 +130,9 @@ export default function CardAttendance() {
                         Ref ID
                       </th>
                       <th className="px-6 py-3 text-xs text-blueGray-500 font-semibold text-left border-l-0 border-r-0 align-middle whitespace-nowrap">
+                        Instructor Name
+                      </th>
+                      <th className="px-6 py-3 text-xs text-blueGray-500 font-semibold text-left border-l-0 border-r-0 align-middle whitespace-nowrap">
                         Status
                       </th>
                     </tr>
@@ -149,6 +151,9 @@ export default function CardAttendance() {
                         </td>
                         <td className="border-t-0 px-6 py-3 text-xs text-blueGray-500 align-middle whitespace-nowrap">
                           {row.refId}
+                        </td>
+                        <td className="border-t-0 px-6 py-3 text-xs text-blueGray-500 align-middle whitespace-nowrap">
+                          {row.instructorName}
                         </td>
                         <td className="border-t-0 px-6 py-3 text-xs text-blueGray-500 align-middle whitespace-nowrap">
                           {row.status || "-"}
