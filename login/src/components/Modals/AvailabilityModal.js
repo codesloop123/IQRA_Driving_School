@@ -76,18 +76,23 @@ export default function AvailabilityModal({
     dispatch(fetchInstructors());
   }, [dispatch]);
 
+
   const [highlightedEvents, setHighlightedEvents] = useState([]);
   const [newEvents, setNewEvents] = useState([]);
 
 
 
   const stableChangeInstructor = useCallback(changeInstructor, [changeInstructor]);
-
   useEffect(() => {
     if (selectedInstructor && typeof stableChangeInstructor === "function") {
       stableChangeInstructor(selectedInstructor);
     }
   }, [selectedInstructor, stableChangeInstructor]);
+
+
+
+
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -127,6 +132,12 @@ export default function AvailabilityModal({
     }
   };
 
+
+
+
+
+
+
   const handleSelectSlot = ({ start }) => {
     console.log("Slot input:", start);
     if (!start) {
@@ -137,40 +148,37 @@ export default function AvailabilityModal({
     const rangeEvents = [];
     let x = courseTimeDuration / 15;
     for (let verticalOffset = 0; verticalOffset < x; verticalOffset++) {
-      for (
-        let horizontalOffset = 0;
-        horizontalOffset < courseduration;
-        horizontalOffset++
-      ) {
+      let horizontalOffset = 0; // Initialize the loop variable
+      let i = 0;
+      
+      while (i < courseduration) {
         const eventStart = new Date(startDateTime);
         const eventEnd = new Date(startDateTime);
-
+      
         eventStart.setMinutes(startDateTime.getMinutes() + verticalOffset * 15);
         eventEnd.setMinutes(eventStart.getMinutes() + 15);
-
+      
         let adjustedDate = startDateTime.getDate() + horizontalOffset;
         eventStart.setDate(adjustedDate);
         eventEnd.setDate(adjustedDate);
-
+      
+        // Check for Sunday (day 0)
         if (eventStart.getDay() === 0) {
+          horizontalOffset++; // Increment before continuing to avoid infinite loop
           continue;
         }
-
+      
         let myEventsList = highlightedEvents;
         if (myEventsList.length > 0) {
-          const clash = myEventsList.some(
-            (existingEvent) =>
-              (eventStart >= existingEvent.start &&
-                eventStart < existingEvent.end) ||
-              (eventEnd > existingEvent.start && eventEnd <= existingEvent.end)
+          const clash = myEventsList.some((existingEvent) => 
+            (eventStart < existingEvent.end && eventEnd > existingEvent.start)
           );
-
           if (clash) {
-            toast.error("Instructor is already booked at this time.");
+            toast.error(`Instructor is already booked at this time.`);
             return;
           }
         }
-
+      
         rangeEvents.push({
           title: `Booked ${eventStart.toLocaleString()} - ${eventEnd.toLocaleString()}`,
           start: eventStart,
@@ -178,6 +186,10 @@ export default function AvailabilityModal({
           color: "#FFD700",
           tooltip: `Booked: ${eventStart.toLocaleTimeString()} - ${eventEnd.toLocaleTimeString()}`,
         });
+      
+        // Increment the loop variable
+        horizontalOffset++;
+        i++;
       }
     }
 

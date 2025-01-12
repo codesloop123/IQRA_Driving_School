@@ -7,6 +7,7 @@ import { postAdmission } from "store/admission/actions";
 import { toast } from "react-toastify";
 import AvailabilityModal from "components/Modals/AvailabilityModal";
 import { start } from "@popperjs/core";
+import { useCallback } from 'react';
 
 export default function AdmissionCard() {
   const dispatch = useDispatch();
@@ -59,14 +60,14 @@ export default function AdmissionCard() {
     const minutes = String(date.getMinutes()).padStart(2, "0");
     return `${hours}:${minutes}`;
   };
-
-  const changeInstructor = (instructor) => {
-    // console.log("Here is the instructure",instructor);
-    setFormData({
-      ...formData,
+  
+  const changeInstructor = useCallback((instructor) => {
+    console.log("Here is the instructor:", instructor);
+    setFormData((prevFormData) => ({
+      ...prevFormData,
       instructor: instructor,
-    });
-  };
+    }));
+  }, [setFormData]);
 
   const changeStartDateTime = (startDate,endTime) => {
     let startdata = formatDate(startDate);
