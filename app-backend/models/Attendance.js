@@ -18,6 +18,11 @@ const AttendanceSchema = new mongoose.Schema({
         required: true,
         enum: ["Present", "Absent", "Leave"], // Example status types, can be extended
       },
+      instructor: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Instructor",
+        required: true,
+      },
     },
   ],
 });

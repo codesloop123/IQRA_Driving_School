@@ -8,11 +8,11 @@ import {
 } from "./attendanceSlice";
 export const fetchAttendees = createAsyncThunk(
   "attendance/get",
-  async (branchid, { dispatch }) => {
+  async ({ branchid, date }, { dispatch }) => {
     try {
       dispatch(setAttendanceLoader(true));
       const response = await axiosInstance.get(
-        `/attendance/students/${branchid}`
+        `/attendance/students/${branchid}/${date}`
       );
       if (response.status) {
         dispatch(setStudents(response.data));

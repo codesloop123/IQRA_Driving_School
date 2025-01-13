@@ -22,7 +22,7 @@ export default function CardVehicle() {
     if (name === "branch") {
       setFormData({
         ...formData,
-        branch: JSON.parse(value),
+        branch: branches.find((branch) => branch._id === value),
       });
     } else {
       setFormData({
@@ -115,7 +115,7 @@ export default function CardVehicle() {
                       Select Branch
                     </option>
                     {branches.map((branch) => (
-                      <option key={branch.id} value={JSON.stringify(branch)}>
+                      <option key={branch._id} value={branch._id}>
                         {branch.name}
                       </option>
                     ))}

@@ -169,11 +169,11 @@ let routes = [
     isMenu: false,
   },
   {
-    path:"/schedules",
-    name:"Schedule",
+    path: "/schedules",
+    name: "Schedule",
     component: Schedules,
     layout: "admin",
     isMenu: false,
-  }
+  },
 ];
 export default routes;

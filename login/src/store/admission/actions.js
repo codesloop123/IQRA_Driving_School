@@ -1,8 +1,12 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import axiosInstance from "axiosInstance";
 import { toast } from "react-toastify";
-import { setAdmissions, setRegisterLoader, setFinances, setFinancesByDate } from "./admissionSlice";
-
+import {
+  setAdmissions,
+  setRegisterLoader,
+  setFinances,
+  setFinancesByDate,
+} from "./admissionSlice";
 
 export const postAdmission = createAsyncThunk(
   "admission/post",
@@ -40,7 +44,6 @@ export const postAdmission = createAsyncThunk(
 export const fetchAdmissions = createAsyncThunk(
   "branch/get",
   async (id, { dispatch }) => {
-    console.log("inside fetch>>>>>>>");
     try {
       dispatch(setRegisterLoader(true));
       const response = await axiosInstance.get(`/admissions/${id}`);
@@ -65,9 +68,11 @@ export const fetchFinances = createAsyncThunk(
     }
     try {
       dispatch(setRegisterLoader(true));
-      const response = await axiosInstance.get(`/admissions/${id}/finances`, { params: params });
+      const response = await axiosInstance.get(`/admissions/${id}/finances`, {
+        params: params,
+      });
       if (response.status) {
-        if(toDate && fromDate) dispatch(setFinancesByDate(true));
+        if (toDate && fromDate) dispatch(setFinancesByDate(true));
         else dispatch(setFinancesByDate(false));
         dispatch(setFinances(response.data));
       }
@@ -77,4 +82,4 @@ export const fetchFinances = createAsyncThunk(
       dispatch(setRegisterLoader(false));
     }
   }
-)
+);

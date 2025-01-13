@@ -15,9 +15,9 @@ mongoose
   )
   .then(async () => {
     console.log("MongoDB connected for userAuthDB");
-    // const Attendance = mongoose.model("Attendance");
-    // await Attendance.deleteMany({}); // Delete all documents in the "Attendance" collection
-    // console.log("All entries deleted from the Attendance collection.");
+    // const Admission = mongoose.model("Admission");
+    // await Admission.deleteMany({}); // Delete all documents in the "Admission" collection
+    // console.log("All entries deleted from the Admission collection.");
 
     // await Instructor.updateOne(
     //   { name: "Ustad" }, // Find the instructor by name
