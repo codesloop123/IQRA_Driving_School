@@ -43,20 +43,15 @@ export default function ScheduleCalendar({ color = "light", title }) {
   };
 
   return (
-    <div
-      className={
-        "relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded " +
-        (color === "light" ? "bg-white" : "bg-lightBlue-900 text-white")
-      }
-    >
+    <>
       {/* Calendar */}
       <DND_Calendar
         events={events}
         onEventsChange={handleEventsChange}
         title={title}
       />
-    </div>
-  );
+    </>
+  );  
 }
 
 ScheduleCalendar.propTypes = {

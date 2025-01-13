@@ -15,6 +15,7 @@ export default function ScheduleCalendar({
   color = "light",
   title = "Scheduler",
 }) {
+
   const [selectedEvents, setSelectedEvents] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
 
@@ -233,11 +234,11 @@ export default function ScheduleCalendar({
       }
     >
       <div className="rounded-t mb-0 px-4 py-3 border-0">
-        <div className="flex flex-wrap items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between w-full">
           <div className="relative w-full max-w-full flex-grow flex-1">
             <h3
               className={
-                "font-semibold text-lg " +
+                "font-semibold text-lg" +
                 (color === "light" ? "text-blueGray-700" : "text-white")
               }
             >
@@ -255,6 +256,7 @@ export default function ScheduleCalendar({
       <div className="px-4 pb-4" style={{ height: "80vh" }}>
         <DnDCalendar
           localizer={localizer}
+          views={['month', 'week', 'day']}
           events={events}
           startAccessor="start"
           endAccessor="end"
@@ -271,6 +273,8 @@ export default function ScheduleCalendar({
           eventPropGetter={eventStyleGetter}
           onSelectEvent={handleSelectEvent}
           onSelectSlot={handleSelectSlot}
+          eventLimit={2}
+          popup={true}
         />
       </div>
     </div>
