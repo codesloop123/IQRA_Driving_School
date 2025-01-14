@@ -586,7 +586,7 @@ export default function AdmissionCard() {
   };
 
   useEffect(() => {
-    dispatch(fetchInstructors());
+    dispatch(fetchInstructors(user.branch._id));
     dispatch(fetchCourses());
   }, []);
   useEffect(() => {

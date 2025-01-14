@@ -76,14 +76,14 @@ export default function AvailabilityModal({
   const { instructors, isInstructorLoading } = useSelector(
     (state) => state.instructor
   );
+  const { user } = useSelector((state) => state.auth);
   const [selectedInstructor, setSelectedInstructor] = useState(null);
   useEffect(() => {
-    dispatch(fetchInstructors());
+    dispatch(fetchInstructors(user.branch._id));
   }, [dispatch]);
 
   const [highlightedEvents, setHighlightedEvents] = useState([]);
   const [newEvents, setNewEvents] = useState([]);
-  console.log(highlightedEvents);
   const stableChangeInstructor = useCallback(changeInstructor, [
     changeInstructor,
   ]);

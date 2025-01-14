@@ -24,10 +24,29 @@ export const postInstructor = createAsyncThunk(
 );
 export const fetchInstructors = createAsyncThunk(
   "instructor/get",
+  async (id, { dispatch }) => {
+    try {
+      dispatch(setInstructorLoader(true));
+      const response = await axiosInstance.get(`/instructors/fetch/${id}`);
+
+      if (response.status) {
+        console.log(response.data, "response data");
+        dispatch(setInstructors(response.data.instructors));
+      }
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      dispatch(setInstructorLoader(false));
+    }
+  }
+);
+
+export const fetchAllInstructors = createAsyncThunk(
+  "instructor/get",
   async (_, { dispatch }) => {
     try {
       dispatch(setInstructorLoader(true));
-      const response = await axiosInstance.get("/instructors/fetch");
+      const response = await axiosInstance.get(`/instructors/fetch`);
 
       if (response.status) {
         console.log(response.data, "response data");
@@ -64,7 +83,7 @@ export const updateInstructorStatus = createAsyncThunk(
     try {
       dispatch(setInstructorLoader(true));
       const response = await axiosInstance.put(`/instructors/${id}`, {
-        status
+        status,
       });
       if (response.status) {
         console.log(response, "response data");

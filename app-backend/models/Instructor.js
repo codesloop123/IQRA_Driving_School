@@ -12,7 +12,6 @@ const InstructorSchema = new mongoose.Schema(
       startTime: { type: String, required: true },
       endTime: { type: String, required: true },
     },
-
     branch: {
       type: BranchSchema,
       required: true,

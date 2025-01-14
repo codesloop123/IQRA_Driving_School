@@ -291,6 +291,7 @@ router.get("/:id", async (req, res) => {
   const { id } = req.params;
   try {
     const admissions = await Admission.find({ "manager.branch._id": id });
+    console.log(id);
     res.status(200).json({ status: true, admissions: admissions });
   } catch (error) {
     res.status(500).json({ msg: "Server error" });

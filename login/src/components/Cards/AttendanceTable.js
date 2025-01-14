@@ -4,10 +4,6 @@ import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { useState } from "react";
 import { fetchBranches } from "store/branch/actions";
 import { useEffect } from "react";
-import { fetchVehicles } from "store/vehicle/actions";
-import { fetchInstructors } from "store/instructor/action";
-import { deleteInstructor } from "store/instructor/action";
-import { updateInstructorStatus } from "store/instructor/action";
 import { fetchAttendance } from "store/attendance/action";
 export default function AttendanceTable({ color, title }) {
   const history = useHistory();
