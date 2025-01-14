@@ -1,42 +1,73 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import DND_Calendar from "../Utils/DND_Calendar";
+import { useSelector,useDispatch } from 'react-redux';
+import { fetchInstructors } from "store/instructor/action";
+const GetInstructorsByBranch = (user) => {
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(fetchInstructors());
+  }, [dispatch]);
+  const instructors = useSelector((state) => state.instructor.instructors);
+  const result = instructors.filter((instructor) => instructor.branch.name === user.branch.name);
+  return result;
+};
+
+const GetSlotsData = (instructors) =>{
+  const slots = instructors.flatMap((instructor) => instructor.bookedSlots);
+  return slots;
+};
+
+function convertBookedSlotsToEvents(bookedSlots) {
+  return bookedSlots.map((slot, index) => {
+    // Parse ISO date
+    const baseDate = new Date(slot.date); // ISO date format is handled by JS Date
+    const [startHour, startMinute] = slot.startTime.split(':').map(Number);
+    const [endHour, endMinute] = slot.endTime.split(':').map(Number);
+
+    // Construct start and end dates
+    const startDate = new Date(baseDate);
+    startDate.setHours(startHour, startMinute, 0, 0);
+
+    const endDate = new Date(baseDate);
+    endDate.setHours(endHour, endMinute, 0, 0);
+
+    // Return the formatted event object
+    return {
+      id: index + 1, // Unique ID
+      title: `Event ${index + 1}`,
+      subtitle: `RefNo: ${slot.refNo}`,
+      start: startDate,
+      end: endDate,
+      present: slot.status === "Completed" ? true : slot.status === "Missed" ? false : null,
+    };
+  });
+}
+function getSlots(user){
+  // get the instructors of the user's branch
+  const instructors = GetInstructorsByBranch(user);
+  // get the booked slots of these instructors
+  const slotsData = GetSlotsData(instructors);
+  // console.log(slotsData);
+  // convert the booked slots to events format
+  const events = convertBookedSlotsToEvents(slotsData);
+  return events;
+}
 
 export default function ScheduleCalendar({ color = "light", title }) {
-  const [events, setEvents] = useState([
-    {
-      id: 1,
-      title: "Event 1",
-      start: new Date(2025, 0, 1, 10, 0, 0),
-      end: new Date(2025, 0, 1, 11, 0, 0),
-      present: true,
-    },
-    {
-      id: 5,
-      title: "Event 5",
-      subtitle: "New Event",
-      start: new Date(2025, 0, 14, 11, 0, 0),
-      end: new Date(2025, 0, 14, 12, 0, 0),
-      present: null,
-    },
-    {
-      id: 6,
-      title: "Event 6",
-      subtitle: "New Event",
-      start: new Date(2025, 0, 14, 12, 0, 0),
-      end: new Date(2025, 0, 14, 13, 0, 0),
-      present: null,
-    },
-    {
-      id: 7,
-      title: "Event 7",
-      subtitle: "New Event",
-      start: new Date(2025, 0, 14, 13, 0, 0),
-      end: new Date(2025, 0, 14, 14, 0, 0),
-      present: null,
-    },
-    // ... other events
-  ]);
+  const [events, setEvents] = useState([]);
+
+  // Get the user's id (currently logged in)
+  const user = useSelector((state) => state.auth.user);
+
+  useEffect(() => {
+    if (user) {
+      // Get the instructors of the user's branch and slots
+      const slotsData = getSlots(user);
+      // Convert slots to events and update state
+      setEvents(slotsData);
+    }
+  }, [user]); // Runs whenever 'user' changes
 
   const handleEventsChange = (updatedEvents) => {
     setEvents(updatedEvents);
@@ -52,7 +83,7 @@ export default function ScheduleCalendar({ color = "light", title }) {
         color={color}
       />
     </>
-  );  
+  );
 }
 
 ScheduleCalendar.propTypes = {
