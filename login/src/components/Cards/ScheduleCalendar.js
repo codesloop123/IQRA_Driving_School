@@ -49,6 +49,7 @@ export default function ScheduleCalendar({ color = "light", title }) {
         events={events}
         onEventsChange={handleEventsChange}
         title={title}
+        color={color}
       />
     </>
   );  
