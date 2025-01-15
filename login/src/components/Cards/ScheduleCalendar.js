@@ -23,6 +23,7 @@ export default function ScheduleCalendar({ color = "light", title }) {
     showAvailableOnly: false,
   });
   const [alerts, setAlerts] = useState([]);
+  const { users } = useSelector((state) => state.auth);
 
   useEffect(() => {
     if (!loading && instructors.length > 0) {
@@ -77,7 +78,8 @@ export default function ScheduleCalendar({ color = "light", title }) {
       }, []);
       setAlerts(newAlerts);
     } else {
-      dispatch(fetchInstructors());
+      console.log(users);
+      dispatch(fetchInstructors(users.branch._id));
     }
   }, [dispatch, loading, instructors, selectedInstructor, filters, dateRange]);
 

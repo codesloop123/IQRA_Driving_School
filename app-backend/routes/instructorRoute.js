@@ -4,6 +4,8 @@ const express = require("express");
 const Instructor = require("../models/Instructor");
 const router = express.Router();
 const Notification = require("../models/Notification");
+const mongoose = require("mongoose");
+const ObjectId = mongoose.Types.ObjectId;
 
 // POST route to add a new instructor for a specific branch
 router.post("/add", async (req, res) => {
@@ -63,6 +65,20 @@ router.post("/add", async (req, res) => {
 });
 
 // GET route to fetch all instructors for a specific branch
+router.get("/fetch/:id", async (req, res) => {
+  const { id } = req.params;
+  console.log(id);
+  try {
+    const instructors = await Instructor.find({
+      "branch._id": new ObjectId(id),
+    });
+    // console.log(instructors);
+    res.status(200).json({ status: true, instructors: instructors });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 router.get("/fetch", async (req, res) => {
   try {
     const instructors = await Instructor.find();

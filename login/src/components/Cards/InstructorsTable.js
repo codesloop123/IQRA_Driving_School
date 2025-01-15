@@ -4,7 +4,7 @@ import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { fetchBranches } from "store/branch/actions";
 import { useEffect } from "react";
 import { fetchVehicles } from "store/vehicle/actions";
-import { fetchInstructors } from "store/instructor/action";
+import { fetchAllInstructors } from "store/instructor/action";
 import { deleteInstructor } from "store/instructor/action";
 import { updateInstructorStatus } from "store/instructor/action";
 export default function InstructorsTable({ color, title }) {
@@ -16,7 +16,7 @@ export default function InstructorsTable({ color, title }) {
   useEffect(() => {
     dispatch(fetchBranches());
     dispatch(fetchVehicles());
-    dispatch(fetchInstructors());
+    dispatch(fetchAllInstructors());
   }, []);
   const managers = [
     {
@@ -46,13 +46,13 @@ export default function InstructorsTable({ color, title }) {
   ];
   const handleDelete = (id) => {
     dispatch(deleteInstructor({ id })).then(() => {
-      dispatch(fetchInstructors());
+      dispatch(fetchAllInstructors());
     });
   };
   const handleUpdate = (id, status) => {
     console.log(status, "status>>>>>>>>>>>.");
     dispatch(updateInstructorStatus({ id, status })).then(() => {
-      dispatch(fetchInstructors());
+      dispatch(fetchAllInstructors());
     });
   };
   return (
@@ -128,7 +128,8 @@ export default function InstructorsTable({ color, title }) {
                         : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
                     }
                   >
-                    Lercturer Code</th>
+                    Lercturer Code
+                  </th>
                   <th
                     className={
                       "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
@@ -198,7 +199,8 @@ export default function InstructorsTable({ color, title }) {
                         {instructor?.branch?.name}
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        {instructor?.vehicle?.name}-{instructor?.vehicle?.number}
+                        {instructor?.vehicle?.name}-
+                        {instructor?.vehicle?.number}
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                         {instructor?.status ? "Active" : "InActive"}
