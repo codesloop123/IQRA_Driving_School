@@ -5,7 +5,7 @@ import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
 import { Calendar } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
-
+import { toast } from "react-toastify";
 const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(Calendar);
 
@@ -77,17 +77,17 @@ export default function ScheduleCalendar({
     );
 
     if (eventsOnSourceDate.length === 0) {
-      alert("No events found on the selected date.");
+      toast.error("No events found on the selected date.");
       return;
     }
 
     if (targetDate.isBefore(now)) {
-      alert("Cannot move events to past dates.");
+      toast.error("Cannot move events to past dates.");
       return;
     }
 
-    if (eventsOnSourceDate.some((event) => event.present === true)) {
-      alert("Cannot move completed events.");
+    if (eventsOnSourceDate.some((event) => event.status === "Completed")) {
+      toast.error("Cannot move completed events.");
       return;
     }
 
@@ -110,7 +110,7 @@ export default function ScheduleCalendar({
     );
 
     if (hasOverlaps) {
-      alert(
+      toast.error(
         "Cannot move events - there would be time conflicts on the target date."
       );
       return;
@@ -150,12 +150,12 @@ export default function ScheduleCalendar({
         : [event];
 
     if (targetDate.isBefore(now)) {
-      alert("Cannot move events to past dates.");
+      toast.error("Cannot move events to past dates.");
       return;
     }
 
-    if (eventsToMove.some((evt) => evt.present === true)) {
-      alert("Cannot move completed events.");
+    if (eventsToMove.some((evt) => evt.status === "Completed")) {
+      toast.error("Cannot move completed events.");
       return;
     }
 
@@ -179,7 +179,7 @@ export default function ScheduleCalendar({
     );
 
     if (hasOverlaps) {
-      alert(
+      toast.error(
         "Cannot move events to these time slots - overlapping with existing events."
       );
       return;
@@ -198,14 +198,15 @@ export default function ScheduleCalendar({
   const getEventStatus = (event) => {
     const now = moment().startOf("day").toDate();
     const eventDate = moment(event.start).startOf("day").toDate();
+    let color;
 
-    if (eventDate < now) {
-      return event.present ? "#34c759" : "#ff3b30";
-    } else if (eventDate.getTime() === now.getTime()) {
-      return "#007aff";
-    } else {
-      return "#007aff";
-    }
+    if (event.status === 'Completed')
+      color = 'green'
+    else if (event.status === "Missed")
+      color ="red"
+    else if (event.status === "Pending")
+      color ="blue"
+    return color
   };
 
   const eventStyleGetter = (event) => {
@@ -214,25 +215,20 @@ export default function ScheduleCalendar({
 
     return {
       style: {
-        backgroundColor: isSelected ? "yellow" : backgroundColor,
+        backgroundColor: backgroundColor,
         color: isSelected ? "black" : "white",
         borderRadius: "8px",
         border: isSelected ? "2px solid #666" : "1px solid #ddd",
         padding: "5px",
         display: "flex",
         alignItems: "center",
-        cursor: event.present ? "not-allowed" : "pointer",
+        cursor: event.status === "Completed" ? "not-allowed" : "pointer",
       },
     };
   };
 
-  return (
-    <div
-      className={
-        "relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded " +
-        (color === "light" ? "bg-white" : "bg-lightBlue-900 text-white")
-      }
-    >
+  return (<>
+   
       <div className="rounded-t mb-0 px-4 py-3 border-0">
         <div className="flex flex-wrap items-center justify-between w-full">
           <div className="relative w-full max-w-full flex-grow flex-1">
@@ -277,6 +273,6 @@ export default function ScheduleCalendar({
           popup={true}
         />
       </div>
-    </div>
+      </>
   );
 }

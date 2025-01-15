@@ -20,10 +20,10 @@ mongoose
     // console.log("All entries deleted from the Admission collection.");
 
     // await Instructor.updateOne(
-    //   { name: "Ustad" }, // Find the instructor by name
+    //   { name: "ustad" }, // Find the instructor by name
     //   { $set: { bookedSlots: [] } } // Clear all booked slots
     // );
-    // const instructor = await Instructor.findOne({ name: "Ustad" });
+    // const instructor = await Instructor.findOne({ name: "ustad" });
     // console.log(instructor.bookedSlots); // Should log an empty array
   })
   .catch((err) => console.log(err));
