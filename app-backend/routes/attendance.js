@@ -7,7 +7,40 @@ const mongoose = require("mongoose");
 const ObjectId = mongoose.Types.ObjectId;
 
 // POST route to save attendance for a specific branch and date
+const saveToInstructor = async (savedAttendance, date, session) => {
+  const { attendance } = savedAttendance;
 
+  const formattedDate = new Date(date);
+
+  const instructorIds = [
+    ...new Set(attendance.map((entry) => entry.instructor)),
+  ];
+  const instructors = await Instructor.find({
+    _id: { $in: instructorIds },
+  }).session(session);
+
+  for (const instructor of instructors) {
+    for (const entry of attendance) {
+      if (instructor._id.toString() === entry.instructor.toString()) {
+        instructor.bookedSlots = instructor.bookedSlots.map((slot) => {
+          if (
+            slot.refNo === entry.refId &&
+            slot.date === formattedDate.toISOString()
+          ) {
+            return {
+              ...slot,
+              status: entry.status === "Present" ? "Completed" : "Missed",
+            };
+          }
+          return slot;
+        });
+      }
+    }
+    await instructor.save({ session });
+  }
+  await session.commitTransaction();
+  session.endSession();
+};
 router.post("/:branch", async (req, res) => {
   const { branch } = req.params;
   const { date, attendance } = req.body;
@@ -26,13 +59,14 @@ router.post("/:branch", async (req, res) => {
       refId: entry.refId,
       status: entry.status,
       name: entry.name,
-      instructor: entry.instructorId,
+      instructor: new mongoose.Types.ObjectId(entry.instructorId),
     }));
     const existingRecord = await Attendance.findOne({ branch, date });
     if (existingRecord) {
       // Update existing attendance record
-      existingRecord.attendance = attendance;
-      await existingRecord.save({ session });
+      existingRecord.attendance = filteredattendance;
+      const savedAttendance = await existingRecord.save({ session });
+      saveToInstructor(savedAttendance, date, session);
     } else {
       // Create new attendance record
       const newAttendance = new Attendance({
@@ -42,44 +76,7 @@ router.post("/:branch", async (req, res) => {
       });
 
       const savedAttendance = await newAttendance.save({ session });
-
-      const { attendance } = savedAttendance;
-
-      const formattedDate = new Date(date);
-
-      const instructorIds = [
-        ...new Set(attendance.map((entry) => entry.instructor)),
-      ];
-      const instructors = await Instructor.find({
-        _id: { $in: instructorIds },
-      }).session(session);
-
-      for (const instructor of instructors) {
-        for (const entry of attendance) {
-          if (instructor._id.toString() === entry.instructor.toString()) {
-            instructor.bookedSlots = instructor.bookedSlots.map((slot) => {
-              console.log(slot.date, formattedDate);
-              console.log(
-                slot.refNo === entry.refId &&
-                  slot.date === formattedDate.toISOString()
-              );
-              if (
-                slot.refNo === entry.refId &&
-                slot.date === formattedDate.toISOString()
-              ) {
-                return {
-                  ...slot,
-                  status: entry.status === "Present" ? "Completed" : "Missed",
-                };
-              }
-              return slot;
-            });
-          }
-        }
-        await instructor.save({ session });
-      }
-      await session.commitTransaction();
-      session.endSession();
+      saveToInstructor(savedAttendance, date, session);
     }
     res.status(201).json({ msg: "Attendance saved successfully" });
   } catch (error) {

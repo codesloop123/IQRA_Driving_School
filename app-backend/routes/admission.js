@@ -138,6 +138,7 @@ router.post("/add", async (req, res) => {
       manager.branch.branchCode,
       instructor.lecturerCode
     );
+    console.log(instructor);
     const instructorDoc = await Instructor.findById(instructor._id);
     if (!instructorDoc) {
       return res
@@ -154,10 +155,13 @@ router.post("/add", async (req, res) => {
         message: "Requested time is outside instructor's availability.",
       });
     }
-    const endDate = calculateEndDate(startDate, courseduration);
+    const { endDate, adjustedDuration } = calculateEndDate(
+      startDate,
+      courseduration
+    );
     const bookedSlots = [];
     let currentStartDate = new Date(startDate);
-    for (let i = 0; i < courseduration; i++) {
+    for (let i = 0; i < adjustedDuration; i++) {
       if (currentStartDate.getDay() === 0) {
         currentStartDate.setDate(currentStartDate.getDate() + 1);
         continue;
@@ -189,7 +193,6 @@ router.post("/add", async (req, res) => {
           "Some slots are already booked for the selected date and time.",
       });
     }
-    console.log(bookedSlots);
     instructorDoc.bookedSlots.push(...bookedSlots);
     await instructorDoc.save();
     const admission = new Admission({
@@ -251,7 +254,6 @@ router.post("/add", async (req, res) => {
 });
 const calculateEndTime = (startTime, duration) => {
   const [hours, minutes] = startTime.split(":").map(Number);
-
   // Parse the duration
   const durationMinutes = parseInt(duration, 10);
 
@@ -274,15 +276,16 @@ const calculateEndDate = (startDate, durationInDays) => {
   // Parse the input date
   const date = new Date(startDate);
   // Add the duration to the date
-  durationInDays;
-  date.setDate(date.getDate() + parseInt(durationInDays, 10));
+  const positionInWeek = date.getDay();
+  let y = durationInDays + Math.floor((positionInWeek + durationInDays) / 7);
+  date.setDate(date.getDate() + parseInt(y, 10));
 
   // Format the result in YYYY-MM-DD
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-indexed
   const day = String(date.getDate()).padStart(2, "0");
 
-  return `${year}-${month}-${day}`;
+  return { endDate: `${year}-${month}-${day}`, adjustedDuration: y };
 };
 const formatDate = (date) => {
   return date.toISOString();

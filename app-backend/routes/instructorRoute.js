@@ -90,6 +90,69 @@ router.get("/fetch", async (req, res) => {
   }
 });
 
+router.get("/fetch/slots/:students", async (req, res) => {
+  const { students } = req.params;
+  console.log(students);
+  try {
+    const lessons = await Instructor.aggregate([
+      {
+        $match: {
+          _id: new ObjectId(students),
+        },
+      },
+      {
+        $unwind: "$bookedSlots",
+      },
+      {
+        $lookup: {
+          from: "admissions",
+          localField: "bookedSlots.refNo",
+          foreignField: "referenceNumber",
+          as: "students",
+        },
+      },
+      {
+        $unwind: "$students",
+      },
+      {
+        $project: {
+          studentName: {
+            $concat: ["$students.firstName", " ", "$students.lastName"],
+          },
+          _id: "$bookedSlots._id",
+          date: "$bookedSlots.date",
+          startTime: "$bookedSlots.startTime",
+          endTime: "$bookedSlots.endTime",
+          status: "$bookedSlots.status",
+          totalClasses: "$students.courseduration",
+          refNo: "$bookedSlots.refNo",
+        },
+      },
+      {
+        $group: {
+          _id: "$refNo",
+          slots: {
+            $push: {
+              _id: "$_id",
+              date: "$date",
+              startTime: "$startTime",
+              endTime: "$endTime",
+              status: "$status",
+              totalClasses: "$totalClasses",
+              studentName: "$studentName",
+            },
+          },
+        },
+      },
+    ]);
+
+    res.status(200).json({ status: true, lessons: lessons });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 // DELETE route to remove an instructor by ID for a specific branch
 router.delete("/:id", async (req, res) => {
   const { branch, id } = req.params;
