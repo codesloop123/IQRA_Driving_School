@@ -418,6 +418,28 @@ router.get("/:branch/instructor/:instructorName", async (req, res) => {
     res.status(500).json({ msg: "Server error" });
   }
 });
+
+// Route to get booked slots for an instructor in a specific branch
+router.get("/:branch/:instructorId/slots", async (req, res) => {
+  const { branch, instructorId } = req.params;
+
+  try {
+    // Find admissions by instructor and branch with their booked time slots
+    const admissions = await Admission.find({
+      branch,
+      instructor: instructorId,
+    });
+
+    // Extract all time slots from admissions
+    const bookedSlots = admissions.flatMap((admission) => admission.timeSlots);
+
+    res.status(200).json(bookedSlots);
+  } catch (error) {
+    console.error("Error fetching booked slots:", error);
+    res.status(500).json({ msg: "Server error" });
+  }
+});
+
 router.put("/:branch/:admissionId", async (req, res) => {
   const { branch, admissionId } = req.params;
   const { timeSlots } = req.body;
@@ -453,82 +475,34 @@ router.put("/:branch/:admissionId", async (req, res) => {
   }
 });
 
-// Route to get booked slots for an instructor in a specific branch
-router.get("/:branch/:instructorId/slots", async (req, res) => {
-  const { branch, instructorId } = req.params;
-
-  try {
-    // Find admissions by instructor and branch with their booked time slots
-    const admissions = await Admission.find({
-      branch,
-      instructor: instructorId,
-    });
-
-    // Extract all time slots from admissions
-    const bookedSlots = admissions.flatMap((admission) => admission.timeSlots);
-
-    res.status(200).json(bookedSlots);
-  } catch (error) {
-    console.error("Error fetching booked slots:", error);
-    res.status(500).json({ msg: "Server error" });
-  }
-});
-
 router.put("/admissions/update/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const allowedUpdates = [
-      'firstName', 'lastName', 'fatherName', 
-      'cnic', 'gender', 'dob',
-      'cellNumber', 'address'
-    ];
-    
-    // Log the incoming request body for debugging
-    console.log('Incoming update request:', req.body);
-    
-    const updates = Object.keys(req.body)
-      .filter(key => allowedUpdates.includes(key))
-      .reduce((obj, key) => {
-        obj[key] = req.body[key];
-        return obj;
-      }, {});
-
-    // Log filtered updates for debugging
-    console.log('Filtered updates:', updates);
-
-    if (Object.keys(updates).length === 0) {
-      return res.status(400).json({ 
-        message: "No valid fields to update",
-        receivedFields: Object.keys(req.body),
-        allowedFields: allowedUpdates 
-      });
-    }
-
-    const admission = await Admission.findById(id);
-    if (!admission) {
+    const updatedData = req.body;
+    console.log("Data received by put");
+    console.log(updatedData);
+    // Find the existing admission
+    const existingAdmission = await Admission.findById(id);
+    if (!existingAdmission) {
       return res.status(404).json({ message: "Admission not found" });
     }
-
-    Object.assign(admission, updates);
-    await admission.save();
-
+    // Merge updatedData with existingAdmission (keeping old fields if not updated)
+    const finalUpdatedData = { ...existingAdmission.toObject(), ...updatedData };
+    // Update the admission
+    const updatedAdmission = await Admission.findByIdAndUpdate(id, finalUpdatedData, {
+      new: true,
+    });
     res.status(200).json({
       message: "Admission updated successfully",
-      admission
+      admission: updatedAdmission,
     });
   } catch (error) {
-    if (error.name === 'ValidationError') {
-      return res.status(400).json({
-        message: "Validation error",
-        errors: Object.values(error.errors).map(e => e.message)
-      });
-    }
     console.error("Error updating admission:", error);
-    res.status(500).json({ 
-      message: "Server error. Please try again.",
-      error: error.message 
-    });
+    res.status(500).json({ message: "Server error. Please try again." });
   }
+  console.log("Admission updated successfully");
+  res.status(200).json({message:"Done"});
 });
+
 
 module.exports = router;
