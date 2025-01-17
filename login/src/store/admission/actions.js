@@ -83,3 +83,32 @@ export const fetchFinances = createAsyncThunk(
     }
   }
 );
+export const updateAdmission = createAsyncThunk(
+  "admission/update",
+  async ({ id, formData }, { dispatch, rejectWithValue }) => {
+    try {
+      dispatch(setRegisterLoader(true));
+      const response = await axiosInstance.put(`/admissions/update/${id}`, {
+        ...formData,
+      });
+
+      if (response.status === 200) {
+        toast.success(response.data.message || "Admission updated successfully.");
+        return response.data;
+      } else {
+        throw new Error(response.data.message || "An unexpected error occurred.");
+      }
+    } catch (error) {
+      console.error("Error in updateAdmission action:", error);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "An unexpected error occurred. Please try again.";
+
+      toast.error(errorMessage);
+      return rejectWithValue(errorMessage);
+    } finally {
+      dispatch(setRegisterLoader(false));
+    }
+  }
+);

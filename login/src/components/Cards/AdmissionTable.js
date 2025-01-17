@@ -1,22 +1,78 @@
-import React from "react";
+import React, { useState } from "react";
 import PropTypes from "prop-types";
-import { useEffect } from "react";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
+import { fetchAdmissions, updateAdmission } from "store/admission/actions";
+import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchAdmissions } from "store/admission/actions";
-import { FaCheckCircle } from "react-icons/fa";
-import { MdCancel } from "react-icons/md";
 import { format } from "date-fns";
-export default function AdmissionTable({ color, title }) {
+
+export default function AdmissionTable({ color = "light", title }) {
   const history = useHistory();
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const { registerLoading, admissions } = useSelector(
     (state) => state.admission
   );
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({
+    firstName: "",
+    lastName: "",
+    fatherName: "",
+    cnic: "",
+    gender: "",
+    dob: "",
+    cellNumber: "",
+    address: "",
+  });
+
   useEffect(() => {
     dispatch(fetchAdmissions(user?.branch?._id));
-  }, [user]);
+  }, [user, dispatch]);
+
+  const handleEdit = (student) => {
+    setEditingId(student._id);
+    setEditForm({
+      firstName: student.firstName || "",
+      lastName: student.lastName || "",
+      fatherName: student.fatherName || "",
+      cnic: student.cnic || "",
+      gender: student.gender || "",
+      dob: student.dob ? new Date(student.dob).toISOString().split("T")[0] : "",
+      cellNumber: student.cellNumber || "",
+      address: student.address || "",
+    });
+  };
+
+  const handleCancel = () => {
+    setEditingId(null);
+    setEditForm({
+      firstName: "",
+      lastName: "",
+      fatherName: "",
+      cnic: "",
+      gender: "",
+      dob: "",
+      cellNumber: "",
+      address: "",
+    });
+  };
+
+  const handleSave = async (id) => {
+    try {
+      const result = await dispatch(updateAdmission({ 
+        id, 
+        formData: editForm 
+      })).unwrap();
+      
+      if (result) {
+        handleCancel(); // Clear form and exit edit mode
+        dispatch(fetchAdmissions(user?.branch?._id));
+      }
+    } catch (error) {
+      // Handle error in UI
+      console.error("Error updating student:", error);
+    }
+  };
 
   return (
     <>
@@ -206,61 +262,264 @@ export default function AdmissionTable({ color, title }) {
                   >
                     Actions
                   </th>
+                  <th
+                    className={
+                      "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
+                      (color === "light"
+                        ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                        : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
+                    }
+                  >
+                    Make Changes
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {admissions?.length > 0 &&
                   admissions.map((admission, index) => (
-                    <tr key={index}>
-                      <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        {admission?.firstName}
-                      </td>
-                      <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        {admission?.referenceNumber}
-                      </td>
-                      <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        {admission?.cnic}
-                      </td>
-                      <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        {admission?.instructor?.name}
-                      </td>
-                      <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        {admission?.paymentMethod}
-                      </td>
-                      <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        {admission?.courseduration}
-                      </td>
-                      <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        {admission?.courseTimeDuration}
-                      </td>
-                      <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        {admission?.totalPayment}
-                      </td>
-                      <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        {admission?.paymentReceived}
-                      </td>
-                      <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        {admission?.remainingPayment}
-                      </td>
-                      <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        {admission?.manager?.name}
-                      </td>
-                      <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        {format(new Date(admission?.startDate), "MM/dd/yyyy")}
-                      </td>
-                      <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        {format(new Date(admission?.endDate), "MM/dd/yyyy")}
-                      </td>
-                      <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        <button
-                          className={`py-2 px-4 rounded text-white font-bold
+                    <React.Fragment key={admission._id || index}>
+                      <tr>
+                        <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                          {admission?.firstName}
+                        </td>
+                        <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                          {admission?.referenceNumber}
+                        </td>
+                        <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                          {admission?.cnic}
+                        </td>
+                        <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                          {admission?.instructor?.name}
+                        </td>
+                        <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                          {admission?.paymentMethod}
+                        </td>
+                        <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                          {admission?.courseduration}
+                        </td>
+                        <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                          {admission?.courseTimeDuration}
+                        </td>
+                        <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                          {admission?.totalPayment}
+                        </td>
+                        <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                          {admission?.paymentReceived}
+                        </td>
+                        <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                          {admission?.remainingPayment}
+                        </td>
+                        <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                          {admission?.manager?.name}
+                        </td>
+                        <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                          {format(new Date(admission?.startDate), "MM/dd/yyyy")}
+                        </td>
+                        <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                          {format(new Date(admission?.endDate), "MM/dd/yyyy")}
+                        </td>
+                        <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                          <button
+                            className={`py-2 px-4 rounded text-white font-bold
                       bg-lightBlue-600 
                       `}
-                        >
-                          Free Slots
-                        </button>
-                      </td>
-                    </tr>
+                          >
+                            Free Slots
+                          </button>
+                        </td>
+                        <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                          <button
+                            className={`py-2 px-4 rounded text-white font-bold
+                      bg-lightBlue-600 
+                      `}
+                            onClick={() => handleEdit(admission)}
+                          >
+                            Update Info
+                          </button>
+                        </td>
+                      </tr>
+                      {editingId === admission._id && (
+                        <tr className="bg-blueGray-50">
+                          <td colSpan="5" className="px-6 py-4">
+                            <div className="flex flex-col space-y-4">
+                              {/* Form Grid */}
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="flex flex-col">
+                                  <label className="text-sm font-medium">
+                                    First Name
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={editForm.firstName}
+                                    onChange={(e) =>
+                                      setEditForm({
+                                        ...editForm,
+                                        firstName: e.target.value,
+                                      })
+                                    }
+                                    className="border rounded px-3 py-2"
+                                    placeholder="Enter First Name"
+                                    required
+                                  />
+                                </div>
+
+                                <div className="flex flex-col">
+                                  <label className="text-sm font-medium">
+                                    Last Name
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={editForm.lastName}
+                                    onChange={(e) =>
+                                      setEditForm({
+                                        ...editForm,
+                                        lastName: e.target.value,
+                                      })
+                                    }
+                                    className="border rounded px-3 py-2"
+                                    placeholder="Enter Last Name"
+                                    required
+                                  />
+                                </div>
+
+                                <div className="flex flex-col">
+                                  <label className="text-sm font-medium">
+                                    Father's Name
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={editForm.fatherName}
+                                    onChange={(e) =>
+                                      setEditForm({
+                                        ...editForm,
+                                        fatherName: e.target.value,
+                                      })
+                                    }
+                                    className="border rounded px-3 py-2"
+                                    placeholder="Enter Father's Name"
+                                    required
+                                  />
+                                </div>
+
+                                <div className="flex flex-col">
+                                  <label className="text-sm font-medium">
+                                    CNIC
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={editForm.cnic}
+                                    onChange={(e) =>
+                                      setEditForm({
+                                        ...editForm,
+                                        cnic: e.target.value,
+                                      })
+                                    }
+                                    className="border rounded px-3 py-2"
+                                    placeholder="Enter CNIC"
+                                    required
+                                  />
+                                </div>
+
+                                <div className="flex flex-col">
+                                  <label className="text-sm font-medium">
+                                    Gender
+                                  </label>
+                                  <select
+                                    value={editForm.gender}
+                                    onChange={(e) =>
+                                      setEditForm({
+                                        ...editForm,
+                                        gender: e.target.value,
+                                      })
+                                    }
+                                    className="border rounded px-3 py-2"
+                                    required
+                                  >
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                  </select>
+                                </div>
+
+                                <div className="flex flex-col">
+                                  <label className="text-sm font-medium">
+                                    Date of Birth
+                                  </label>
+                                  <input
+                                    type="date"
+                                    value={editForm.dob}
+                                    onChange={(e) =>
+                                      setEditForm({
+                                        ...editForm,
+                                        dob: e.target.value,
+                                      })
+                                    }
+                                    className="border rounded px-3 py-2"
+                                    required
+                                  />
+                                </div>
+
+                                <div className="flex flex-col">
+                                  <label className="text-sm font-medium">
+                                    Cell Number
+                                  </label>
+                                  <input
+                                    type="tel"
+                                    value={editForm.cellNumber}
+                                    onChange={(e) =>
+                                      setEditForm({
+                                        ...editForm,
+                                        cellNumber: e.target.value,
+                                      })
+                                    }
+                                    className="border rounded px-3 py-2"
+                                    placeholder="Enter Cell Number"
+                                    required
+                                  />
+                                </div>
+
+                                <div className="flex flex-col">
+                                  <label className="text-sm font-medium">
+                                    Address
+                                  </label>
+                                  <textarea
+                                    value={editForm.address}
+                                    onChange={(e) =>
+                                      setEditForm({
+                                        ...editForm,
+                                        address: e.target.value,
+                                      })
+                                    }
+                                    className="border rounded px-3 py-2"
+                                    placeholder="Enter Address"
+                                    required
+                                    rows="2"
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Action Buttons */}
+                              <div className="flex justify-center  mt-3 gap-2 w-full">
+                                <button
+                                  onClick={() => handleSave(admission._id)}
+                                  className="bg-green-600 text-white px-8 py-2 rounded transition-colors w-1/3"
+                                >
+                                  Save
+                                </button>
+
+                                <button
+                                  onClick={handleCancel}
+                                  className="bg-red-500 text-white px-4 py-2 rounded w-1/3"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                   ))}
               </tbody>
             </table>
@@ -270,10 +529,6 @@ export default function AdmissionTable({ color, title }) {
     </>
   );
 }
-
-AdmissionTable.defaultProps = {
-  color: "light",
-};
 
 AdmissionTable.propTypes = {
   color: PropTypes.oneOf(["light", "dark"]),

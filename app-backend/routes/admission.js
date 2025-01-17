@@ -474,4 +474,61 @@ router.get("/:branch/:instructorId/slots", async (req, res) => {
   }
 });
 
+router.put("/admissions/update/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const allowedUpdates = [
+      'firstName', 'lastName', 'fatherName', 
+      'cnic', 'gender', 'dob',
+      'cellNumber', 'address'
+    ];
+    
+    // Log the incoming request body for debugging
+    console.log('Incoming update request:', req.body);
+    
+    const updates = Object.keys(req.body)
+      .filter(key => allowedUpdates.includes(key))
+      .reduce((obj, key) => {
+        obj[key] = req.body[key];
+        return obj;
+      }, {});
+
+    // Log filtered updates for debugging
+    console.log('Filtered updates:', updates);
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ 
+        message: "No valid fields to update",
+        receivedFields: Object.keys(req.body),
+        allowedFields: allowedUpdates 
+      });
+    }
+
+    const admission = await Admission.findById(id);
+    if (!admission) {
+      return res.status(404).json({ message: "Admission not found" });
+    }
+
+    Object.assign(admission, updates);
+    await admission.save();
+
+    res.status(200).json({
+      message: "Admission updated successfully",
+      admission
+    });
+  } catch (error) {
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        message: "Validation error",
+        errors: Object.values(error.errors).map(e => e.message)
+      });
+    }
+    console.error("Error updating admission:", error);
+    res.status(500).json({ 
+      message: "Server error. Please try again.",
+      error: error.message 
+    });
+  }
+});
+
 module.exports = router;
