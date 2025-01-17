@@ -44,6 +44,25 @@ export const fetchInstructors = createAsyncThunk(
     }
   }
 );
+export const updateSlots = createAsyncThunk(
+  "instructor/get",
+  async (slots, { dispatch }) => {
+    try {
+      dispatch(setInstructorLoader(true));
+      const response = await axiosInstance.put(`/instructors/update/slots`, {
+        slots,
+      });
+
+      if (response.status) {
+        toast.success(response.data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      dispatch(setInstructorLoader(false));
+    }
+  }
+);
 
 export const fetchSlots = createAsyncThunk(
   "slots/get",

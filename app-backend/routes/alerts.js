@@ -2,6 +2,8 @@ const express = require("express");
 const Admission = require("../models/Admission");
 const router = express.Router();
 const Notification = require("../models/Notification");
+const mongoose = require("mongoose");
+const ObjectId = mongoose.Types.ObjectId;
 
 // Route to fetch payment alerts for a specific branch
 router.get("/payments/:branch", async (req, res) => {
@@ -9,12 +11,29 @@ router.get("/payments/:branch", async (req, res) => {
   const today = new Date();
   try {
     // Fetch admissions with a balance due, where the course is ongoing, and the branch matches
-    const admissions = await Admission.find({
-      "instructor.branch._id": { $eq: branch }, // Filter by branch
-      remainingPayment: { $gt: 0 },
-      endDate: { $gte: today },
-    });
-    console.log(admissions);
+    const admissions = await Admission.aggregate([
+      {
+        $lookup: {
+          from: "instructors",
+          localField: "instructor",
+          foreignField: "_id",
+          as: "MatchedInstructor",
+        },
+      },
+      {
+        $unwind: "$MatchedInstructor",
+      },
+      {
+        $match: {
+          "MatchedInstructor.branch._id": {
+            $eq: new ObjectId(branch),
+          },
+          remainingPayment: {
+            $gt: 0,
+          },
+        },
+      },
+    ]);
     res.status(200).json(admissions);
   } catch (error) {
     console.error("Error fetching payment alerts:", error);
@@ -27,7 +46,6 @@ router.patch("/complete/:id", async (req, res) => {
   const { id } = req.params;
   const { newAmountReceived, paymentDueDate } = req.body; // New amount received during this payment
 
-  console.log(paymentDueDate);
   if (!paymentDueDate)
     return res.status(400).json({ message: "Due Date Not Entered" });
   try {

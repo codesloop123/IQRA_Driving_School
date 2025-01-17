@@ -31,6 +31,7 @@ export default function ScheduleCalendar({ color = "light", title }) {
         id: `${instructors[instructorIdx]?._id}-${slot.date.split("T")[0]}-${
           slot.startTime
         }-${index}`, // Unique ID
+        _id: slot._id,
         title: `${slot.studentName} - Class ${index + 1} of ${
           slot.totalClasses
         }`,
@@ -61,7 +62,6 @@ export default function ScheduleCalendar({ color = "light", title }) {
     //     return false;
     //   return true;
     // });
-    console.log("Loading Events");
     setEvents(formattedEvents);
 
     // Check for alerts
@@ -126,6 +126,8 @@ export default function ScheduleCalendar({ color = "light", title }) {
           events={events}
           onEventsChange={handleEventsChange}
           title={title}
+          instructorIdx={instructorIdx}
+          instructors={instructors}
         />
       </div>
     </>

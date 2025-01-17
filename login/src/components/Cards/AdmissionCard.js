@@ -551,7 +551,6 @@ export default function AdmissionCard() {
   }, [openPreview]);
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("works");
     setFormData((prev) => ({
       ...prev,
       courseTimeDuration: formData?.courseTimeDuration + additionalTime,

@@ -10,7 +10,6 @@ import { fetchBranches } from "store/branch/actions";
 import { fetchAllInstructors } from "store/instructor/action";
 import { fetchVehicles } from "store/vehicle/actions";
 import { fetchUsers } from "store/auth/actions";
-import { fetchNotifications } from "store/notifications/actions";
 import { fetchInstructors } from "store/instructor/action";
 export default function Admin(props) {
   const { uid } = useSelector((state) => state.auth);
