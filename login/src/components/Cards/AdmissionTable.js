@@ -13,7 +13,7 @@ export default function AdmissionTable({ color = "light", title }) {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const instructors = useSelector((state) => state.instructor.instructors);
-  
+
   const { registerLoading, admissions } = useSelector(
     (state) => state.admission
   );
@@ -83,7 +83,7 @@ export default function AdmissionTable({ color = "light", title }) {
 
   const findInstructorName = (id) => {
     const instructor = instructors.find((instructor) => instructor._id === id);
-    return instructor? instructor.name : "Not found.";
+    return instructor ? instructor.name : "Not found.";
   };
 
   return (
@@ -351,11 +351,15 @@ export default function AdmissionTable({ color = "light", title }) {
                       {editingId === admission._id && (
                         <tr className="bg-blueGray-50">
                           <td colSpan="5" className="px-6 py-4">
-                            <div className="flex flex-col space-y-4">
-                              {/* Form Grid */}
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="flex flex-col">
-                                  <label className="text-sm font-medium">
+                            <div className="flex flex-wrap mt-3">
+                              <h6 className="text-blueGray-700 text-center text-lg w-full pl-4 mb-3 font-bold">
+                                Update Info
+                              </h6>
+
+                              {/* First Name */}
+                              <div className="w-full lg:w-6/12 px-4">
+                                <div className="relative w-full mb-3">
+                                  <label className="block uppercase text-blueGray-600 text-xs font-bold mb-2">
                                     First Name
                                   </label>
                                   <input
@@ -367,14 +371,17 @@ export default function AdmissionTable({ color = "light", title }) {
                                         firstName: e.target.value,
                                       })
                                     }
-                                    className="border rounded px-3 py-2"
+                                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
                                     placeholder="Enter First Name"
                                     required
                                   />
                                 </div>
+                              </div>
 
-                                <div className="flex flex-col">
-                                  <label className="text-sm font-medium">
+                              {/* Last Name */}
+                              <div className="w-full lg:w-6/12 px-4">
+                                <div className="relative w-full mb-3">
+                                  <label className="block uppercase text-blueGray-600 text-xs font-bold mb-2">
                                     Last Name
                                   </label>
                                   <input
@@ -386,15 +393,18 @@ export default function AdmissionTable({ color = "light", title }) {
                                         lastName: e.target.value,
                                       })
                                     }
-                                    className="border rounded px-3 py-2"
+                                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
                                     placeholder="Enter Last Name"
                                     required
                                   />
                                 </div>
+                              </div>
 
-                                <div className="flex flex-col">
-                                  <label className="text-sm font-medium">
-                                    Father's Name
+                              {/* Father Name */}
+                              <div className="w-full lg:w-6/12 px-4">
+                                <div className="relative w-full mb-3">
+                                  <label className="block uppercase text-blueGray-600 text-xs font-bold mb-2">
+                                    Father Name
                                   </label>
                                   <input
                                     type="text"
@@ -405,14 +415,17 @@ export default function AdmissionTable({ color = "light", title }) {
                                         fatherName: e.target.value,
                                       })
                                     }
-                                    className="border rounded px-3 py-2"
-                                    placeholder="Enter Father's Name"
+                                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                                    placeholder="Enter Father Name"
                                     required
                                   />
                                 </div>
+                              </div>
 
-                                <div className="flex flex-col">
-                                  <label className="text-sm font-medium">
+                              {/* CNIC */}
+                              <div className="w-full lg:w-6/12 px-4">
+                                <div className="relative w-full mb-3">
+                                  <label className="block uppercase text-blueGray-600 text-xs font-bold mb-2">
                                     CNIC
                                   </label>
                                   <input
@@ -424,14 +437,17 @@ export default function AdmissionTable({ color = "light", title }) {
                                         cnic: e.target.value,
                                       })
                                     }
-                                    className="border rounded px-3 py-2"
+                                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
                                     placeholder="Enter CNIC"
                                     required
                                   />
                                 </div>
+                              </div>
 
-                                <div className="flex flex-col">
-                                  <label className="text-sm font-medium">
+                              {/* Gender */}
+                              <div className="w-full lg:w-4/12 px-4">
+                                <div className="relative w-full mb-3">
+                                  <label className="block uppercase text-blueGray-600 text-xs font-bold mb-2">
                                     Gender
                                   </label>
                                   <select
@@ -442,7 +458,7 @@ export default function AdmissionTable({ color = "light", title }) {
                                         gender: e.target.value,
                                       })
                                     }
-                                    className="border rounded px-3 py-2"
+                                    className="border-0 px-3 py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
                                     required
                                   >
                                     <option value="">Select Gender</option>
@@ -451,9 +467,12 @@ export default function AdmissionTable({ color = "light", title }) {
                                     <option value="Other">Other</option>
                                   </select>
                                 </div>
+                              </div>
 
-                                <div className="flex flex-col">
-                                  <label className="text-sm font-medium">
+                              {/* Date of Birth */}
+                              <div className="w-full lg:w-4/12 px-4">
+                                <div className="relative w-full mb-3">
+                                  <label className="block uppercase text-blueGray-600 text-xs font-bold mb-2">
                                     Date of Birth
                                   </label>
                                   <input
@@ -465,13 +484,16 @@ export default function AdmissionTable({ color = "light", title }) {
                                         dob: e.target.value,
                                       })
                                     }
-                                    className="border rounded px-3 py-2"
+                                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
                                     required
                                   />
                                 </div>
+                              </div>
 
-                                <div className="flex flex-col">
-                                  <label className="text-sm font-medium">
+                              {/* Cell Number */}
+                              <div className="w-full lg:w-4/12 px-4">
+                                <div className="relative w-full mb-3">
+                                  <label className="block uppercase text-blueGray-600 text-xs font-bold mb-2">
                                     Cell Number
                                   </label>
                                   <input
@@ -483,14 +505,17 @@ export default function AdmissionTable({ color = "light", title }) {
                                         cellNumber: e.target.value,
                                       })
                                     }
-                                    className="border rounded px-3 py-2"
+                                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
                                     placeholder="Enter Cell Number"
                                     required
                                   />
                                 </div>
+                              </div>
 
-                                <div className="flex flex-col">
-                                  <label className="text-sm font-medium">
+                              {/* Address */}
+                              <div className="w-full px-4">
+                                <div className="relative w-full mb-3">
+                                  <label className="block uppercase text-blueGray-600 text-xs font-bold mb-2">
                                     Address
                                   </label>
                                   <textarea
@@ -501,29 +526,29 @@ export default function AdmissionTable({ color = "light", title }) {
                                         address: e.target.value,
                                       })
                                     }
-                                    className="border rounded px-3 py-2"
+                                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
                                     placeholder="Enter Address"
                                     required
                                     rows="2"
                                   />
                                 </div>
                               </div>
-                            </div>
 
-                            <div className="flex flex-row items-center justify-end mt-3 gap-2 w-full bg-gray-600">
-                              <button
-                                onClick={() => handleSave(admission._id)}
-                                className="bg-green-600 text-white px-8 py-2 rounded transition-colors w-1/3 p-5"
-                              >
-                                Save
-                              </button>
-
-                              <button
-                                onClick={handleCancel}
-                                className="bg-red-500 text-white px-4 py-2 rounded w-1/3"
-                              >
-                                Cancel
-                              </button>
+                              {/* Action Buttons */}
+                              <div className="w-full px-4 flex justify-end space-x-4 mt-6 gap-2">
+                                <button
+                                  onClick={() => handleSave(admission._id)}
+                                  className="bg-emerald-500 text-white active:bg-emerald-600 font-bold uppercase text-xs px-4 py-2 rounded shadow hover:shadow-md outline-none focus:outline-none ease-linear transition-all duration-150"
+                                >
+                                  Save 
+                                </button>
+                                <button
+                                  onClick={handleCancel}
+                                  className="bg-red-500 text-white active:bg-red-600 font-bold uppercase text-xs px-4 py-2 rounded shadow hover:shadow-md outline-none focus:outline-none ease-linear transition-all duration-150"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
                             </div>
                           </td>
                         </tr>
