@@ -5,7 +5,10 @@ router.post("/fetch", async (req, res) => {
   const { role } = req.body;
   try {
     const notifications = await Notification.find({ role: { $eq: role } });
+    console.log(notifications, role);
     res.status(200).json({ status: true, notifications: notifications });
+    if (notifications.length <= 0) return;
+
     // Asynchronously delete notifications with status true
     Notification.deleteMany({ status: true })
       .then((result) => {

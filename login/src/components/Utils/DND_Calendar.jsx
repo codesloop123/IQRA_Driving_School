@@ -6,19 +6,23 @@ import { Calendar } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import { toast } from "react-toastify";
+import { useDispatch } from "react-redux";
+import { updateSlots,fetchSlots } from "store/instructor/action";
 const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(Calendar);
 
 export default function ScheduleCalendar({
   events,
   onEventsChange,
+  instructors,
+  instructorIdx,
   color = "light",
   title = "Scheduler",
 }) {
 
   const [selectedEvents, setSelectedEvents] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
-
+const dispatch = useDispatch();
   const handleSelectEvent = (event, e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -115,6 +119,7 @@ export default function ScheduleCalendar({
       );
       return;
     }
+    
 
     const updatedEvents = events.map((event) => {
       const moveEvent = proposedMoves.find((move) => move.id === event.id);
@@ -148,7 +153,6 @@ export default function ScheduleCalendar({
       selectedEvents.length > 0 && selectedEvents.includes(event)
         ? selectedEvents
         : [event];
-
     if (targetDate.isBefore(now)) {
       toast.error("Cannot move events to past dates.");
       return;
@@ -184,7 +188,18 @@ export default function ScheduleCalendar({
       );
       return;
     }
+    const slots = proposedMoves.map((move)=>{
 
+     const date = move?.start.toISOString().split("T")[0]
+      
+      const startTime = new Date(move?.start).toTimeString().split(" ")[0].slice(0, 5); 
+      const endTime= new Date(move?.end).toTimeString().split(" ")[0].slice(0, 5); 
+      return {_id: move?._id, startTime, endTime, date:new Date(date).toISOString()}
+
+    })
+    dispatch(updateSlots(slots)).then(()=>{
+      dispatch(fetchSlots(instructors[instructorIdx]?._id))
+    })
     const updatedEvents = events.map((existingEvent) => {
       const matchingMove = proposedMoves.find(
         (move) => move.id === existingEvent.id
@@ -196,16 +211,14 @@ export default function ScheduleCalendar({
   };
 
   const getEventStatus = (event) => {
-    const now = moment().startOf("day").toDate();
-    const eventDate = moment(event.start).startOf("day").toDate();
     let color;
 
     if (event.status === 'Completed')
-      color = 'green'
+      color = '#34c759'
     else if (event.status === "Missed")
-      color ="red"
+      color ="#ff3b30"
     else if (event.status === "Pending")
-      color ="blue"
+      color ="#007aff"
     return color
   };
 

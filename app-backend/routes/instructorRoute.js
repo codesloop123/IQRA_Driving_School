@@ -67,7 +67,6 @@ router.post("/add", async (req, res) => {
 // GET route to fetch all instructors for a specific branch
 router.get("/fetch/:id", async (req, res) => {
   const { id } = req.params;
-  console.log(id);
   try {
     const instructors = await Instructor.find({
       "branch._id": new ObjectId(id),
@@ -92,7 +91,6 @@ router.get("/fetch", async (req, res) => {
 
 router.get("/fetch/slots/:students", async (req, res) => {
   const { students } = req.params;
-  console.log(students);
   try {
     const lessons = await Instructor.aggregate([
       {
@@ -126,6 +124,12 @@ router.get("/fetch/slots/:students", async (req, res) => {
           status: "$bookedSlots.status",
           totalClasses: "$students.courseduration",
           refNo: "$bookedSlots.refNo",
+        },
+      },
+      {
+        $sort: {
+          date: 1, // Sort by date in ascending order
+          startTime: 1, // Within the same date, sort by startTime in ascending order
         },
       },
       {
@@ -184,6 +188,35 @@ router.put("/:id", async (req, res) => {
     }
     res.status(200).json({
       message: "Instructor status updated successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+router.put("/update/slots", async (req, res) => {
+  const { slots } = req.body;
+  try {
+    const bulkOperations = slots.map((slot) => ({
+      updateOne: {
+        filter: {
+          // _id: instructorID,
+          "bookedSlots._id": new ObjectId(slot._id), // Match the specific bookedSlot by _id
+        },
+        update: {
+          $set: {
+            "bookedSlots.$.startTime": slot.startTime,
+            "bookedSlots.$.endTime": slot.endTime,
+            "bookedSlots.$.date": new Date(slot.date).toISOString(), // Ensure ISO string format
+            "bookedSlots.$.status": "Pending",
+          },
+        },
+      },
+    }));
+
+    await Instructor.bulkWrite(bulkOperations);
+    res.status(200).json({
+      message: "Slot Time Updated Successfully",
     });
   } catch (error) {
     console.error(error);
