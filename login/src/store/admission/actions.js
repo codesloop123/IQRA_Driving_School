@@ -106,7 +106,6 @@ export const updateAdmission = createAsyncThunk(
         `/admissions/update/${id}`,
         updateData
       );
-
       // Fix: Better response handling
       if (!response || !response.data) {
         throw new Error("Invalid server response");

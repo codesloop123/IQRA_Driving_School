@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { fetchAdmissions, updateAdmission } from "store/admission/actions";
+import { fetchInstructors } from "store/instructor/action";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { format } from "date-fns";
@@ -11,6 +12,8 @@ export default function AdmissionTable({ color = "light", title }) {
   const history = useHistory();
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+  const instructors = useSelector((state) => state.instructor.instructors);
+  
   const { registerLoading, admissions } = useSelector(
     (state) => state.admission
   );
@@ -25,9 +28,10 @@ export default function AdmissionTable({ color = "light", title }) {
     cellNumber: "",
     address: "",
   });
-
+  // fetch instructors and admissions when the component mounts
   useEffect(() => {
     dispatch(fetchAdmissions(user?.branch?._id));
+    dispatch(fetchInstructors());
   }, [user, dispatch]);
 
   const handleEdit = (student) => {
@@ -75,6 +79,11 @@ export default function AdmissionTable({ color = "light", title }) {
       // Handle error in UI
       console.error("Error updating student:", error);
     }
+  };
+
+  const findInstructorName = (id) => {
+    const instructor = instructors.find((instructor) => instructor._id === id);
+    return instructor? instructor.name : "Not found.";
   };
 
   return (
@@ -287,8 +296,7 @@ export default function AdmissionTable({ color = "light", title }) {
                             className="px-2 py-2 rounded bg-lightBlue-500 hover:bg-lightBlue-700 transition-colors duration-200 flex items-center justify-center"
                             onClick={() => handleEdit(admission)}
                           >
-                            <EditIcon
-                            />
+                            <EditIcon />
                           </button>
                         </td>
                         <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
@@ -301,7 +309,7 @@ export default function AdmissionTable({ color = "light", title }) {
                           {admission?.cnic}
                         </td>
                         <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                          {admission?.instructor?.name}
+                          {findInstructorName(admission.instructor)}
                         </td>
                         <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                           {admission?.paymentMethod}

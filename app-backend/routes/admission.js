@@ -391,7 +391,7 @@ router.get("/:branch/instructor/:instructorName", async (req, res) => {
 // Route to get booked slots for an instructor in a specific branch
 router.get("/:branch/:instructorId/slots", async (req, res) => {
   const { branch, instructorId } = req.params;
-  
+
   try {
     // Find admissions by instructor and branch with their booked time slots
     const admissions = await Admission.find({
@@ -409,38 +409,32 @@ router.get("/:branch/:instructorId/slots", async (req, res) => {
   }
 });
 
+// Route to update only (firstName,lastName,fatherName,cnic,gender,dob,cellNumber,address) of the students enrolled 
 router.put("/update/:id", async (req, res) => {
-  console.log("/update/:id");
   try {
     const { id } = req.params;
-    
     // Validate MongoDB ID format
     if (!mongoose.Types.ObjectId.isValid(id)) {
       console.log("Invalid MongoDB ID format");
       return res.status(400).json({ message: "Invalid admission ID format" });
     }
-
     // Find existing admission
     const existingAdmission = await Admission.findById(id);
-    
     if (!existingAdmission) {
       console.log("Admission not found");
       return res.status(404).json({ message: "Admission not found" });
     }
-
-    console.log("Found admission:", existingAdmission);
-
     // Filter out undefined and empty values from request body
     const updatedData = Object.fromEntries(
-      Object.entries(req.body).filter(([_, value]) => 
-        value !== undefined && value !== '')
+      Object.entries(req.body).filter(
+        ([_, value]) => value !== undefined && value !== ""
+      )
     );
-
     // Merge existing data with updates
     const finalUpdatedData = {
       ...existingAdmission.toObject(),
       ...updatedData,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
     // Update admission
@@ -456,19 +450,18 @@ router.put("/update/:id", async (req, res) => {
     if (!updatedAdmission) {
       return res.status(400).json({ message: "Update failed" });
     }
-    
+
     return res.status(200).json({
       success: true,
       message: "Admission updated successfully",
-      data: updatedAdmission
+      data: updatedAdmission,
     });
-
   } catch (error) {
     console.error("Error updating admission:", error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       success: false,
-      message: "Server error", 
-      error: error.message 
+      message: "Server error",
+      error: error.message,
     });
   }
 });
