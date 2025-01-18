@@ -5,6 +5,7 @@ import { fetchAdmissions, updateAdmission } from "store/admission/actions";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { format } from "date-fns";
+import { ReactComponent as EditIcon } from "../../assets/img/edit.svg";
 
 export default function AdmissionTable({ color = "light", title }) {
   const history = useHistory();
@@ -59,11 +60,13 @@ export default function AdmissionTable({ color = "light", title }) {
 
   const handleSave = async (id) => {
     try {
-      const result = await dispatch(updateAdmission({ 
-        id, 
-        formData: editForm 
-      })).unwrap();
-      
+      const result = await dispatch(
+        updateAdmission({
+          id,
+          formData: editForm,
+        })
+      ).unwrap();
+
       if (result) {
         handleCancel(); // Clear form and exit edit mode
         dispatch(fetchAdmissions(user?.branch?._id));
@@ -121,6 +124,16 @@ export default function AdmissionTable({ color = "light", title }) {
             <table className="items-center w-full bg-transparent border-collapse">
               <thead>
                 <tr>
+                  <th
+                    className={
+                      "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
+                      (color === "light"
+                        ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                        : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
+                    }
+                  >
+                    Edit
+                  </th>
                   <th
                     className={
                       "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
@@ -262,16 +275,6 @@ export default function AdmissionTable({ color = "light", title }) {
                   >
                     Actions
                   </th>
-                  <th
-                    className={
-                      "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
-                      (color === "light"
-                        ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
-                        : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
-                    }
-                  >
-                    Make Changes
-                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -279,6 +282,15 @@ export default function AdmissionTable({ color = "light", title }) {
                   admissions.map((admission, index) => (
                     <React.Fragment key={admission._id || index}>
                       <tr>
+                        <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                          <button
+                            className="px-2 py-2 rounded bg-lightBlue-500 hover:bg-lightBlue-700 transition-colors duration-200 flex items-center justify-center"
+                            onClick={() => handleEdit(admission)}
+                          >
+                            <EditIcon
+                            />
+                          </button>
+                        </td>
                         <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                           {admission?.firstName}
                         </td>
@@ -325,16 +337,6 @@ export default function AdmissionTable({ color = "light", title }) {
                       `}
                           >
                             Free Slots
-                          </button>
-                        </td>
-                        <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                          <button
-                            className={`py-2 px-4 rounded text-white font-bold
-                      bg-lightBlue-600 
-                      `}
-                            onClick={() => handleEdit(admission)}
-                          >
-                            Update Info
                           </button>
                         </td>
                       </tr>
@@ -498,24 +500,23 @@ export default function AdmissionTable({ color = "light", title }) {
                                   />
                                 </div>
                               </div>
-                              </div>
+                            </div>
 
-                              
-                              <div className="flex flex-row items-center justify-end mt-3 gap-2 w-full bg-gray-600">
-                                <button
-                                  onClick={() => handleSave(admission._id)}
-                                  className="bg-green-600 text-white px-8 py-2 rounded transition-colors w-1/3 p-5"
-                                >
-                                  Save
-                                </button>
+                            <div className="flex flex-row items-center justify-end mt-3 gap-2 w-full bg-gray-600">
+                              <button
+                                onClick={() => handleSave(admission._id)}
+                                className="bg-green-600 text-white px-8 py-2 rounded transition-colors w-1/3 p-5"
+                              >
+                                Save
+                              </button>
 
-                                <button
-                                  onClick={handleCancel}
-                                  className="bg-red-500 text-white px-4 py-2 rounded w-1/3"
-                                >
-                                  Cancel
-                                </button>
-                              </div>
+                              <button
+                                onClick={handleCancel}
+                                className="bg-red-500 text-white px-4 py-2 rounded w-1/3"
+                              >
+                                Cancel
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       )}

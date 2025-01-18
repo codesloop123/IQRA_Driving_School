@@ -412,9 +412,6 @@ router.get("/:branch/:instructorId/slots", async (req, res) => {
 router.put("/update/:id", async (req, res) => {
   console.log("/update/:id");
   try {
-    console.log("Request params:", req.params);
-    console.log("Request body:", req.body);
-    
     const { id } = req.params;
     
     // Validate MongoDB ID format
@@ -459,8 +456,6 @@ router.put("/update/:id", async (req, res) => {
     if (!updatedAdmission) {
       return res.status(400).json({ message: "Update failed" });
     }
-
-    console.log("Updated admission:", updatedAdmission);
     
     return res.status(200).json({
       success: true,

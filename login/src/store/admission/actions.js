@@ -101,8 +101,6 @@ export const updateAdmission = createAsyncThunk(
         }
       });
 
-      console.log("Sending partial update:", updateData);
-
       // Fix: Update endpoint to match backend route
       const response = await axiosInstance.put(
         `/admissions/update/${id}`,
