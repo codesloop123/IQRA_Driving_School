@@ -101,12 +101,12 @@ export const updateAdmission = createAsyncThunk(
         }
       });
 
-      // Fix: Update endpoint to match backend route
+      // Update endpoint to match backend route
       const response = await axiosInstance.put(
         `/admissions/update/${id}`,
         updateData
       );
-      // Fix: Better response handling
+      
       if (!response || !response.data) {
         throw new Error("Invalid server response");
       }

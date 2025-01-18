@@ -7,12 +7,17 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { format } from "date-fns";
 import { ReactComponent as EditIcon } from "../../assets/img/edit.svg";
+import PDFModal from "components/Modals/PDFModal";
 
 export default function AdmissionTable({ color = "light", title }) {
   const history = useHistory();
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const instructors = useSelector((state) => state.instructor.instructors);
+  const [openPreview, setOpenPreview] = useState(false);
+
+  const [refNo, setRefNo] = useState("");
+  const [formData, setFormData] = useState({});
 
   const { registerLoading, admissions } = useSelector(
     (state) => state.admission
@@ -90,8 +95,11 @@ export default function AdmissionTable({ color = "light", title }) {
       ).unwrap();
 
       if (result) {
+        setFormData(result.data); // store the student object for pdf preview
+        setRefNo(result.data.referenceNumber);
         handleCancel(); // Clear form and exit edit mode
         dispatch(fetchAdmissions(user?.branch?._id));
+        setOpenPreview(true); // Open the pdf download preview
       }
     } catch (error) {
       // Handle error in UI
@@ -578,6 +586,14 @@ export default function AdmissionTable({ color = "light", title }) {
           </div>
         )}
       </div>
+      {openPreview && (
+        <PDFModal
+          formData={formData}
+          refNo={refNo}
+          open={openPreview}
+          setOpen={setOpenPreview}
+        />
+      )}
     </>
   );
 }
