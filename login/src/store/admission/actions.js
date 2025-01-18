@@ -88,29 +88,46 @@ export const updateAdmission = createAsyncThunk(
   async ({ id, formData }, { dispatch, rejectWithValue }) => {
     try {
       dispatch(setRegisterLoader(true));
-      
+
+      if (!id) {
+        throw new Error("Admission ID is required");
+      }
+
       // Only include fields that have actually changed
       const updateData = {};
-      Object.keys(formData).forEach(key => {
-        if (formData[key] !== undefined && formData[key] !== '') {
+      Object.keys(formData).forEach((key) => {
+        if (formData[key] !== undefined && formData[key] !== "") {
           updateData[key] = formData[key];
         }
       });
-      
-      console.log('Sending partial update:', updateData);
-      
-      const response = await axiosInstance.put(`/admissions/update/${id}`, updateData);
-      if (response.status === 200) {
-        toast.success(response.data.message || "Admission updated successfully.");
-        return response.data;
+
+      console.log("Sending partial update:", updateData);
+
+      // Fix: Update endpoint to match backend route
+      const response = await axiosInstance.put(
+        `/admissions/update/${id}`,
+        updateData
+      );
+
+      // Fix: Better response handling
+      if (!response || !response.data) {
+        throw new Error("Invalid server response");
       }
-      
-      return response.data;
+
+      if (response.status === 200) {
+        toast.success(
+          response.data.message || "Admission updated successfully."
+        );
+        return response.data;
+      } else {
+        throw new Error(response.data.message || "Update failed");
+      }
     } catch (error) {
       console.error("Error in updateAdmission action:", error);
-      const errorMessage = error.response?.data?.message || 
-                          error.message || 
-                          "An unexpected error occurred.";
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "An unexpected error occurred.";
       toast.error(errorMessage);
       return rejectWithValue(errorMessage);
     } finally {

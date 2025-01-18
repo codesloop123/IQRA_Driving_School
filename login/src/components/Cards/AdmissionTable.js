@@ -498,12 +498,13 @@ export default function AdmissionTable({ color = "light", title }) {
                                   />
                                 </div>
                               </div>
+                              </div>
 
-                              {/* Action Buttons */}
-                              <div className="flex justify-center  mt-3 gap-2 w-full">
+                              
+                              <div className="flex flex-row items-center justify-end mt-3 gap-2 w-full bg-gray-600">
                                 <button
                                   onClick={() => handleSave(admission._id)}
-                                  className="bg-green-600 text-white px-8 py-2 rounded transition-colors w-1/3"
+                                  className="bg-green-600 text-white px-8 py-2 rounded transition-colors w-1/3 p-5"
                                 >
                                   Save
                                 </button>
@@ -515,7 +516,6 @@ export default function AdmissionTable({ color = "light", title }) {
                                   Cancel
                                 </button>
                               </div>
-                            </div>
                           </td>
                         </tr>
                       )}
