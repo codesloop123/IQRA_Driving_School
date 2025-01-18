@@ -5,15 +5,30 @@ const Notification = require("../models/Notification");
 
 // Route to fetch payment alerts for a specific branch
 router.get("/payments/:branch", async (req, res) => {
-  // const { branch } = req.params;
+  const { branch } = req.params;
   const today = new Date();
+  console.log(branch);
   try {
-    // Fetch admissions with a balance due, where the course is ongoing, and the branch matches
-    const admissions = await Admission.find({
-      // "instructor.branch._id": { $eq: branch }, // Filter by branch
-      remainingPayment: { $gt: 0 },
-      // endDate: { $gte: today },
-    });
+
+    let admissions;
+    if (branch == -1)
+    {
+
+      admissions = await Admission.find({
+        // "instructor.branch._id": { $eq: branch }, 
+        remainingPayment: { $gt: 0 },
+        // endDate: { $gte: today },
+      });
+    }
+    else
+    {
+
+      admissions = await Admission.find({
+        "instructor.branch._id": { $eq: branch }, 
+        remainingPayment: { $gt: 0 },
+        // endDate: { $gte: today },
+      });
+    }
     console.log(admissions);
     res.status(200).json(admissions);
   } catch (error) {
