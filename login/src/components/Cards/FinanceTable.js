@@ -5,6 +5,9 @@ import { fetchFinances } from "store/admission/actions";
 import { useEffect, useState } from "react";
 import { fetchBranches } from "store/branch/actions";
 import { setFinancesByDate } from "store/admission/admissionSlice";
+import { toast } from "react-toastify";
+// import { Toast } from "reactstrap";
+
 export default function FinanceTable({ color, title }) {
   const history = useHistory();
   const dispatch = useDispatch();
@@ -14,6 +17,8 @@ export default function FinanceTable({ color, title }) {
     key: null,
     direction: null
   });
+
+
 
 
   const [totalPayment,SetTotalPayment] = useState({ paymentReceived: 0, totalPayment: 0,remainingPayment:0 });
@@ -90,6 +95,61 @@ export default function FinanceTable({ color, title }) {
     history.push("/sort-finances-by-date");
   }
 
+
+
+
+
+
+
+  const downloadCSV = () => {
+    if (!sortedFinances || sortedFinances.length === 0) {
+      toast.error("Internet Error");
+      return;
+    }
+    const headers = [
+      "First Name",
+      "Father Name",
+      "Date Registered",
+      "Payment Received",
+      "Remaining Payment",
+      "Total Payment",
+      "Payment Method",
+    ];
+
+    const rows = sortedFinances.map((finance) => [
+      finance?.firstName || "",
+      finance?.fatherName || "",
+      finance?.dateRegistered || "",
+      finance?.paymentDetails?.paymentReceived || "",
+      finance?.paymentDetails?.remainingPayment || "",
+      finance?.paymentDetails?.totalPayment || "",
+      finance?.paymentDetails?.paymentMethod || "",
+    ]);
+
+
+    const csvContent = [
+      headers.join(","), 
+      ...rows.map((row) => row.join(",")),
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "finance_data.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+
+
+
+
+
+
+
   return (
     <>
       <div
@@ -110,6 +170,15 @@ export default function FinanceTable({ color, title }) {
                 {title}
               </h3>
             </div>
+
+            <div className="p-3">
+              <button
+                onClick={() => {downloadCSV()}}
+                className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
+              >Download CSV</button>
+            </div>
+
+
             <div className="mr-3">
               <select onChange={(e) => handleSortByBranch(e)}>
                 <option disabled selected>Select branch</option>

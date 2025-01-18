@@ -6,11 +6,13 @@ export const fetchAlert = createAsyncThunk(
   "alert/get",
   async (branches, { dispatch }) => {
     try {
+      let branches1 = 1;
       dispatch(setAlertLoader(true));
+      console.log("eenie meenie mine",branches);
       const response = await axiosInstance.get(
-        `/alerts/payments/${branches._id}`,
+        `/alerts/payments/${branches1}`,
         {
-          branches,
+          branches1,
         }
       );
       if (response.status) {
