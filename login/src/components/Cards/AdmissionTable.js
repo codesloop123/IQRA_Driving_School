@@ -35,17 +35,33 @@ export default function AdmissionTable({ color = "light", title }) {
   }, [user, dispatch]);
 
   const handleEdit = (student) => {
-    setEditingId(student._id);
-    setEditForm({
-      firstName: student.firstName || "",
-      lastName: student.lastName || "",
-      fatherName: student.fatherName || "",
-      cnic: student.cnic || "",
-      gender: student.gender || "",
-      dob: student.dob ? new Date(student.dob).toISOString().split("T")[0] : "",
-      cellNumber: student.cellNumber || "",
-      address: student.address || "",
-    });
+    // If clicking the same student's edit button, close the form
+    if (editingId === student._id) {
+      setEditingId(null);
+      setEditForm({
+        firstName: "",
+        lastName: "",
+        fatherName: "",
+        cnic: "",
+        gender: "",
+        dob: "",
+        cellNumber: "",
+        address: "",
+      });
+    } else {
+      // If clicking a different student's edit button, show their form
+      setEditingId(student._id);
+      setEditForm({
+        firstName: student.firstName || "",
+        lastName: student.lastName || "",
+        fatherName: student.fatherName || "",
+        cnic: student.cnic || "",
+        gender: student.gender || "",
+        dob: student.dob ? new Date(student.dob).toISOString().split("T")[0] : "",
+        cellNumber: student.cellNumber || "",
+        address: student.address || "",
+      });
+    }
   };
 
   const handleCancel = () => {
