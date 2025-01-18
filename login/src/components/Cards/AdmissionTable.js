@@ -57,7 +57,9 @@ export default function AdmissionTable({ color = "light", title }) {
         fatherName: student.fatherName || "",
         cnic: student.cnic || "",
         gender: student.gender || "",
-        dob: student.dob ? new Date(student.dob).toISOString().split("T")[0] : "",
+        dob: student.dob
+          ? new Date(student.dob).toISOString().split("T")[0]
+          : "",
         cellNumber: student.cellNumber || "",
         address: student.address || "",
       });
@@ -309,7 +311,7 @@ export default function AdmissionTable({ color = "light", title }) {
                       <tr>
                         <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                           <button
-                            className="px-2 py-2 rounded bg-lightBlue-500 hover:bg-lightBlue-700 transition-colors duration-200 flex items-center justify-center"
+                            className="p-2 rounded flex items-center justify-center border border-black border-solid"
                             onClick={() => handleEdit(admission)}
                           >
                             <EditIcon />
@@ -366,9 +368,9 @@ export default function AdmissionTable({ color = "light", title }) {
                       </tr>
                       {editingId === admission._id && (
                         <tr className="bg-blueGray-50">
-                          <td colSpan="5" className="px-6 py-4">
-                            <div className="flex flex-wrap mt-3">
-                              <h6 className="text-blueGray-700 text-center text-lg w-full pl-4 mb-3 font-bold">
+                          <td colSpan="5" className="p-6">
+                            <div className="flex flex-wrap">
+                              <h6 className="text-blueGray-700 text-center text-lg w-full mb-3 font-bold">
                                 Update Info
                               </h6>
 
@@ -551,12 +553,12 @@ export default function AdmissionTable({ color = "light", title }) {
                               </div>
 
                               {/* Action Buttons */}
-                              <div className="w-full px-4 flex justify-end space-x-4 mt-6 gap-2">
+                              <div className="w-full px-4 flex justify-end space-x-4 gap-2">
                                 <button
                                   onClick={() => handleSave(admission._id)}
                                   className="bg-emerald-500 text-white active:bg-emerald-600 font-bold uppercase text-xs px-4 py-2 rounded shadow hover:shadow-md outline-none focus:outline-none ease-linear transition-all duration-150"
                                 >
-                                  Save 
+                                  Save
                                 </button>
                                 <button
                                   onClick={handleCancel}
