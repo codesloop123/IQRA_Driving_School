@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import { fetchBranches } from "store/branch/actions";
 import { setFinancesByDate } from "store/admission/admissionSlice";
 import { toast } from "react-toastify";
-// import { Toast } from "reactstrap";
 
 export default function FinanceTable({ color, title }) {
   const history = useHistory();
@@ -18,9 +17,6 @@ export default function FinanceTable({ color, title }) {
     direction: null
   });
 
-
-
-
   const [totalPayment,SetTotalPayment] = useState({ paymentReceived: 0, totalPayment: 0,remainingPayment:0 });
   useEffect(()=>{
     if (finances)
@@ -31,30 +27,20 @@ export default function FinanceTable({ color, title }) {
           acc.paymentReceived += curr.paymentDetails.paymentReceived || 0; // Add receivedPayment
           acc.remainingPayment += curr.paymentDetails.remainingPayment || 0; // Add receivedPayment
           acc.totalPayment += curr.paymentDetails.totalPayment || 0; // Add receivedPayment
-
           return acc;
         },
         { paymentReceived: 0, totalPayment: 0,remainingPayment:0 } // Initial accumulator values
       );
       SetTotalPayment(totalPayments);
     }
-    else
-    {
-      const totalPayments = null;
-    }
     },[finances])
-
     console.log(totalPayment)
-
 
   useEffect(() => {
     if (!financesByDate) {
       dispatch(fetchFinances({}));
     }
     dispatch(fetchBranches());
-   
-
-
   }, []);
   // function to show the finances of only the specified branch
   const handleSortByBranch = async (e) => {
@@ -331,15 +317,6 @@ export default function FinanceTable({ color, title }) {
                       </td>
                     </tr>
                   ))}
-
-
-
-
-
-
-
-
-
               </tbody>
             </table>
 

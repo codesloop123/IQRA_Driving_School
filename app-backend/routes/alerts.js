@@ -24,7 +24,7 @@ router.get("/payments/:branch", async (req, res) => {
     {
 
       admissions = await Admission.find({
-        "instructor.branch._id": { $eq: branch }, 
+        "manager.branch._id": { $eq: branch }, 
         remainingPayment: { $gt: 0 },
         // endDate: { $gte: today },
       });

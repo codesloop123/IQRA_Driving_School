@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { useEffect } from "react";
+import { useEffect,useState } from "react";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAdmissions } from "store/admission/actions";
@@ -18,14 +18,42 @@ export default function AdmissionTable({ color, title }) {
     dispatch(fetchAdmissions(user?.branch?._id));
   }, [user]);
 
+
+  const [sortByProperty, setSortByProperty] = useState({
+      key: null,
+      direction: null
+    });
+
+  
+    const handleSort = (column) => {
+      if (sortByProperty.key === column) {
+        setSortByProperty({
+          key: column,
+          direction: sortByProperty.direction === 'ascending' ? 'descending' : 'ascending',
+        })
+      }
+      else {
+        setSortByProperty({
+          key: column,
+          direction: 'descending'
+        })
+      }
+    }  
+
+    const sortedAdmissions = [...admissions].sort((a, b) => {
+      const { key, direction } = sortByProperty;
+      if (!key) return 0; // No sorting
+      const order = direction === "ascending" ? 1 : -1;
+      return a[key] > b[key] ? order : -order;
+    });
+
   return (
     <>
       <div
         className={
           "relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded " +
           (color === "light" ? "bg-white" : "bg-lightBlue-900 text-white")
-        }
-      >
+        }>
         <div className="rounded-t mb-0 px-2 py-3 border-0">
           <div className="flex flex-wrap justify-between items-center">
             <div className="relative w-full pl-4 max-w-full flex-grow flex-1">
@@ -35,8 +63,19 @@ export default function AdmissionTable({ color, title }) {
                   (color === "light" ? "text-blueGray-700" : "text-white")
                 }
               >
-                {title}
+                 AdmissionTable
               </h3>
+            </div>
+            <div className="p-3">
+              <button
+                onClick={() => {downloadCSV()}}
+                className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
+              >Download CSV</button>
+            </div>
+         <div className="mr-3">
+              <button
+                className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
+              >Sort by date</button>
             </div>
           </div>
         </div>
@@ -144,6 +183,10 @@ export default function AdmissionTable({ color, title }) {
                     }
                   >
                     Total Payment
+
+                    <i onClick={() => handleSort("totalPayment")}
+                      className="fas fa-solid fa-caret-down ml-1 cursor-pointer"
+                    ></i>
                   </th>
                   <th
                     className={
@@ -154,6 +197,9 @@ export default function AdmissionTable({ color, title }) {
                     }
                   >
                     Recieved Payment
+                     <i onClick={() => handleSort("paymentReceived")}
+                      className="fas fa-solid fa-caret-down ml-1 cursor-pointer"
+                    ></i>
                   </th>
                   <th
                     className={
@@ -164,6 +210,9 @@ export default function AdmissionTable({ color, title }) {
                     }
                   >
                     Remaining Payment
+                    <i onClick={() => handleSort("remainingPayment")}
+                      className="fas fa-solid fa-caret-down ml-1 cursor-pointer text-green-500"
+                    ></i>
                   </th>
                   <th
                     className={
@@ -209,8 +258,8 @@ export default function AdmissionTable({ color, title }) {
                 </tr>
               </thead>
               <tbody>
-                {admissions?.length > 0 &&
-                  admissions.map((admission, index) => (
+                {sortedAdmissions?.length > 0 &&
+                  sortedAdmissions.map((admission, index) => (
                     <tr key={index}>
                       <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                         {admission?.firstName}
