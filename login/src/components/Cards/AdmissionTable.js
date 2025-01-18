@@ -156,7 +156,7 @@ export default function AdmissionTable({ color = "light", title }) {
         ) : (
           <div className="block w-full overflow-x-auto">
             {/* Projects table */}
-            <table className="items-center w-full bg-transparent border-collapse">
+            <table className="items-center w-full border-collapse">
               <thead>
                 <tr>
                   <th
@@ -319,7 +319,7 @@ export default function AdmissionTable({ color = "light", title }) {
                       <tr>
                         <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                           <button
-                            className="p-2 rounded flex items-center justify-center border border-black border-solid"
+                            className="p-2 rounded-lg bg-lightBlue-500"
                             onClick={() => handleEdit(admission)}
                           >
                             <EditIcon />
