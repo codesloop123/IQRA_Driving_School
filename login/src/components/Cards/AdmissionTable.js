@@ -17,14 +17,52 @@ export default function AdmissionTable({ color, title }) {
   useEffect(() => {
     dispatch(fetchAdmissions(user?.branch?._id));
   }, [user]);
+  const downloadCSV = () => {
+    const headers = [
+      "Name",
+      "Reference No",
+      "CNIC",
+      "Instructor",
+      "Payment Method",
+      "Duration",
+      "Time Duration/Day",
+      "Total Payment",
+      "Received Payment",
+      "Remaining Payment",
+      "Manager",
+      "Start Date",
+      "End Date",
+    ];
+    const rows = sortedAdmissions.map(admission => [
+      admission?.firstName || "",
+      admission?.referenceNumber || "",
+      admission?.cnic || "",
+      admission?.instructor?.name || "",
+      admission?.paymentMethod || "",
+      admission?.courseduration || "",
+      admission?.courseTimeDuration || "",
+      admission?.totalPayment || "",
+      admission?.paymentReceived || "",
+      admission?.remainingPayment || "",
+      admission?.manager?.name || "",
+      admission?.startDate ? new Date(admission?.startDate).toLocaleDateString() : "",
+      admission?.endDate ? new Date(admission?.endDate).toLocaleDateString() : "",
+    ]);
+  
+    const csvContent = [headers, ...rows]
+      .map(row => row.map(cell => `"${cell}"`).join(","))
+      .join("\n");
 
-
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "admissions.csv";
+    link.click();
+  };
   const [sortByProperty, setSortByProperty] = useState({
       key: null,
       direction: null
     });
-
-  
     const handleSort = (column) => {
       if (sortByProperty.key === column) {
         setSortByProperty({
@@ -38,15 +76,19 @@ export default function AdmissionTable({ color, title }) {
           direction: 'descending'
         })
       }
-    }  
-
+    }
+    console.log(admissions)  
     const sortedAdmissions = [...admissions].sort((a, b) => {
       const { key, direction } = sortByProperty;
-      if (!key) return 0; // No sorting
+      if (!key)
+        {
+          const dateA = new Date(a.startDate);
+          const dateB = new Date(b.startDate);
+          return dateB - dateA ;
+        } 
       const order = direction === "ascending" ? 1 : -1;
       return a[key] > b[key] ? order : -order;
     });
-
   return (
     <>
       <div

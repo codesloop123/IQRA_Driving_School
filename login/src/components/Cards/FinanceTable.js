@@ -42,7 +42,6 @@ export default function FinanceTable({ color, title }) {
     }
     dispatch(fetchBranches());
   }, []);
-  // function to show the finances of only the specified branch
   const handleSortByBranch = async (e) => {
     dispatch(fetchFinances({ id: e.target.value }));
   }
