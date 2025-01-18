@@ -7,17 +7,16 @@ const InstructorSchema = new mongoose.Schema(
     name: { type: String, required: true },
     email: { type: String, required: true },
     status: { type: Boolean, required: true },
-    lecturerCode : {type:String,required:true},
+    lecturerCode: { type: String, required: true },
     availability: {
       startTime: { type: String, required: true },
       endTime: { type: String, required: true },
     },
-    
     branch: {
       type: BranchSchema,
       required: true,
     },
-    vehicle: {   
+    vehicle: {
       type: VehicleSchema,
       required: true,
     },
@@ -26,6 +25,16 @@ const InstructorSchema = new mongoose.Schema(
         date: { type: String, required: true },
         startTime: { type: String, required: true },
         endTime: { type: String, required: true },
+        status: {
+          type: String,
+          required: true,
+          enum: ["Completed", "Missed", "Pending"],
+          default: "Pending",
+        },
+        refNo: {
+          type: String, // Reference to Instructor document
+          required: true,
+        },
       },
     ],
   },

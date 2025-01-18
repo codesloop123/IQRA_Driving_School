@@ -2,6 +2,49 @@ const express = require("express");
 const Admission = require("../models/Admission");
 const router = express.Router();
 const Instructor = require("../models/Instructor");
+const Notification = require("../models/Notification");
+const cron = require("node-cron");
+cron.schedule("0 0 * * *", async () => {
+  // This cron job runs every day at midnight
+  await checkOverduePayments();
+});
+
+async function checkOverduePayments() {
+  const today = new Date("2025-01-01");
+  try {
+    const overdueAdmissions = await Admission.find({
+      paymentDueDate: { $lt: today },
+      remainingPayment: { $gt: 0 },
+    });
+
+    for (const admission of overdueAdmissions) {
+      const existingNotification = await Notification.findOne({
+        student: admission._id,
+        eventDate: admission.paymentDueDate,
+      });
+
+      if (!existingNotification) {
+        const newNotification = new Notification({
+          message: `Payment overdue for student: ${admission.firstName} ${admission.lastName}`,
+          status: false,
+          eventDate: admission.paymentDueDate,
+          student: admission._id,
+          branch: admission.branch, // Assuming 'branch' is a string in Admission
+          role: "manager", // Specify the role as needed
+        });
+
+        await newNotification.save();
+        console.log(`Notification created for admission ID: ${admission._id}`);
+      } else {
+        console.log(
+          `Notification already exists for admission ID: ${admission._id}`
+        );
+      }
+    }
+  } catch (error) {
+    console.error("Error checking overdue payments:", error);
+  }
+}
 const generateReferenceNumber = async (branchCode, lecturerCode) => {
   const currentMonth = new Date().getMonth() + 1;
   const currentYear = new Date().getFullYear().toString().slice(-2);
@@ -48,12 +91,17 @@ router.post("/add", async (req, res) => {
       paymentMethod,
       totalPayment,
       paymentReceived,
-      paymentInInstallments,
       remainingPayment,
       discount,
       manager,
+      course,
+      vehicle,
       status,
+      pickanddrop,
+      pickanddropCharges,
+      paymentDueDate,
     } = req.body;
+
     if (
       !firstName ||
       !lastName ||
@@ -71,18 +119,26 @@ router.post("/add", async (req, res) => {
       !paymentMethod ||
       !totalPayment ||
       !paymentReceived ||
-      paymentInInstallments === undefined ||
       remainingPayment === undefined ||
       discount === undefined ||
       !manager ||
-      !status
+      !status ||
+      !course ||
+      !vehicle ||
+      pickanddrop === undefined
     ) {
       return res.status(400).json({ message: "All fields are required." });
     }
+    if (remainingPayment > 0 && !paymentDueDate) {
+      return res
+        .status(400)
+        .json({ message: "Please add the Payment Due Date" });
+    }
     const referenceNumber = await generateReferenceNumber(
-      manager.branch._id,
-      instructor._id
+      manager.branch.branchCode,
+      instructor.lecturerCode
     );
+    console.log(instructor);
     const instructorDoc = await Instructor.findById(instructor._id);
     if (!instructorDoc) {
       return res
@@ -91,21 +147,21 @@ router.post("/add", async (req, res) => {
     }
     const { startTime: availableStart, endTime: availableEnd } =
       instructorDoc.availability;
-    console.log(availableStart, availableEnd, "availability>>>>>>>>>>>");
     const courseStartTime = startTime;
-    console.log(courseStartTime, "courseStartTime>>>>>>>>>>>");
     const courseEndTime = calculateEndTime(startTime, courseTimeDuration);
-    console.log(courseEndTime, "courseEndTIme>>>>>>>>");
     if (courseStartTime < availableStart || courseEndTime > availableEnd) {
       return res.status(400).json({
         status: false,
         message: "Requested time is outside instructor's availability.",
       });
     }
-    const endDate = calculateEndDate(startDate, courseduration);
+    const { endDate, adjustedDuration } = calculateEndDate(
+      startDate,
+      courseduration
+    );
     const bookedSlots = [];
     let currentStartDate = new Date(startDate);
-    for (let i = 0; i < courseduration; i++) {
+    for (let i = 0; i < adjustedDuration; i++) {
       if (currentStartDate.getDay() === 0) {
         currentStartDate.setDate(currentStartDate.getDate() + 1);
         continue;
@@ -114,6 +170,7 @@ router.post("/add", async (req, res) => {
         date: formatDate(currentStartDate),
         startTime: courseStartTime,
         endTime: courseEndTime,
+        refNo: referenceNumber,
       });
 
       currentStartDate.setDate(currentStartDate.getDate() + 1);
@@ -147,7 +204,7 @@ router.post("/add", async (req, res) => {
       dob,
       cellNumber,
       address,
-      instructor,
+      instructor: instructor._id,
       courseduration,
       courseTimeDuration,
       startDate,
@@ -157,70 +214,89 @@ router.post("/add", async (req, res) => {
       paymentMethod,
       totalPayment,
       paymentReceived,
-      paymentInInstallments,
       remainingPayment,
       discount,
       referenceNumber,
       manager,
+      vehicle,
+      course,
       status,
+      pickanddrop,
+      pickanddropCharges: pickanddrop ? pickanddropCharges : null,
+      paymentDueDate: paymentDueDate ? paymentDueDate : null,
     });
 
-    await admission.save();
-    res.status(200).json({
-      status: true,
-      message: "Admission booked successfully.",
-      bookedSlots,
-    });
+    const savedAdmission = await admission.save();
+    if (savedAdmission) {
+      const message = `Student: ${firstName} ${lastName} Has Been Added Successfully`;
+      const eventDate = new Date();
+      const newNotification = new Notification({
+        message,
+        status: true,
+        eventDate,
+        branch: null,
+        role: "admin",
+      });
+      const result = await newNotification.save();
+      return res.status(200).json({
+        status: true,
+        message: "Admission booked successfully.",
+        bookedSlots,
+        refNumber: admission.referenceNumber,
+      });
+    }
   } catch (error) {
     console.error("Error adding admission:", error);
-    res.status(500).json({ status: false, message: "Internal server error." });
+    return res
+      .status(500)
+      .json({ status: false, message: "Internal server error." });
   }
 });
 const calculateEndTime = (startTime, duration) => {
-  const durationNumber = parseInt(duration, 10);
-  let [hours, minutes] = startTime.split(":").map(Number);
-  if (duration.length === 1) {
-    hours += durationNumber;
-  } else if (duration.length === 2) {
-    minutes += durationNumber;
-  }
-  if (minutes >= 60) {
-    hours += Math.floor(minutes / 60);
-    minutes = minutes % 60;
-  }
-  if (hours > 12) {
-    hours = hours % 12;
-  }
-  const formattedHours = hours.toString().padStart(2, "0");
-  const formattedMinutes = minutes.toString().padStart(2, "0");
-  return `${formattedHours}:${formattedMinutes}`;
+  const [hours, minutes] = startTime.split(":").map(Number);
+  // Parse the duration
+  const durationMinutes = parseInt(duration, 10);
+
+  // Calculate the new time
+  const totalMinutes = hours * 60 + minutes + durationMinutes;
+
+  // Convert back to hours and minutes
+  const newHours = Math.floor(totalMinutes / 60) % 24; // Use % 24 to wrap around midnight
+  const newMinutes = totalMinutes % 60;
+
+  // Format the result in HH:MM
+  const formattedTime = `${String(newHours).padStart(2, "0")}:${String(
+    newMinutes
+  ).padStart(2, "0")}`;
+
+  return formattedTime;
 };
 
-const calculateEndDate = (startDate, durationDays) => {
-  const start = new Date(startDate);
-  let daysAdded = 0;
+const calculateEndDate = (startDate, durationInDays) => {
+  // Parse the input date
+  const date = new Date(startDate);
+  // Add the duration to the date
+  const positionInWeek = date.getDay();
+  let y = durationInDays + Math.floor((positionInWeek + durationInDays) / 7);
+  date.setDate(date.getDate() + parseInt(y, 10));
 
-  while (daysAdded < durationDays) {
-    start.setDate(start.getDate() + 1);
-    if (start.getDay() !== 0) {
-      daysAdded++;
-    }
-  }
+  // Format the result in YYYY-MM-DD
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-indexed
+  const day = String(date.getDate()).padStart(2, "0");
 
-  return formatDate(start);
+  return { endDate: `${year}-${month}-${day}`, adjustedDuration: y };
 };
 const formatDate = (date) => {
-  return date.toISOString().split("T")[0];
+  return date.toISOString();
 };
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
   try {
     const admissions = await Admission.find({ "manager.branch._id": id });
-    console.log("admissions>>>>>>>>>>>>");
-    console.log(admissions);
+    console.log(id);
     res.status(200).json({ status: true, admissions: admissions });
   } catch (error) {
-    console.error("Error fetching admissions:", error);
     res.status(500).json({ msg: "Server error" });
   }
 });
@@ -257,21 +333,46 @@ router.put("/:branch/:id/status", async (req, res) => {
   }
 });
 
+//Route to fetch admissions finances
 router.get("/:branch/finances", async (req, res) => {
   const { branch } = req.params;
-
+  const { toDate, fromDate } = req.query;
   try {
+    let admissions;
+    // Fetch admissions within a specific date range:
+    if (toDate && fromDate) {
+      const from = new Date(fromDate);
+      const to = new Date(toDate);
+      admissions = await Admission.find({
+        dateRegistered: {
+          $gte: from,
+          $lte: to,
+        },
+      });
+    }
+    // Fetch admissions with payment details for all branches
+    else if (branch == "All") {
+      admissions = await Admission.find();
+    }
     // Fetch admissions with payment details for the specific branch
-    const admissions = await Admission.find({ branch });
+    else {
+      admissions = await Admission.find({ "manager.branch._id": branch });
+    }
 
-    // You can customize this to return only relevant financial data
     const finances = admissions.map((admission) => ({
       firstName: admission.firstName,
       fatherName: admission.fatherName,
       referenceNumber: admission.referenceNumber,
-      dateRegistered: admission.dateRegistered,
-      paymentDetails: admission.paymentDetails,
-      remainingAmount: admission.remainingAmount,
+      dateRegistered: new Date(admission.dateRegistered)
+        .toISOString()
+        .split("T")[0],
+      paymentDetails: {
+        paymentMethod: admission.paymentMethod,
+        totalPayment: admission.totalPayment,
+        paymentReceived: admission.paymentReceived,
+        discount: admission.discount,
+        remainingPayment: admission.remainingPayment,
+      },
     }));
 
     res.status(200).json(finances);

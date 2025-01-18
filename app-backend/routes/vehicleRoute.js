@@ -3,7 +3,7 @@
 const express = require("express");
 const Vehicle = require("../models/Vehicle");
 const router = express.Router();
-
+const Notification = require("../models/Notification");
 // POST route to add a new car for a specific branch
 router.post("/add_vehicle", async (req, res) => {
   const { name, number, type, branch } = req.body;
@@ -16,6 +16,16 @@ router.post("/add_vehicle", async (req, res) => {
     const newVehicle = new Vehicle({ name, number, type, branch });
     const savedVehicle = await newVehicle.save();
     if (savedVehicle) {
+      const message = `Vehicle: ${name} Has Been Added Successfully`;
+      const eventDate = new Date();
+      const newNotification = new Notification({
+        message,
+        status: true,
+        eventDate,
+        branch: branch._id,
+        role: "manager",
+      });
+      await newNotification.save();
       res
         .status(200)
         .json({ status: true, message: "Vehicle added successfully" });

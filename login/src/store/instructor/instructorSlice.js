@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   instructors: [],
   isInstructorLoading: false,
+  slots: [],
 };
 
 const instructorSlice = createSlice({
@@ -14,8 +15,12 @@ const instructorSlice = createSlice({
     setInstructorLoader: (state, action) => {
       state.isInstructorLoading = action.payload;
     },
+    setSlots: (state, action) => {
+      state.slots = action.payload;
+    },
   },
 });
 
-export const { setInstructorLoader, setInstructors } = instructorSlice.actions;
+export const { setInstructorLoader, setInstructors, setSlots } =
+  instructorSlice.actions;
 export default instructorSlice.reducer;

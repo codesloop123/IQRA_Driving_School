@@ -27,7 +27,7 @@ root.render(
                   path={route.path}
                   key={index}
                   render={() => (
-                    <Admin routeName={route.name}>
+                    <Admin routeName={route.name} routeRole={route.layout}>
                       <route.component />
                     </Admin>
                   )}

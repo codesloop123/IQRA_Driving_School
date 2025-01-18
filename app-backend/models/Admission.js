@@ -23,9 +23,12 @@ const AdmissionSchema = new mongoose.Schema({
   cellNumber: { type: String, required: true },
   address: { type: String, required: true },
   instructor: {
-    type: InstructorSchema,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Instructor",
     required: true,
   },
+  vehicle: { type: String, required: true },
+  course: { type: String, required: true },
   courseduration: { type: Number, required: true },
   courseTimeDuration: { type: String, required: true },
   startDate: { type: Date, required: true },
@@ -34,21 +37,24 @@ const AdmissionSchema = new mongoose.Schema({
   endTime: { type: String, required: true },
   paymentMethod: {
     type: String,
-    enum: ["cash", "bank transfer", "easypaisa"],
+    enum: ["Cash", "bank transfer", "easypaisa"],
     required: true,
   },
   totalPayment: { type: Number, required: true },
   paymentReceived: { type: Number, required: true },
-  discount: { type: Number, required: true },
-  paymentInInstallments: { type: Boolean, required: true, default: false },
+  discount: { type: Number },
   remainingPayment: { type: Number, required: true },
   dateRegistered: { type: Date, default: Date.now },
+  pickanddrop: { type: Boolean, default: false, required: true },
+  pickanddropCharges: { type: Number },
   manager: {
     type: managerSchema,
     required: true,
   },
   dateRegistered: { type: Date, default: Date.now },
   referenceNumber: { type: String, required: true },
+  status: { type: Boolean, default: true },
+  paymentDueDate: { type: Date },
 });
 
 module.exports = mongoose.model("Admission", AdmissionSchema);

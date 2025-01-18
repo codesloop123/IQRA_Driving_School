@@ -6,17 +6,17 @@ import CardSocialTraffic from "components/Cards/CardSocialTraffic.js";
 import HeaderStats from "components/Headers/HeaderStats";
 import AdminNavbar from "../../components/Navbars/AdminNavbar";
 import FooterAdmin from "components/Footers/FooterAdmin";
-export default function Dashboard({routeName}) {
+export default function Dashboard({ routeName }) {
   return (
-    <> 
-    <div className="relative md:ml-64 bg-blueGray-100">
+    <>
+      <div className="relative md:ml-64 bg-blueGray-100">
         <AdminNavbar routeName={routeName} />
         <HeaderStats />
         <div className="px-4 md:px-10 mx-auto w-full -m-24">
-        <FooterAdmin />
+          <FooterAdmin />
         </div>
-      </div> 
-    {/* <HeaderStats/>
+      </div>
+      {/* <HeaderStats/>
        <div className="px-4 md:px-10 mx-auto w-full -m-24">
 
        </div> */}

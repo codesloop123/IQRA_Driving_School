@@ -7,11 +7,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { fetchBranches } from "store/branch/actions";
-import { fetchInstructors } from "store/instructor/action";
+import { fetchAllInstructors } from "store/instructor/action";
 import { fetchVehicles } from "store/vehicle/actions";
 import { fetchUsers } from "store/auth/actions";
+import { fetchNotifications } from "store/notifications/actions";
+import { fetchInstructors } from "store/instructor/action";
 export default function Admin(props) {
   const { uid } = useSelector((state) => state.auth);
+  const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const history = useHistory();
   useEffect(() => {
@@ -19,9 +22,13 @@ export default function Admin(props) {
       history.push("/login");
     }
   }, []);
+  console.log(props);
   useEffect(() => {
     dispatch(fetchBranches());
-    dispatch(fetchInstructors());
+    if (!user?.branch) dispatch(fetchAllInstructors());
+    else {
+      dispatch(fetchInstructors(user?.branch?._id));
+    }
     dispatch(fetchVehicles());
     dispatch(fetchUsers());
   }, []);

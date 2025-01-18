@@ -11,6 +11,7 @@ export default function CardManger() {
   const dispatch = useDispatch();
   const { branches } = useSelector((state) => state.branch);
   const { registerLoading } = useSelector((state) => state.auth);
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -19,13 +20,12 @@ export default function CardManger() {
     branch: null,
     status: true,
   });
-  console.log(formData, "formData>>>>>>>>>>>>>>");
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === "branch") {
       setFormData({
         ...formData,
-        branch: JSON.parse(value),
+        branch: branches.find((branch) => branch._id === value),
       });
     } else {
       setFormData({
@@ -126,7 +126,7 @@ export default function CardManger() {
                   <select
                     id="branch-select"
                     name="branch"
-                    value={formData?.branch?.name || ""}
+                    value={formData?.branch?._id || ""}
                     onChange={handleChange}
                     className="border-0 px-3 py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
                   >
@@ -134,7 +134,7 @@ export default function CardManger() {
                       Select Branch
                     </option>
                     {branches.map((branch) => (
-                      <option key={branch.id} value={JSON.stringify(branch)}>
+                      <option key={branch._id} value={branch?._id}>
                         {branch.name}
                       </option>
                     ))}

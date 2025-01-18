@@ -2,54 +2,71 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useState, useEffect } from "react";
 import { fetchInstructors } from "store/instructor/action";
-import { format, parse,isWithinInterval } from "date-fns";
+import { format, parse, isWithinInterval } from "date-fns";
 import { postAdmission } from "store/admission/actions";
 import { toast } from "react-toastify";
 import AvailabilityModal from "components/Modals/AvailabilityModal";
 import { start } from "@popperjs/core";
-import { useCallback } from 'react';
-
+import { fetchCourses } from "store/courses/actions";
+import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import admissionFormPdf from "../../assets/pdf/admissionForm.pdf";
+import {
+  generateRandomBirthdate,
+  generateRandomCnic,
+  generateRandomFirstName,
+  generateRandomLastName,
+} from "components/Utils/AdmissionGeneration";
+import PDFModal from "components/Modals/PDFModal";
 export default function AdmissionCard() {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+  const { courses } = useSelector((state) => state.course);
   const { registerLoading } = useSelector((state) => state.admission);
   const [open, setOpen] = useState(false);
   const { isInstructorLoading, instructors } = useSelector(
     (state) => state.instructor
   );
+  const [openPreview, setOpenPreview] = useState(false);
+  const [idx, setIdx] = useState("");
+  const [priceIdx, setPriceIdx] = useState("");
   const [error, setError] = useState("");
   const [timeError, setTimeError] = useState("");
   const [cnicError, setCnicError] = useState("");
   const [dobError, setDobError] = useState("");
+  const [refNo, setRefNo] = useState("");
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    fatherName: "",
-    cnic: "",
-    gender: "",
-    dob: "",
-    cellNumber: "",
-    address: "",
+    firstName: generateRandomFirstName(),
+    lastName: generateRandomLastName(),
+    fatherName: "Robert Doe",
+    cnic: generateRandomCnic(),
+    gender: "Male",
+    dob: generateRandomBirthdate(), // Use YYYY-MM-DD format for dates
+    cellNumber: "+92 300 1234567",
+    address: "123 Main Street, Islamabad",
     instructor: null,
-    courseduration: "",
-    courseTimeDuration: "",
-    startDate: "",
+    courseduration: "", // Example: 30 days
+    courseTimeDuration: "", // Example: 90 minutes
+    startDate: "", // Example date
     startTime: "",
-    paymentMethod: "",
-    totalPayment: "",
-    paymentReceived: "",
-    paymentInInstallments: false,
-    remainingPayment: "",
+    paymentMethod: "Cash",
+    totalPayment: "", // Total payment in PKR
+    paymentReceived: "", // Received payment in PKR
+    remainingPayment: "", // Remaining payment in PKR
     manager: user,
-    status: true,
-    discount: "",
+    pickanddrop: false,
+    pickanddropCharges: "",
+    status: true, // Active status
+    discount: "40", // Discount in PKR
+    course: "Basic Driving Course",
+    vehicle: "Toyota Corolla",
+    paymentDueDate: null,
   });
 
-  
+  const [additionalTime, setAdditionalTime] = useState(0);
   // Function to format Date to accordingly
   const formatDate = (date) => {
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0"); 
+    const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
@@ -60,19 +77,17 @@ export default function AdmissionCard() {
     const minutes = String(date.getMinutes()).padStart(2, "0");
     return `${hours}:${minutes}`;
   };
-  
-  const changeInstructor = useCallback((instructor) => {
-    console.log("Here is the instructor:", instructor);
-    setFormData((prevFormData) => ({
-      ...prevFormData,
-      instructor: instructor,
-    }));
-  }, [setFormData]);
 
-  const changeStartDateTime = (startDate,endTime) => {
+  const changeInstructor = (instructor) => {
+    setFormData({
+      ...formData,
+      instructor: instructor,
+    });
+  };
+
+  const changeStartDateTime = (startDate, endTime) => {
     let startdata = formatDate(startDate);
     let starttime = formatTime(startDate);
-    console.log(startdata);
     const selectedDate = new Date(startdata);
     const day = selectedDate.getDay();
     if (day === 0) {
@@ -81,10 +96,10 @@ export default function AdmissionCard() {
       setError("");
     }
     const [hours, minutes] = starttime.split(":").map(Number);
-    if (minutes !== 0 && minutes !== 30) {
-      setTimeError("Please select a time ending in 00 or 30 minutes.");
-      return;
-    }
+    // if (minutes !== 0 && minutes !== 30) {
+    //   setTimeError("Please select a time ending in 00 or 30 minutes.");
+    //   return;
+    // }
     if (hours < 9 || hours > 16 || (hours === 17 && minutes > 0)) {
       setTimeError("Time must be between 9:00 AM and 5:00 PM.");
       return;
@@ -93,7 +108,11 @@ export default function AdmissionCard() {
     const selectedTime = format(parse(starttime, "HH:mm", new Date()), "hh:mm");
     const { instructor } = formData;
     if (instructor) {
-      const isAvailable = checkInstructorAvailability(instructor, startDate,endTime);
+      const isAvailable = checkInstructorAvailability(
+        instructor,
+        startDate,
+        endTime
+      );
       if (!isAvailable) {
         setTimeError("Instructor is not available at this time.");
         return;
@@ -105,10 +124,8 @@ export default function AdmissionCard() {
       startDate: startdata,
       startTime: starttime,
     });
-    // console.log("Here is:", formData?.startDate);
   };
 
-  // console.log(formData, "formData>>>>>>>>>>>>>");
   const handleChange = (e) => {
     const { name, type, value, checked } = e.target;
     if (name === "instructor") {
@@ -119,9 +136,27 @@ export default function AdmissionCard() {
         ...formData,
         instructor: selectedInstructor,
       });
+    } else if (name === "paymentDueDate") {
+      setFormData((prev) => ({ ...prev, paymentDueDate: value }));
+    } else if (name === "course") {
+      setIdx(value);
+      setFormData({
+        ...formData,
+        course: courses[value]?.name,
+        courseTimeDuration: courses[value]?.duration,
+        vehicle: courses[value]?.vehicle,
+      });
+    } else if (
+      name === "additionalTime" &&
+      formData?.courseTimeDuration &&
+      value >= 0
+    ) {
+      const number = Number(value);
+
+      setAdditionalTime(number);
     } else if (name === "startTime") {
       const [hours, minutes] = value.split(":").map(Number);
-      if (minutes !== 0 && minutes !== 30) {
+      if (minutes !== 0 && minutes !== 30 && minutes !== 15 && minutes !== 45) {
         setTimeError("Please select a time ending in 00 or 30 minutes.");
         return;
       }
@@ -131,7 +166,6 @@ export default function AdmissionCard() {
       }
       setTimeError("");
       const selectedTime = format(parse(value, "HH:mm", new Date()), "hh:mm");
-      console.log(selectedTime, "selectedTime>>>>>>>>>>>>>");
       const { instructor } = formData;
       if (instructor) {
         const isAvailable = checkInstructorAvailability(
@@ -163,7 +197,6 @@ export default function AdmissionCard() {
       });
     } else if (name === "startDate") {
       const selectedDate = new Date(value);
-      console.log("Here is part 2:", value);
       const day = selectedDate.getDay();
       if (day === 0) {
         setError("Sunday is a holiday. Please select another date.");
@@ -174,7 +207,6 @@ export default function AdmissionCard() {
         ...formData,
         startDate: value,
       });
-      console.log("Here is:", formData?.startDate);
     } else if (name === "dob") {
       const birthDate = new Date(value);
       const today = new Date();
@@ -194,10 +226,12 @@ export default function AdmissionCard() {
         dob: value,
       });
     } else if (name === "courseduration") {
-      const numericValue = Number(value);
+      const numericValue = Number(courses[idx]?.pricelist[value]?.days);
+      setPriceIdx(value);
       setFormData((prev) => ({
         ...prev,
         courseduration: numericValue,
+        totalPayment: Number(courses[idx].pricelist[value].price),
       }));
     } else if (name === "totalPayment") {
       const numericValue = Number(value);
@@ -217,6 +251,12 @@ export default function AdmissionCard() {
         ...prev,
         remainingPayment: numericValue,
       }));
+    } else if (name === "pickanddropcharges") {
+      const numericValue = Number(value);
+      setFormData((prev) => ({
+        ...prev,
+        pickanddropCharges: numericValue,
+      }));
     } else {
       setFormData({
         ...formData,
@@ -231,7 +271,6 @@ export default function AdmissionCard() {
   ) => {
     for (let i = 0; i < bookedSlots.length; i++) {
       const bookedSlot = bookedSlots[i];
-      console.log(bookedSlot);
       const { date, startTime, endTime } = bookedSlot;
       if (date === selectedDate) {
         const selectedStart = parse(selectedStartTime, "HH:mm", new Date());
@@ -248,43 +287,277 @@ export default function AdmissionCard() {
     return false;
   };
 
-  // import { isWithinInterval } from 'date-fns';
-
-  const checkInstructorAvailability = (instructor, selectedStartTime, selectedEndTime) => {
+  const checkInstructorAvailability = (
+    instructor,
+    selectedStartTime,
+    selectedEndTime
+  ) => {
     const bookedSlots = instructor.bookedSlots || [];
-    console.log("Here are the booked slots:", bookedSlots);
-  
+
     // Ensure that selected times are valid Date objects
-    if (!(selectedStartTime instanceof Date) || !(selectedEndTime instanceof Date)) {
+    if (
+      !(selectedStartTime instanceof Date) ||
+      !(selectedEndTime instanceof Date)
+    ) {
       console.error("Selected start and end times must be Date objects.");
       return false;
     }
-  
+
     for (let i = 0; i < bookedSlots.length; i++) {
       const bookedSlot = bookedSlots[i];
       const { startTime, endTime } = bookedSlot;
-  
-      // Ensure that booked start and end times are valid Date objects
+
       if (!(startTime instanceof Date) || !(endTime instanceof Date)) {
         console.error("Booked start and end times must be Date objects.");
         continue; // Skip this slot if invalid
       }
-  
-      // Check for collision
+
       if (
-        isWithinInterval(selectedStartTime, { start: startTime, end: endTime }) ||
+        isWithinInterval(selectedStartTime, {
+          start: startTime,
+          end: endTime,
+        }) ||
         isWithinInterval(selectedEndTime, { start: startTime, end: endTime }) ||
         (selectedStartTime <= startTime && selectedEndTime >= endTime) // Selected range completely overlaps booked range
       ) {
-        console.log("Collision detected with:", bookedSlot);
         return false; // Collision found
       }
     }
     return true; // No collisions
   };
+
+  // async function createAdmissionPdf() {
+  //   try {
+  //     // Load the existing PDF file from the public folder
+  //     const response = await fetch(admissionFormPdf);
+  //     if (!response.ok) {
+  //     throw new Error(`Failed to fetch PDF. Status: ${response.status}`);
+  //     }
+  //     const existingPdfBytes = await response.arrayBuffer(); // Read the file as an ArrayBuffer
+
+  //     // Load the PDFDocument
+  //     const pdfDoc = await PDFDocument.load(existingPdfBytes);
+
+  //     // Get the first page of the PDF
+  //     const pages = pdfDoc.getPages();
+  //     const firstPage = pages[0];
+
+  //     const { firstName, lastName, fatherName, cnic, dob, cellNumber, address, totalPayment, startDate } = formData;
+
+  //     const name = firstName + " " + lastName;
+  //     const education = "--";  // No field for education
+  //     const currentTime = new Date();
+  //     const time = `${currentTime.getHours()}:${currentTime.getMinutes()}`;
+  //     const date = `${currentTime.getDate().toString().padStart(2, '0')}-${(currentTime.getMonth() + 1).toString().padStart(2, '0')}-${currentTime.getFullYear()}`;
+
+  //     // Define the data and positions
+  //     const data = {
+  //       "D/o,W/o,S/o": { x: 110, y: 604, value: fatherName.toString() },
+  //       "Name": { x: 395, y: 603, value: name.toString() },
+  //       "DOB": { x: 380, y: 568, value: dob.toString() },
+  //       "CNIC": { x: 95, y: 568, value: cnic.toString() },
+  //       "Ph#": { x: 55, y: 536, value: cellNumber.toString() },
+  //       "Cell": { x: 217, y: 534, value: cellNumber.toString() },
+  //       "Education": { x: 440, y: 534, value: education.toString() },
+  //       "Address": { x: 90, y: 507, value: address.toString() },
+  //       "Fee": { x: 55, y: 476, value: totalPayment.toString() },
+  //       "Time": { x: 150, y: 476, value: time.toString() },
+  //       "S.Date": { x: 305, y: 476, value: startDate.toString() },
+  //       "Date": { x: 460, y: 476, value: date.toString() },
+  //     };
+
+  //     // Add text to the appropriate fields on the first page
+  //     for (const [field, { x, y, value }] of Object.entries(data)) {
+  //       firstPage.drawText(value, {
+  //         x,
+  //         y,
+  //         size: 12,
+  //         color: rgb(0, 0, 0),
+  //       });
+  //     }
+
+  //     // Save the updated PDF
+  //     const pdfBytes = await pdfDoc.save();
+
+  //     // Using FileSaver.js to trigger the download
+  //     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+  //     saveAs(blob, 'admissionForm(filled).pdf');
+
+  //   } catch (error) {
+  //     console.error("Error filling PDF:", error);
+  //   }
+  // }
+
+  async function createInvoicePdf() {
+    try {
+      // Extract invoice data
+      const { totalPayment, discount, paymentReceived, remainingPayment } =
+        formData;
+      const netPayment = totalPayment - totalPayment * (discount / 100);
+
+      // Create a new PDF document
+      const pdfDoc = await PDFDocument.create();
+      const page = pdfDoc.addPage([400, 600]); // A6 page size
+
+      // Load fonts
+      const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+      const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+      // Define colors and font sizes
+      const black = rgb(0, 0, 0);
+      const headerFontSize = 16;
+      const fieldFontSize = 12;
+      const lineSpacing = 20;
+
+      let yPosition = 550; // Start at the top of the page
+
+      // Add Header
+      const pageWidth = 400; // Width of the page (example: A6 size, 400 points)
+
+      // Draw "IQRA Driving School"
+      const text1 = "IQRA Driving School";
+      const text1Width = boldFont.widthOfTextAtSize(text1, headerFontSize);
+      page.drawText(text1, {
+        x: (pageWidth - text1Width) / 2, // Center align
+        y: yPosition,
+        size: headerFontSize,
+        font: boldFont,
+        color: black,
+      });
+      yPosition -= lineSpacing;
+
+      // Draw "INVOICE"
+      const text2 = "INVOICE";
+      const text2Width = boldFont.widthOfTextAtSize(text2, headerFontSize);
+      page.drawText(text2, {
+        x: (pageWidth - text2Width) / 2, // Center align
+        y: yPosition,
+        size: headerFontSize,
+        font: boldFont,
+        color: black,
+      });
+      yPosition -= lineSpacing * 2;
+
+      // Add Invoice Fields
+      const fields = [
+        { label: "Reference ID", value: "REFNUMBR123" },
+        {
+          label: "Total Payment (Without Discount)",
+          value: totalPayment.toString(),
+        },
+        { label: "Discount", value: discount.toString() },
+        { label: "Net Payment (With Discount)", value: netPayment.toString() },
+        { label: "Payment Received", value: paymentReceived.toString() },
+        { label: "Payment Remaining", value: remainingPayment.toString() },
+      ];
+
+      // Draw fields with bold labels
+      fields.forEach(({ label, value }) => {
+        // Draw Label (Bold)
+        page.drawText(`${label}:`, {
+          x: 50,
+          y: yPosition,
+          size: fieldFontSize,
+          font: boldFont, // Use bold font for label
+          color: black,
+        });
+
+        // Draw Value (Regular)
+        page.drawText(value, {
+          x: 300, // Align value next to the label
+          y: yPosition,
+          size: fieldFontSize,
+          font: regularFont, // Use regular font for value
+          color: black,
+        });
+
+        yPosition -= lineSpacing; // Move to the next line
+      });
+
+      // Add Footer
+      page.drawText("Thank you for your payment!", {
+        x: 50,
+        y: 50, // Footer position
+        size: fieldFontSize,
+        font: regularFont,
+        color: black,
+      });
+
+      // Save the PDF
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      const pdfUrl = URL.createObjectURL(blob);
+
+      // Create and load the iframe
+
+      const iframe = document.createElement("iframe");
+      iframe.src = pdfUrl;
+      iframe.style.position = "fixed";
+      iframe.style.top = "0";
+      iframe.style.left = "0";
+      iframe.style.width = "0";
+      iframe.style.height = "0";
+      iframe.style.border = "none";
+
+      document.body.appendChild(iframe);
+
+      iframe.onload = () => {
+        iframe.contentWindow?.focus();
+        iframe.contentWindow?.print();
+      };
+    } catch (error) {
+      console.error("Error creating invoice PDF:", error);
+    }
+  }
+  const cleanUpFunction = () => {
+    setError("");
+    setTimeError("");
+    setDobError("");
+    setIdx("");
+    setPriceIdx("");
+    setRefNo("");
+    setFormData({
+      firstName: generateRandomFirstName(),
+      lastName: generateRandomLastName(),
+      fatherName: "Robert Doe",
+      cnic: generateRandomCnic(),
+      gender: "Male",
+      dob: generateRandomBirthdate(),
+      cellNumber: "+92 300 1234567",
+      address: "123 Main Street, Islamabad",
+      instructor: null,
+      courseduration: "", // Example: 30 days
+      courseTimeDuration: "", // Example: 90 minutes
+      startDate: "", // Example date
+      startTime: "",
+      paymentMethod: "Cash",
+      totalPayment: "", // Total payment in PKR
+      paymentReceived: "", // Received payment in PKR
+      remainingPayment: "", // Remaining payment in PKR
+      manager: user,
+      status: true, // Active status
+      discount: "40", // Discount in PKR
+      course: "",
+      vehicle: "",
+
+      pickanddrop: false,
+      pickanddropCharges: "",
+      paymentDueDate: "",
+    });
+  };
+
+  useEffect(() => {
+    if (!openPreview) cleanUpFunction();
+  }, [openPreview]);
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(formData, "submitted Data>>>>>>>>>");
+    console.log("works");
+    setFormData((prev) => ({
+      ...prev,
+      courseTimeDuration: formData?.courseTimeDuration + additionalTime,
+      paymentDueDate:
+        formData?.remainingPayment > 0 ? formData?.paymentDueDate : null,
+    }));
     const { instructor, startDate, startTime } = formData;
     if (!instructor) {
       toast.error("Choose Instructor first");
@@ -299,49 +572,37 @@ export default function AdmissionCard() {
       toast.error("Instructor is already booked at this time.");
       return;
     }
+
     dispatch(postAdmission({ formData }))
       .then((response) => {
-        if (response.meta.requestStatus === "fulfilled") {
-          setError("");
-          setTimeError("");
-          setDobError("");
-          setFormData({
-            firstName: "",
-            lastName: "",
-            fatherName: "",
-            cnic: "",
-            gender: "",
-            dob: "",
-            cellNumber: "",
-            address: "",
-            instructor: "",
-            courseduration: "",
-            courseTimeDuration: "",
-            startDate: "",
-            startTime: "",
-            paymentMethod: "",
-            totalPayment: "",
-            paymentReceived: "",
-            paymentInInstallments: false,
-            remainingPayment: "",
-            manager: user,
-            status: true,
-          });
+        if (response?.payload?.status === true) {
+          setRefNo(response?.payload?.refNumber);
+          setOpenPreview(true);
         }
       })
       .catch((error) => {
         console.error("Submission failed:", error);
       });
   };
+
   useEffect(() => {
-    dispatch(fetchInstructors());
+    dispatch(fetchInstructors(user.branch._id));
+    dispatch(fetchCourses());
   }, []);
   useEffect(() => {
+    if (!formData?.pickanddrop) {
+      setFormData((prev) => ({ ...prev, pickanddropCharges: "" }));
+    }
+  }, [formData?.pickanddrop]);
+
+  useEffect(() => {
+    const total = formData?.pickanddropCharges
+      ? Number(formData?.pickanddropCharges) + formData?.totalPayment
+      : formData?.totalPayment;
     const discountedTotal = formData.discount
-      ? parseFloat(formData.totalPayment || 0) -
-        parseFloat(formData.totalPayment || 0) *
-          (parseFloat(formData.discount || 0) / 100)
-      : parseFloat(formData.totalPayment || 0);
+      ? parseFloat(total || 0) -
+        parseFloat(total || 0) * (parseFloat(formData.discount || 0) / 100)
+      : parseFloat(total || 0);
     const remaining =
       discountedTotal - parseFloat(formData.paymentReceived || 0);
 
@@ -350,7 +611,9 @@ export default function AdmissionCard() {
       remainingPayment: remaining >= 0 ? remaining : 0,
     }));
   }, [formData.totalPayment, formData.paymentReceived, formData.discount]);
-
+  const total = formData?.pickanddropCharges
+    ? Number(formData?.pickanddropCharges) + formData?.totalPayment
+    : formData?.totalPayment;
   return (
     <>
       <div className="relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded-lg bg-blueGray-100 border-0">
@@ -364,6 +627,9 @@ export default function AdmissionCard() {
         <div className="flex-auto px-4 lg:px-10 py-10 pt-0">
           <form onSubmit={handleSubmit}>
             <div className="flex flex-wrap mt-6">
+              <h6 className="text-blueGray-700 text-center text-lg w-full pl-4 mb-6 font-bold">
+                Peronal Info
+              </h6>
               <div className="w-full lg:w-6/12 px-4">
                 <div className="relative w-full mb-3">
                   <label
@@ -537,48 +803,104 @@ export default function AdmissionCard() {
                   />
                 </div>
               </div>
+              <h6 className="text-blueGray-700 text-center text-lg w-full pl-4 my-6 font-bold">
+                Course
+              </h6>
               <div className="w-full lg:w-6/12 px-4">
                 <div className="relative w-full mb-3">
-                  <div className="flex justify-between gap-2">
-                    <button
-                     onClick={() => {
-                      if (
-                        formData?.courseTimeDuration > 0 &&
-                        formData?.courseduration > 0
-                      ) {
-                        setOpen(true);
-                      } else {
-                        toast.error(
-                          "Fill Course Duration and Time Duration"
-                        );
-                      }
-                    }}
-                      className="px-6 py-3 bg-lightBlue-600 text-white font-bold rounded-md shadow hover:bg-lightBlue-700 transition-all"
-                    >
-                      Check Availability
-                    </button>
-                  </div>
+                  <label
+                    className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                    htmlFor="course"
+                  >
+                    Course
+                  </label>
+                  <select
+                    required
+                    id="course"
+                    name="course"
+                    value={idx}
+                    onChange={handleChange}
+                    className="border-0 px-3 py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                  >
+                    <option value="" disabled>
+                      Select Course
+                    </option>
+                    {courses.map((course, index) => (
+                      <option value={index} key={course?._id}>
+                        {course?.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
-
+              <div className="w-full lg:w-6/12 px-4">
+                <div className="relative w-full mb-3">
+                  <label
+                    className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                    htmlFor="vehicle"
+                  >
+                    Vehicle
+                  </label>
+                  <input
+                    required
+                    name="vehicle"
+                    readOnly
+                    value={formData?.vehicle}
+                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                  />
+                </div>
+              </div>
               <div className="w-full lg:w-6/12 px-4">
                 <div className="relative w-full mb-3">
                   <label
                     className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
                     htmlFor="courseduration"
                   >
-                    Course Duration
+                    Duration
                   </label>
-                  <input
+                  <select
                     required
-                    type="number"
+                    id="courseduration"
                     name="courseduration"
-                    min={1}
-                    value={formData.courseduration}
+                    value={priceIdx}
                     onChange={handleChange}
-                    placeholder="Enter Course Duration"
-                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
-                  />
+                    className="border-0 px-3 py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                  >
+                    <option value="" disabled>
+                      Select Duration (Days)
+                    </option>
+
+                    {courses[idx]?.pricelist.map((course, index) => (
+                      <option value={index} key={course?._id}>
+                        {course?.days} Day{`${course?.days > 1 ? "s" : ""}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <h6 className="text-blueGray-700 text-center text-lg w-full pl-4 my-6 font-bold">
+                Instructor
+              </h6>
+              <div className="w-full lg:w-6/12 px-4">
+                <div className="relative w-full mb-3">
+                  <div className="flex justify-between gap-2">
+                    <button
+                      onClick={() => {
+                        if (
+                          formData?.courseTimeDuration > 0 &&
+                          formData?.courseduration > 0
+                        ) {
+                          setOpen(true);
+                        } else {
+                          toast.error("Fill Course Duration and Time Duration");
+                        }
+                      }}
+                      type="button"
+                      className="px-6 py-3 bg-lightBlue-600 item-self mx-auto text-white font-bold rounded-md shadow hover:bg-lightBlue-700 transition-all"
+                    >
+                      Book Instructor/Slots
+                    </button>
+                  </div>
                 </div>
               </div>
               <div className="w-full lg:w-6/12 px-4">
@@ -590,20 +912,17 @@ export default function AdmissionCard() {
                     Time Duration/Day
                   </label>
                   <input
+                    readOnly
                     required
                     type="number"
                     id="courseTimeDuration"
                     name="courseTimeDuration"
-                    value={formData.courseTimeDuration}
-                    onChange={handleChange}
-                    min={1}
-                    step={1}
-                    placeholder="Enter Time Duration/Day"
+                    value={formData.courseTimeDuration + additionalTime}
                     className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
                   />
                 </div>
               </div>
-              <div className="w-full lg:w-6/12 px-4">
+              <div className="w-full lg:w-4/12 px-4">
                 <div className="relative w-full mb-3">
                   <label
                     className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
@@ -612,6 +931,7 @@ export default function AdmissionCard() {
                     Start Date
                   </label>
                   <input
+                    readOnly
                     required
                     type="date"
                     id="startDate"
@@ -628,7 +948,7 @@ export default function AdmissionCard() {
                   )}
                 </div>
               </div>
-              <div className="w-full lg:w-6/12 px-4">
+              <div className="w-full lg:w-4/12 px-4">
                 <div className="relative w-full mb-3">
                   <label
                     className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
@@ -637,7 +957,7 @@ export default function AdmissionCard() {
                     Start Time
                   </label>
                   <input
-                    // readOnly
+                    readOnly
                     required
                     type="time"
                     id="startTime"
@@ -652,7 +972,33 @@ export default function AdmissionCard() {
                   )}
                 </div>
               </div>
-              <div className="w-full lg:w-6/12 px-4">
+              <div className="w-full lg:w-4/12 px-4">
+                <div className="relative w-full mb-3">
+                  <label
+                    className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                    htmlFor="additionalTime"
+                  >
+                    Additional Time
+                  </label>
+                  <input
+                    type="number"
+                    id="additionalTime"
+                    name="additionalTime"
+                    value={additionalTime}
+                    onChange={handleChange}
+                    min={0}
+                    placeholder="Enter Additional Time (mins)"
+                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                  />
+                  {timeError && (
+                    <p className="text-red-500 text-xs mt-1">{timeError}</p>
+                  )}
+                </div>
+              </div>
+              <h6 className="text-blueGray-700 text-center text-lg w-full pl-4 my-6 font-bold">
+                Payment
+              </h6>
+              <div className="w-full lg:w-4/12 px-4">
                 <div className="relative w-full mb-3">
                   <label
                     className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
@@ -679,6 +1025,49 @@ export default function AdmissionCard() {
               </div>
               <div className="w-full lg:w-4/12 px-4">
                 <div className="relative w-full mb-3">
+                  <div className="flex items-center mt-10">
+                    <input
+                      id="pickanddrop"
+                      name="pickanddrop"
+                      type="checkbox"
+                      checked={formData.pickanddrop}
+                      onChange={handleChange}
+                      aria-describedby="comments-description"
+                      className="h-6 w-6 rounded border border-gray-300 bg-white checked:border-indigo-600 checked:bg-indigo-600 focus:outline-none"
+                    />
+                    <label
+                      htmlFor="pickanddrop"
+                      className="uppercase text-blueGray-600 text-xs font-bold px-2"
+                    >
+                      Pick And Drop
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div className="w-full lg:w-4/12 px-4">
+                {formData?.pickanddrop && (
+                  <div className="relative w-full mb-3">
+                    <label
+                      className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                      htmlFor="pickanddropcharges"
+                    >
+                      Pick And Drop Charges
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      id="pickanddropcharges"
+                      name="pickanddropcharges"
+                      value={formData.pickanddropCharges}
+                      placeholder="Enter Pick and Charges"
+                      onChange={handleChange}
+                      className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                    />
+                  </div>
+                )}
+              </div>
+              <div className="w-full lg:w-4/12 px-4">
+                <div className="relative w-full mb-3">
                   <label
                     className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
                     htmlFor="totalPayment"
@@ -687,12 +1076,13 @@ export default function AdmissionCard() {
                   </label>
                   <input
                     required
+                    readOnly
                     type="number"
                     min={1}
+                    id="totalPayment"
                     name="totalPayment"
-                    value={formData.totalPayment}
+                    value={total}
                     onChange={handleChange}
-                    placeholder="Enter Total Payment"
                     className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
                   />
                 </div>
@@ -719,25 +1109,24 @@ export default function AdmissionCard() {
                 </div>
               </div>
               <div className="w-full lg:w-4/12 px-4">
-                <div className="relative w-full mb-3">
-                  <div className="flex items-center mt-10">
-                    <input
-                      id="paymentInInstallments"
-                      name="paymentInInstallments"
-                      type="checkbox"
-                      checked={formData.paymentInInstallments}
-                      onChange={handleChange}
-                      aria-describedby="comments-description"
-                      className="h-6 w-6 rounded border border-gray-300 bg-white checked:border-indigo-600 checked:bg-indigo-600 focus:outline-none"
-                    />
+                {formData?.remainingPayment > 0 && (
+                  <div className="relative w-full mb-3">
                     <label
-                      htmlFor="paymentInInstallments"
-                      className="uppercase text-blueGray-600 text-xs font-bold px-2"
+                      className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                      htmlFor="paymentDueDate"
                     >
-                      Payment In Installments
+                      Due Date For Remaining Pay
                     </label>
+                    <input
+                      type="date"
+                      id="paymentDueDate"
+                      name="paymentDueDate"
+                      value={formData?.paymentDueDate}
+                      onChange={handleChange}
+                      className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                    />
                   </div>
-                </div>
+                )}
               </div>
               <div className="w-full lg:w-4/12 px-4">
                 <div className="relative w-full mb-3">
@@ -780,8 +1169,7 @@ export default function AdmissionCard() {
               <div className="w-full lg:w-4/12 px-4">
                 <p className="mt-8">
                   Discounted Total:{" "}
-                  {formData.totalPayment -
-                    formData.totalPayment * (formData?.discount / 100) || 0}
+                  {total - total * (formData?.discount / 100) || 0}
                 </p>
               </div>
             </div>
@@ -789,7 +1177,7 @@ export default function AdmissionCard() {
               <button
                 type="submit"
                 disabled={registerLoading}
-                class="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
+                className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
               >
                 {registerLoading ? (
                   <svg
@@ -816,17 +1204,36 @@ export default function AdmissionCard() {
           </form>
         </div>
       </div>
-      {formData?.courseduration && formData?.courseTimeDuration && (
-        <AvailabilityModal
-          open={open}
-          setOpen={setOpen}
-          courseduration={formData?.courseduration}
-          courseTimeDuration={formData?.courseTimeDuration}
-          changeStartDateTime={changeStartDateTime}
-          instructorAvailability={formData?.instructor?.availability}
-          changeInstructor={changeInstructor}
+      {openPreview && (
+        <PDFModal
+          formData={formData}
+          refNo={refNo}
+          open={openPreview}
+          setOpen={setOpenPreview}
         />
       )}
+      {formData?.courseduration &&
+        formData?.courseTimeDuration &&
+        formData?.firstName &&
+        formData?.lastName &&
+        formData?.vehicle &&
+        formData?.address &&
+        formData?.cellNumber && (
+          <AvailabilityModal
+            open={open}
+            setOpen={setOpen}
+            courseduration={formData?.courseduration}
+            courseTimeDuration={formData?.courseTimeDuration}
+            changeStartDateTime={changeStartDateTime}
+            instructorAvailability={formData?.instructor?.availability}
+            name={formData?.firstName + " " + formData?.lastName}
+            car={formData?.vehicle}
+            phone={formData?.cellNumber}
+            area={formData?.address}
+            changeInstructor={changeInstructor}
+            additionalTime={additionalTime}
+          />
+        )}
     </>
   );
 }

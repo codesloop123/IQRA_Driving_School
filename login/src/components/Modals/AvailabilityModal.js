@@ -63,6 +63,11 @@ export default function AvailabilityModal({
   courseTimeDuration,
   changeStartDateTime,
   changeInstructor,
+  name,
+  area,
+  phone,
+  car,
+  additionalTime,
 }) {
   const [modalData, setModalData] = useState([]);
   const [openModal, setOpenModal] = useState(false);
@@ -71,28 +76,23 @@ export default function AvailabilityModal({
   const { instructors, isInstructorLoading } = useSelector(
     (state) => state.instructor
   );
+  const { user } = useSelector((state) => state.auth);
   const [selectedInstructor, setSelectedInstructor] = useState(null);
   useEffect(() => {
-    dispatch(fetchInstructors());
+    dispatch(fetchInstructors(user.branch._id));
   }, [dispatch]);
-
 
   const [highlightedEvents, setHighlightedEvents] = useState([]);
   const [newEvents, setNewEvents] = useState([]);
+  const stableChangeInstructor = useCallback(changeInstructor, [
+    changeInstructor,
+  ]);
 
-
-
-  const stableChangeInstructor = useCallback(changeInstructor, [changeInstructor]);
-  useEffect(() => {
-    if (selectedInstructor && typeof stableChangeInstructor === "function") {
-      stableChangeInstructor(selectedInstructor);
-    }
-  }, [selectedInstructor, stableChangeInstructor]);
-
-
-
-
-
+  // useEffect(() => {
+  //   if (selectedInstructor && typeof stableChangeInstructor === "function") {
+  //     stableChangeInstructor(selectedInstructor);
+  //   }
+  // }, [selectedInstructor, stableChangeInstructor]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -106,79 +106,90 @@ export default function AvailabilityModal({
         console.error("Instructor not found!");
         return;
       }
-      setSelectedInstructor(prev => selectedInstructor_1);
-      console.log(selectedInstructor);
+      setSelectedInstructor(selectedInstructor_1);
+      stableChangeInstructor(selectedInstructor_1);
 
       const filteredSlots = selectedInstructor_1.bookedSlots || [];
       if (filteredSlots.length > 0) {
         const mergedSlots = mergeSlots(filteredSlots);
+        // Mapping mergedSlots to create a newEventsList for the calendar
+        const newEventsList = mergedSlots.map((slot) => {
+          // Create a Date object for the date and set the start and end times
+          const startDate = new Date(slot.date);
+          const [startHour, startMinute] = slot.startTime
+            .split(":")
+            .map(Number);
+          startDate.setHours(startHour, startMinute, 0, 0); // Set hours and minutes
 
-      const newEventsList = mergedSlots.map((slot) => ({
-        title: `Booked ${slot.startTime} to ${slot.endTime}`,
-        start: new Date(`${slot.date}T${slot.startTime}`),
-        end: new Date(`${slot.date}T${slot.endTime}`),
-        color: generateRandomColor(),
-        tooltip: `Booked from ${slot.startTime} to ${slot.endTime}`,
-      }));
+          const endDate = new Date(slot.date);
+          const [endHour, endMinute] = slot.endTime.split(":").map(Number);
+          endDate.setHours(endHour, endMinute, 0, 0); // Set hours and minutes
 
-      setHighlightedEvents(newEventsList);
-    }
-    else{
-      setHighlightedEvents([]);
-    }
+          return {
+            title: `Booked ${slot.startTime} to ${slot.endTime}`,
+            start: startDate,
+            end: endDate,
+            color: generateRandomColor(),
+            tooltip: `Booked from ${slot.startTime} to ${slot.endTime}`,
+          };
+        });
+
+        setHighlightedEvents(newEventsList);
+      } else {
+        setHighlightedEvents([]);
+      }
       setNewEvents([]);
     } else {
       console.error("Unhandled change for:", name);
     }
   };
 
-
-
-
-
-
-
   const handleSelectSlot = ({ start }) => {
-    console.log("Slot input:", start);
     if (!start) {
       console.error("Invalid start time received from slot selection.");
       return;
     }
     const startDateTime = new Date(start);
+    const positionInWeek = startDateTime.getDay();
+    if (positionInWeek === 0) {
+      toast.error("Instructors are not available on Sundays");
+      return;
+    }
     const rangeEvents = [];
-    let x = courseTimeDuration / 15;
+    let x = parseInt((courseTimeDuration + additionalTime) / 15);
+    let y = courseduration + Math.floor((positionInWeek + courseduration) / 7);
     for (let verticalOffset = 0; verticalOffset < x; verticalOffset++) {
-      let horizontalOffset = 0; // Initialize the loop variable
-      let i = 0;
-      
-      while (i < courseduration) {
-        const eventStart = new Date(startDateTime);
-        const eventEnd = new Date(startDateTime);
-      
-        eventStart.setMinutes(startDateTime.getMinutes() + verticalOffset * 15);
-        eventEnd.setMinutes(eventStart.getMinutes() + 15);
-      
-        let adjustedDate = startDateTime.getDate() + horizontalOffset;
-        eventStart.setDate(adjustedDate);
-        eventEnd.setDate(adjustedDate);
-      
-        // Check for Sunday (day 0)
+      for (let horizontalOffset = 0; horizontalOffset < y; horizontalOffset++) {
+        const eventStart = new Date(startDateTime.getTime()); // Clone startDateTime
+        const eventEnd = new Date(startDateTime.getTime()); // Clone startDateTime
+
+        eventStart.setMinutes(eventStart.getMinutes() + verticalOffset * 15);
+        eventEnd.setMinutes(eventEnd.getMinutes() + 15 + verticalOffset * 15);
+        // Safely adjust the date
+        eventStart.setDate(eventStart.getDate() + horizontalOffset);
+        eventEnd.setDate(eventEnd.getDate() + horizontalOffset);
+
+        // Skip Sundays
         if (eventStart.getDay() === 0) {
-          horizontalOffset++; // Increment before continuing to avoid infinite loop
           continue;
         }
-      
-        let myEventsList = highlightedEvents;
+
+        let myEventsList = highlightedEvents || []; // Ensure highlightedEvents is defined
         if (myEventsList.length > 0) {
-          const clash = myEventsList.some((existingEvent) => 
-            (eventStart < existingEvent.end && eventEnd > existingEvent.start)
+          const clash = myEventsList.some(
+            (existingEvent) =>
+              (eventStart >= new Date(existingEvent.start) &&
+                eventStart < new Date(existingEvent.end)) ||
+              (eventEnd > new Date(existingEvent.start) &&
+                eventEnd <= new Date(existingEvent.end))
           );
+
           if (clash) {
-            toast.error(`Instructor is already booked at this time.`);
+            toast.error("Instructor is already booked at this time.");
             return;
           }
         }
-      
+
         rangeEvents.push({
           title: `Booked ${eventStart.toLocaleString()} - ${eventEnd.toLocaleString()}`,
           start: eventStart,
@@ -186,16 +197,14 @@ export default function AvailabilityModal({
           color: "#FFD700",
           tooltip: `Booked: ${eventStart.toLocaleTimeString()} - ${eventEnd.toLocaleTimeString()}`,
         });
-      
-        // Increment the loop variable
-        horizontalOffset++;
-        i++;
       }
     }
 
     setNewEvents(rangeEvents);
-    const selectedDate = new Date(rangeEvents[0].start);
-    changeStartDateTime(selectedDate,rangeEvents[0].end);
+    if (rangeEvents.length > 0) {
+      const selectedDate = new Date(rangeEvents[0].start);
+      changeStartDateTime(selectedDate, rangeEvents[0].end);
+    }
   };
 
   function mergeSlots(slots) {
@@ -257,16 +266,16 @@ export default function AvailabilityModal({
             <DialogPanel className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:scale-100">
               <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                 <div className="sm:flex sm:items-start justify-center">
-                  <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                  <div className="mt-1 text-center sm:ml-4 sm:mt-0 sm:text-left">
                     <DialogTitle
                       as="h3"
-                      className="text-base font-semibold text-gray-900"
+                      className="text-base font-semibold text-center mb-8 text-gray-900"
                     >
                       Instructor Availability
                     </DialogTitle>
 
-                    <div className="w-full lg:w-6/12 px-4">
-                      <div className="relative w-full mb-3">
+                    <div className="w-full lg:w-full px-4 flex flex-row justify-between">
+                      <div className="relative mb-3" style={{ width: "33%" }}>
                         <div className="flex justify-between gap-2">
                           <label
                             className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
@@ -281,7 +290,7 @@ export default function AvailabilityModal({
                           name="instructor"
                           value={selectedInstructor?._id || ""}
                           onChange={handleChange}
-                          className="border-0 px-3 py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                          className="border-0 px-3 w-full py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none  ease-linear transition-all duration-150"
                         >
                           <option value="" disabled>
                             Select Instructor
@@ -292,6 +301,24 @@ export default function AvailabilityModal({
                             </option>
                           ))}
                         </select>
+                      </div>
+                      <div className="relative  mb-3">
+                        <h4 className="block uppercase text-blueGray-600 text-xs font-bold mb-2">
+                          Details
+                        </h4>
+                        <p className="block uppercase text-xs  mb-1">
+                          Name: {name}
+                        </p>
+                        <p className="block uppercase text-xs  mb-1">
+                          Phone Num: {phone}
+                        </p>
+
+                        <p className="block uppercase text-xs  mb-1">
+                          Area: {area}
+                        </p>
+                        <p className="block uppercase text-xs  mb-1">
+                          Car: {car}
+                        </p>
                       </div>
                     </div>
 

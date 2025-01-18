@@ -1,7 +1,11 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import axiosInstance from "axiosInstance";
 import { toast } from "react-toastify";
-import { setInstructorLoader, setInstructors } from "./instructorSlice";
+import {
+  setInstructorLoader,
+  setInstructors,
+  setSlots,
+} from "./instructorSlice";
 export const postInstructor = createAsyncThunk(
   "instructor/post",
   async ({ formData }, { dispatch }) => {
@@ -24,10 +28,48 @@ export const postInstructor = createAsyncThunk(
 );
 export const fetchInstructors = createAsyncThunk(
   "instructor/get",
+  async (id, { dispatch }) => {
+    try {
+      dispatch(setInstructorLoader(true));
+      const response = await axiosInstance.get(`/instructors/fetch/${id}`);
+
+      if (response.status) {
+        console.log(response.data, "response data");
+        dispatch(setInstructors(response.data.instructors));
+      }
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      dispatch(setInstructorLoader(false));
+    }
+  }
+);
+
+export const fetchSlots = createAsyncThunk(
+  "slots/get",
+  async (id, { dispatch }) => {
+    try {
+      dispatch(setInstructorLoader(true));
+      const response = await axiosInstance.get(
+        `/instructors/fetch/slots/${id}`
+      );
+
+      if (response.status) {
+        dispatch(setSlots(response.data.lessons));
+      }
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      dispatch(setInstructorLoader(false));
+    }
+  }
+);
+export const fetchAllInstructors = createAsyncThunk(
+  "instructor/get",
   async (_, { dispatch }) => {
     try {
       dispatch(setInstructorLoader(true));
-      const response = await axiosInstance.get("/instructors/fetch");
+      const response = await axiosInstance.get(`/instructors/fetch`);
 
       if (response.status) {
         console.log(response.data, "response data");
@@ -64,7 +106,7 @@ export const updateInstructorStatus = createAsyncThunk(
     try {
       dispatch(setInstructorLoader(true));
       const response = await axiosInstance.put(`/instructors/${id}`, {
-        status
+        status,
       });
       if (response.status) {
         console.log(response, "response data");

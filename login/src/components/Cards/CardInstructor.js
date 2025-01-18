@@ -18,7 +18,7 @@ export default function CardInstructor() {
     branch: null,
     vehicle: null,
     status: true,
-    lecturerCode:"",
+    lecturerCode: "",
     availability: { startTime: "09:00", endTime: "17:00" },
   });
   console.log(formData, "vehicle formdata>>>>>>>>>>>>>");
@@ -27,12 +27,12 @@ export default function CardInstructor() {
     if (name === "branch") {
       setFormData({
         ...formData,
-        branch: JSON.parse(value),
+        branch: branches.find((branch) => branch._id === value),
       });
     } else if (name === "vehicle") {
       setFormData({
         ...formData,
-        vehicle: JSON.parse(value),
+        vehicle: vehicles.find((vehicle) => vehicle._id === value),
       });
     } else {
       setFormData({
@@ -48,9 +48,10 @@ export default function CardInstructor() {
         name: "",
         email: "",
         branch: null,
-        vehicle: "",
+        vehicle: null,
         availability: { startTime: "09:00", endTime: "17:00" },
         status: true,
+        lecturerCode: "",
       });
     });
   };
@@ -108,7 +109,6 @@ export default function CardInstructor() {
                 </div>
               </div>
 
-
               <div className="w-full lg:w-6/12 px-4">
                 <div className="relative w-full mb-3">
                   <label
@@ -128,7 +128,6 @@ export default function CardInstructor() {
                 </div>
               </div>
 
-
               <div className="w-full lg:w-6/12 px-4">
                 <div className="relative w-full mb-3">
                   <label
@@ -140,7 +139,7 @@ export default function CardInstructor() {
                   <select
                     id="branch-select"
                     name="branch"
-                    value={formData?.branch?.name || ""}
+                    value={formData?.branch?._id || ""}
                     onChange={handleChange}
                     className="border-0 px-3 py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
                   >
@@ -148,7 +147,7 @@ export default function CardInstructor() {
                       Select Branch
                     </option>
                     {branches.map((branch) => (
-                      <option key={branch.id} value={JSON.stringify(branch)}>
+                      <option key={branch._id} value={branch._id}>
                         {branch.name}
                       </option>
                     ))}
@@ -176,7 +175,7 @@ export default function CardInstructor() {
                       Select Vehicle
                     </option>
                     {vehicles.map((vehicle) => (
-                      <option key={vehicle.id} value={JSON.stringify(vehicle)}>
+                      <option key={vehicle._id} value={vehicle._id}>
                         {vehicle.name}-{vehicle.number}
                       </option>
                     ))}
