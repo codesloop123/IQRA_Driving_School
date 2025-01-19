@@ -11,10 +11,6 @@ const PDFModal = ({ formData, refNo, open, setOpen }) => {
     setPreviewUrl(null); // Reset preview
   };
 
-
-
-
-  console.log(formData);
   async function generatePDF() {
     try {
       // Load the existing PDF file from the public folder
@@ -102,51 +98,6 @@ const PDFModal = ({ formData, refNo, open, setOpen }) => {
     }
   }
 
-
-  const generateThermalFile = () => {
-    const currentTime = new Date();
-    const date = `${currentTime.getDate().toString().padStart(2, "0")}-${(
-      currentTime.getMonth() + 1
-    )
-      .toString()
-      .padStart(2, "0")}-${currentTime.getFullYear()}`;
-    const time = `${currentTime.getHours()}:${currentTime.getMinutes()}`;
-
-    const thermalData = `
-      IQRA Driving School - Deposit Slip
-      -----------------------------------
-      Date: ${date}       Time: ${time}
-      Ref No: ${refNo}
-      Received from: ${formData?.firstName} ${formData?.lastName}
-      CNIC: ${formData?.cnic}
-      Contact: ${formData?.cellNumber}
-      Address: ${formData?.address}
-
-      The Total Payment: ${formData?.totalPayment}
-      payment received: ${formData?.paymentReceived || "N/A"}
-      Payment Method: ${formData?.paymentMethod}
-      Discount: ${formData?.discount}%
-      Payment Due: ${formData?.remainingPayment}
-      Start On: ${formData?.startDate}
-
-      -----------------------------------
-      Advance Fee Not Refundable. 
-      Not Valid For Court Use.
-    `;
-
-    const blob = new Blob([thermalData], { type: "text/plain" });
-    return blob;
-  };
-
-  const downloadThermalFile = () => {
-    const blob = generateThermalFile();
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "thermal-deposit-slip.txt";
-    link.click();
-    URL.revokeObjectURL(link.href);
-  };
-
   useEffect(() => {
     generatePDF();
   }, []);
@@ -208,13 +159,6 @@ const PDFModal = ({ formData, refNo, open, setOpen }) => {
                       className="my-3 bg-green-500 text-white inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm sm:mt-0 sm:w-auto"
                     >
                       Download PDF
-                    </button>
-                    <button
-                      onClick={downloadThermalFile}
-                      style={{ backgroundColor: "#4bb543" }}
-                      className="my-3 bg-green-500 text-white inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm sm:mt-0 sm:w-auto"
-                    >
-                      Download Thermal Slip
                     </button>
                   </div>
                 </Dialog.Panel>

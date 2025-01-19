@@ -9,7 +9,6 @@ const ObjectId = mongoose.Types.ObjectId;
 router.get("/payments/:branch", async (req, res) => {
   const { branch } = req.params;
   const today = new Date();
-  console.log(branch);
   try {
     // Fetch admissions with a balance due, where the course is ongoing, and the branch matches
     const admissions = await Admission.aggregate([

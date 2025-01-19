@@ -19,12 +19,12 @@ import { fetchAlert, patchAlert } from "store/alerts/actions";
 export default function AlertTable({ color, title }) {
   const dispatch = useDispatch();
   const { isAlertLoading, alerts } = useSelector((state) => state.alert);
+  // const [idx, setIdx] = useState(0); to be added in attendance
   const [inputValue, setInputValue] = useState();
   const [dueDate, setDueDate] = useState();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
   const { user } = useSelector((state) => state.auth);
-  console.log("here is:",alerts);
   const openModal = (row) => {
     setSelectedRow(row);
     setIsModalOpen(true);
@@ -37,7 +37,6 @@ export default function AlertTable({ color, title }) {
 
   useEffect(() => {
     console.log(user);
-
     dispatch(fetchAlert(user?.branch));
   }, []);
 
@@ -257,7 +256,7 @@ export default function AlertTable({ color, title }) {
                           : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
                       }
                     >
-                      Branch Name
+                      instructor
                     </th>
                     <th
                       className={
@@ -382,7 +381,7 @@ export default function AlertTable({ color, title }) {
                         {alert?.cnic}
                       </td>
                       <td className="border-t-0 px-6  align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        {alert?.manager?.branch?.name}
+                        {alert?.instructor?.name}
                       </td>
                       <td className="border-t-0 px-6  align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                         {alert?.paymentMethod}
