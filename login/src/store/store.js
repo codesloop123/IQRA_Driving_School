@@ -9,7 +9,6 @@ import vehicleSlice from "./vehicle/vehicleSlice";
 import instructorSlice from "./instructor/instructorSlice";
 import admissionSlice from "./admission/admissionSlice";
 import alertSlice from "./alerts/alertSlice";
-import Admission from "views/admin/Admission";
 import attendanceSlice from "./attendance/attendanceSlice";
 import courseSlice from "./courses/courseSlice";
 import notificationSlice from "./notifications/notificationSlice";

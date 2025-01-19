@@ -4,6 +4,7 @@ const router = express.Router();
 const Instructor = require("../models/Instructor");
 const Notification = require("../models/Notification");
 const cron = require("node-cron");
+const mongoose = require("mongoose");
 cron.schedule("0 0 * * *", async () => {
   // This cron job runs every day at midnight
   await checkOverduePayments();
@@ -298,38 +299,6 @@ router.get("/:id", async (req, res) => {
     res.status(500).json({ msg: "Server error" });
   }
 });
-// PUT route to toggle student's active status
-router.put("/:branch/:id/status", async (req, res) => {
-  const { branch, id } = req.params;
-  const { isActive } = req.body; // New status from the frontend
-
-  try {
-    const admission = await Admission.findOne({ _id: id, branch });
-
-    if (!admission) {
-      return res.status(404).json({ msg: "Admission not found" });
-    }
-
-    admission.isActive = isActive;
-
-    if (!isActive) {
-      // Student is being paused, set the pausedAt timestamp
-      admission.pausedAt = new Date().getDate();
-    } else {
-      // Student is resuming, clear the pausedAt field
-      admission.pausedAt = null;
-    }
-
-    await admission.save();
-    res.status(200).json({
-      msg: "Student status updated successfully",
-      isActive: admission.isActive,
-    });
-  } catch (error) {
-    console.error("Error updating status:", error);
-    res.status(500).json({ msg: "Server error" });
-  }
-});
 
 //Route to fetch admissions finances
 router.get("/:branch/finances", async (req, res) => {
@@ -420,14 +389,125 @@ router.get("/:branch/instructor/:instructorName", async (req, res) => {
     res.status(500).json({ msg: "Server error" });
   }
 });
+
+// Route to get booked slots for an instructor in a specific branch
+router.get("/:branch/:instructorId/slots", async (req, res) => {
+  const { branch, instructorId } = req.params;
+
+  try {
+    // Find admissions by instructor and branch with their booked time slots
+    const admissions = await Admission.find({
+      branch,
+      instructor: instructorId,
+    });
+
+    // Extract all time slots from admissions
+    const bookedSlots = admissions.flatMap((admission) => admission.timeSlots);
+
+    res.status(200).json(bookedSlots);
+  } catch (error) {
+    console.error("Error fetching booked slots:", error);
+    res.status(500).json({ msg: "Server error" });
+  }
+});
+
+// Route to update only (firstName,lastName,fatherName,cnic,gender,dob,cellNumber,address) of the students enrolled 
+router.put("/update/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    // Validate MongoDB ID format
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      console.log("Invalid MongoDB ID format");
+      return res.status(400).json({ message: "Invalid admission ID format" });
+    }
+    // Find existing admission
+    const existingAdmission = await Admission.findById(id);
+    if (!existingAdmission) {
+      console.log("Admission not found");
+      return res.status(404).json({ message: "Admission not found" });
+    }
+    // Filter out undefined and empty values from request body
+    const updatedData = Object.fromEntries(
+      Object.entries(req.body).filter(
+        ([_, value]) => value !== undefined && value !== ""
+      )
+    );
+    // Merge existing data with updates
+    const finalUpdatedData = {
+      ...existingAdmission.toObject(),
+      ...updatedData,
+      updatedAt: new Date(),
+    };
+
+    // Update admission
+    const updatedAdmission = await Admission.findByIdAndUpdate(
+      id,
+      finalUpdatedData,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (!updatedAdmission) {
+      return res.status(400).json({ message: "Update failed" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Admission updated successfully",
+      data: updatedAdmission,
+    });
+  } catch (error) {
+    console.error("Error updating admission:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+});
+// PUT route to toggle student's active status
+router.put("/:branch/:id/status", async (req, res) => {
+  console.log("/:branch/:id/status");
+  const { branch, id } = req.params;
+  const { isActive } = req.body; // New status from the frontend
+
+  try {
+    const admission = await Admission.findOne({ _id: id, branch });
+
+    if (!admission) {
+      return res.status(404).json({ msg: "Admission not found" });
+    }
+
+    admission.isActive = isActive;
+
+    if (!isActive) {
+      // Student is being paused, set the pausedAt timestamp
+      admission.pausedAt = new Date().getDate();
+    } else {
+      // Student is resuming, clear the pausedAt field
+      admission.pausedAt = null;
+    }
+
+    await admission.save();
+    res.status(200).json({
+      msg: "Student status updated successfully",
+      isActive: admission.isActive,
+    });
+  } catch (error) {
+    console.error("Error updating status:", error);
+    res.status(500).json({ msg: "Server error" });
+  }
+});
+
 router.put("/:branch/:admissionId", async (req, res) => {
+  console.log("/:branch/:admissionId");
   const { branch, admissionId } = req.params;
   const { timeSlots } = req.body;
-
   if (!timeSlots || !Array.isArray(timeSlots)) {
     return res.status(400).json({ msg: "Invalid or missing timeSlots" });
   }
-
   try {
     // Find the admission document by branch and admissionId
     const admission = await Admission.findOne({ admissionId, branch });
@@ -451,27 +531,6 @@ router.put("/:branch/:admissionId", async (req, res) => {
       .json({ msg: "Events updated successfully", updatedAdmission });
   } catch (error) {
     console.error("Error updating admission:", error);
-    res.status(500).json({ msg: "Server error" });
-  }
-});
-
-// Route to get booked slots for an instructor in a specific branch
-router.get("/:branch/:instructorId/slots", async (req, res) => {
-  const { branch, instructorId } = req.params;
-
-  try {
-    // Find admissions by instructor and branch with their booked time slots
-    const admissions = await Admission.find({
-      branch,
-      instructor: instructorId,
-    });
-
-    // Extract all time slots from admissions
-    const bookedSlots = admissions.flatMap((admission) => admission.timeSlots);
-
-    res.status(200).json(bookedSlots);
-  } catch (error) {
-    console.error("Error fetching booked slots:", error);
     res.status(500).json({ msg: "Server error" });
   }
 });
