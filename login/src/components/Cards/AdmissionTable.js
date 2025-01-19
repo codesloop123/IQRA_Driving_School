@@ -112,14 +112,49 @@ export default function AdmissionTable({ color = "light", title }) {
     return instructor ? instructor.name : "Not found.";
   };
 
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "admissions.csv";
+    link.click();
+  };
+  const [sortByProperty, setSortByProperty] = useState({
+      key: null,
+      direction: null
+    });
+    const handleSort = (column) => {
+      if (sortByProperty.key === column) {
+        setSortByProperty({
+          key: column,
+          direction: sortByProperty.direction === 'ascending' ? 'descending' : 'ascending',
+        })
+      }
+      else {
+        setSortByProperty({
+          key: column,
+          direction: 'descending'
+        })
+      }
+    }
+    console.log(admissions)  
+    const sortedAdmissions = [...admissions].sort((a, b) => {
+      const { key, direction } = sortByProperty;
+      if (!key)
+        {
+          const dateA = new Date(a.startDate);
+          const dateB = new Date(b.startDate);
+          return dateB - dateA ;
+        } 
+      const order = direction === "ascending" ? 1 : -1;
+      return a[key] > b[key] ? order : -order;
+    });
   return (
     <>
       <div
         className={
           "relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded " +
           (color === "light" ? "bg-white" : "bg-lightBlue-900 text-white")
-        }
-      >
+        }>
         <div className="rounded-t mb-0 px-2 py-3 border-0">
           <div className="flex flex-wrap justify-between items-center">
             <div className="relative w-full pl-4 max-w-full flex-grow flex-1">
@@ -129,8 +164,19 @@ export default function AdmissionTable({ color = "light", title }) {
                   (color === "light" ? "text-blueGray-700" : "text-white")
                 }
               >
-                {title}
+                 AdmissionTable
               </h3>
+            </div>
+            <div className="p-3">
+              <button
+                onClick={() => {downloadCSV()}}
+                className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
+              >Download CSV</button>
+            </div>
+         <div className="mr-3">
+              <button
+                className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
+              >Sort by date</button>
             </div>
           </div>
         </div>
@@ -248,6 +294,10 @@ export default function AdmissionTable({ color = "light", title }) {
                     }
                   >
                     Total Payment
+
+                    <i onClick={() => handleSort("totalPayment")}
+                      className="fas fa-solid fa-caret-down ml-1 cursor-pointer"
+                    ></i>
                   </th>
                   <th
                     className={
@@ -258,6 +308,9 @@ export default function AdmissionTable({ color = "light", title }) {
                     }
                   >
                     Recieved Payment
+                     <i onClick={() => handleSort("paymentReceived")}
+                      className="fas fa-solid fa-caret-down ml-1 cursor-pointer"
+                    ></i>
                   </th>
                   <th
                     className={
@@ -268,6 +321,9 @@ export default function AdmissionTable({ color = "light", title }) {
                     }
                   >
                     Remaining Payment
+                    <i onClick={() => handleSort("remainingPayment")}
+                      className="fas fa-solid fa-caret-down ml-1 cursor-pointer text-green-500"
+                    ></i>
                   </th>
                   <th
                     className={
@@ -598,6 +654,6 @@ export default function AdmissionTable({ color = "light", title }) {
   );
 }
 
-AdmissionTable.propTypes = {
-  color: PropTypes.oneOf(["light", "dark"]),
-};
+// AdmissionTable.propTypes = {
+//   color: PropTypes.oneOf(["light", "dark"]),
+// };
