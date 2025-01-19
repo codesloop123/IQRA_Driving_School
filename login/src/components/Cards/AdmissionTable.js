@@ -112,42 +112,44 @@ export default function AdmissionTable({ color = "light", title }) {
     return instructor ? instructor.name : "Not found.";
   };
 
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "admissions.csv";
-    link.click();
-  };
+    // const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    // const link = document.createElement("a");
+    // link.href = URL.createObjectURL(blob);
+    // link.download = "admissions.csv";
+    // link.click();
+  // };
   const [sortByProperty, setSortByProperty] = useState({
       key: null,
       direction: null
     });
-    const handleSort = (column) => {
-      if (sortByProperty.key === column) {
-        setSortByProperty({
-          key: column,
-          direction: sortByProperty.direction === 'ascending' ? 'descending' : 'ascending',
-        })
-      }
-      else {
-        setSortByProperty({
-          key: column,
-          direction: 'descending'
-        })
-      }
+  const handleSort = (column) => {
+    if (sortByProperty.key === column) {
+      setSortByProperty({
+        key: column,
+        direction: sortByProperty.direction === 'ascending' ? 'descending' : 'ascending',
+      })
     }
-    console.log(admissions)  
-    const sortedAdmissions = [...admissions].sort((a, b) => {
-      const { key, direction } = sortByProperty;
-      if (!key)
-        {
-          const dateA = new Date(a.startDate);
-          const dateB = new Date(b.startDate);
-          return dateB - dateA ;
-        } 
-      const order = direction === "ascending" ? 1 : -1;
-      return a[key] > b[key] ? order : -order;
-    });
+    else {
+      setSortByProperty({
+        key: column,
+        direction: 'descending'
+      })
+    }
+  }; 
+  console.log(admissions)
+  const sortedAdmissions = [...admissions].sort((a, b) => {
+    const { key, direction } = sortByProperty;
+    if (!key)
+      {
+        const dateA = new Date(a.startDate);
+        const dateB = new Date(b.startDate);
+        return dateB - dateA ;
+      } 
+    const order = direction === "ascending" ? 1 : -1;
+    return a[key] > b[key] ? order : -order;
+  });
+ 
+
   return (
     <>
       <div
@@ -169,7 +171,7 @@ export default function AdmissionTable({ color = "light", title }) {
             </div>
             <div className="p-3">
               <button
-                onClick={() => {downloadCSV()}}
+                onClick={() => {}}
                 className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
               >Download CSV</button>
             </div>
@@ -653,6 +655,7 @@ export default function AdmissionTable({ color = "light", title }) {
     </>
   );
 }
+
 
 // AdmissionTable.propTypes = {
 //   color: PropTypes.oneOf(["light", "dark"]),

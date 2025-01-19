@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import DND_Calendar from "../Utils/DND_Calendar";
 import { fetchInstructors, fetchSlots } from "store/instructor/action";
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect } from "react";
+// import { useEffect } from "react";
 import moment from "moment";
 export default function ScheduleCalendar({ color = "light", title }) {
   const dispatch = useDispatch();
