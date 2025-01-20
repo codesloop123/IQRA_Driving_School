@@ -6,7 +6,7 @@ import { fetchAttendees, postAttendance } from "store/attendance/action";
 export default function CardAttendance() {
   const history = useHistory();
   const dispatch = useDispatch();
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [search, setSearch] = useState("");
   const [selectedRow, setSelectedRow] = useState(null);
   const { user } = useSelector((state) => state.auth);
