@@ -22,49 +22,38 @@ export default function ScheduleCalendar({
   const [selectedEvents, setSelectedEvents] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const dispatch = useDispatch();
-  const handleSelectEvent = (event, e) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const [lastClickTime, setLastClickTime] = useState(0);
 
-    const isMultiSelect = e.ctrlKey || e.metaKey || e.shiftKey;
+  const handleSelectEvent = (event) => {
+    const currentTime = new Date().getTime();
+    const isDoubleClick = currentTime - lastClickTime < 300;
+    setLastClickTime(currentTime);
 
-    setSelectedEvents((prevSelectedEvents) => {
-      if (isMultiSelect) {
-        const isCurrentlySelected = prevSelectedEvents.some(
-          (e) => e.id === event.id
-        );
-        if (isCurrentlySelected) {
-          return prevSelectedEvents.filter((e) => e.id === event.id);
-        } else {
-          return [...prevSelectedEvents, event];
-        }
+    if (isDoubleClick) {
+      setSelectedEvents([]);
+      return;
+    }
+
+    const modifierKeyPressed =
+      window.event?.ctrlKey || window.event?.metaKey;  // meta key is command key for mac and windows key for windows
+
+    setSelectedEvents((prev) => {
+      if (modifierKeyPressed) {
+        const isSelected = prev.some((e) => e.id === event.id);
+        return isSelected
+          ? prev.filter((e) => e.id !== event.id)
+          : [...prev, event];
       }
 
-      const isOnlySelectedEvent =
-        prevSelectedEvents.length === 1 &&
-        prevSelectedEvents[0].id === event.id;
-
-      if (isOnlySelectedEvent) {
-        return [];
-      }
-
-      return [event];
+      return prev.length === 1 && prev[0].id === event.id ? [] : [event];
     });
   };
 
   const handleSelectSlot = (slotInfo) => {
     const clickedDate = moment(slotInfo.start).startOf("day");
     if (selectedDate) {
-      // const choice = confirm(
-      //   `You are moving all the events of ${selectedDate} to ${clickedDate}`
-      // );
-      // if (choice) {
       moveEventsToDate(selectedDate, clickedDate);
       setSelectedDate(null);
-      // } else {
-      //   alert("No date moved!");
-      //   setSelectedDate(null);
-      // }
     } else {
       setSelectedDate(clickedDate);
     }
@@ -148,7 +137,7 @@ export default function ScheduleCalendar({
     });
 
     onEventsChange(updatedEvents);
-};
+  };
 
   const isOverlapping = (event1, event2) => {
     return (
@@ -311,6 +300,18 @@ export default function ScheduleCalendar({
           onSelectSlot={handleSelectSlot}
           eventLimit={2}
           popup={true}
+          components={{
+            event: (props) => (
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSelectEvent(props.event);
+                }}
+              >
+                {props.title}
+              </div>
+            ),
+          }}
         />
       </div>
     </>
