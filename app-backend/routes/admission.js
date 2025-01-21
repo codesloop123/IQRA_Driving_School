@@ -6,15 +6,16 @@ const Notification = require("../models/Notification");
 const cron = require("node-cron");
 const mongoose = require("mongoose");
 cron.schedule("0 0 * * *", async () => {
+  console.log("ran");
   // This cron job runs every day at midnight
   await checkOverduePayments();
 });
 
 async function checkOverduePayments() {
-  const today = new Date("2025-01-01");
+  const today = new Date();
   try {
     const overdueAdmissions = await Admission.find({
-      paymentDueDate: { $lt: today },
+      paymentDueDate: { $lt: today.toISOString() },
       remainingPayment: { $gt: 0 },
     });
 
@@ -411,7 +412,7 @@ router.get("/:branch/:instructorId/slots", async (req, res) => {
   }
 });
 
-// Route to update only (firstName,lastName,fatherName,cnic,gender,dob,cellNumber,address) of the students enrolled 
+// Route to update only (firstName,lastName,fatherName,cnic,gender,dob,cellNumber,address) of the students enrolled
 router.put("/update/:id", async (req, res) => {
   try {
     const { id } = req.params;
