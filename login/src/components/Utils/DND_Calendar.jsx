@@ -7,7 +7,7 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import { toast } from "react-toastify";
 import { useDispatch } from "react-redux";
-import { updateSlots,fetchSlots } from "store/instructor/action";
+import { updateSlots, fetchSlots } from "store/instructor/action";
 const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(Calendar);
 
@@ -19,10 +19,9 @@ export default function ScheduleCalendar({
   color = "light",
   title = "Scheduler",
 }) {
-
   const [selectedEvents, setSelectedEvents] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
-const dispatch = useDispatch();
+  const dispatch = useDispatch();
   const handleSelectEvent = (event, e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -40,15 +39,15 @@ const dispatch = useDispatch();
           return [...prevSelectedEvents, event];
         }
       }
-      
-      const isOnlySelectedEvent = 
-        prevSelectedEvents.length === 1 && 
+
+      const isOnlySelectedEvent =
+        prevSelectedEvents.length === 1 &&
         prevSelectedEvents[0].id === event.id;
 
       if (isOnlySelectedEvent) {
         return [];
       }
-      
+
       return [event];
     });
   };
@@ -60,8 +59,8 @@ const dispatch = useDispatch();
       //   `You are moving all the events of ${selectedDate} to ${clickedDate}`
       // );
       // if (choice) {
-        moveEventsToDate(selectedDate, clickedDate);
-        setSelectedDate(null);
+      moveEventsToDate(selectedDate, clickedDate);
+      setSelectedDate(null);
       // } else {
       //   alert("No date moved!");
       //   setSelectedDate(null);
@@ -119,7 +118,29 @@ const dispatch = useDispatch();
       );
       return;
     }
-    
+
+    const slots = proposedMoves.map((move) => {
+      const date = move?.start.toISOString().split("T")[0];
+      const startTime = new Date(move?.start)
+        .toTimeString()
+        .split(" ")[0]
+        .slice(0, 5);
+      const endTime = new Date(move?.end)
+        .toTimeString()
+        .split(" ")[0]
+        .slice(0, 5);
+      return {
+        _id: move?._id,
+        startTime,
+        endTime,
+        date: new Date(date).toISOString(),
+      };
+    });
+
+    // Dispatch to Redux/backend
+    dispatch(updateSlots(slots)).then(() => {
+      dispatch(fetchSlots(instructors[instructorIdx]?._id));
+    });
 
     const updatedEvents = events.map((event) => {
       const moveEvent = proposedMoves.find((move) => move.id === event.id);
@@ -127,7 +148,7 @@ const dispatch = useDispatch();
     });
 
     onEventsChange(updatedEvents);
-  };
+};
 
   const isOverlapping = (event1, event2) => {
     return (
@@ -188,18 +209,27 @@ const dispatch = useDispatch();
       );
       return;
     }
-    const slots = proposedMoves.map((move)=>{
+    const slots = proposedMoves.map((move) => {
+      const date = move?.start.toISOString().split("T")[0];
 
-     const date = move?.start.toISOString().split("T")[0]
-      
-      const startTime = new Date(move?.start).toTimeString().split(" ")[0].slice(0, 5); 
-      const endTime= new Date(move?.end).toTimeString().split(" ")[0].slice(0, 5); 
-      return {_id: move?._id, startTime, endTime, date:new Date(date).toISOString()}
-
-    })
-    dispatch(updateSlots(slots)).then(()=>{
-      dispatch(fetchSlots(instructors[instructorIdx]?._id))
-    })
+      const startTime = new Date(move?.start)
+        .toTimeString()
+        .split(" ")[0]
+        .slice(0, 5);
+      const endTime = new Date(move?.end)
+        .toTimeString()
+        .split(" ")[0]
+        .slice(0, 5);
+      return {
+        _id: move?._id,
+        startTime,
+        endTime,
+        date: new Date(date).toISOString(),
+      };
+    });
+    dispatch(updateSlots(slots)).then(() => {
+      dispatch(fetchSlots(instructors[instructorIdx]?._id));
+    });
     const updatedEvents = events.map((existingEvent) => {
       const matchingMove = proposedMoves.find(
         (move) => move.id === existingEvent.id
@@ -213,13 +243,10 @@ const dispatch = useDispatch();
   const getEventStatus = (event) => {
     let color;
 
-    if (event.status === 'Completed')
-      color = '#34c759'
-    else if (event.status === "Missed")
-      color ="#ff3b30"
-    else if (event.status === "Pending")
-      color ="#007aff"
-    return color
+    if (event.status === "Completed") color = "#34c759";
+    else if (event.status === "Missed") color = "#ff3b30";
+    else if (event.status === "Pending") color = "#007aff";
+    return color;
   };
 
   const eventStyleGetter = (event) => {
@@ -240,8 +267,8 @@ const dispatch = useDispatch();
     };
   };
 
-  return (<>
-   
+  return (
+    <>
       <div className="rounded-t mb-0 px-4 py-3 border-0">
         <div className="flex flex-wrap items-center justify-between w-full">
           <div className="relative w-full max-w-full flex-grow flex-1">
@@ -265,7 +292,7 @@ const dispatch = useDispatch();
       <div className="px-4 pb-4" style={{ height: "80vh" }}>
         <DnDCalendar
           localizer={localizer}
-          views={['month', 'week', 'day']}
+          views={["month", "week", "day"]}
           events={events}
           startAccessor="start"
           endAccessor="end"
@@ -286,6 +313,6 @@ const dispatch = useDispatch();
           popup={true}
         />
       </div>
-      </>
+    </>
   );
 }
