@@ -604,7 +604,7 @@ export default function AdmissionCard() {
       : formData?.totalPayment;
     const discountedTotal = formData.discount
       ? parseFloat(total || 0) -
-        parseFloat(total || 0) * (parseFloat(formData.discount || 0) / 100)
+        parseFloat(total || 0) * (parseFloat(formData.discount || 0))
       : parseFloat(total || 0);
     const remaining =
       discountedTotal - parseFloat(formData.paymentReceived || 0);
@@ -1173,7 +1173,7 @@ export default function AdmissionCard() {
               <div className="w-full lg:w-4/12 px-4">
                 <p className="mt-8">
                   Discounted Total:{" "}
-                  {total - total * (formData?.discount / 100) || 0}
+                  {total - (formData?.discount) || 0}
                 </p>
               </div>
             </div>

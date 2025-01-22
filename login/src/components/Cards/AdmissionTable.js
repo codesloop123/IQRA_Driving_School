@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { fetchAdmissions, updateAdmission } from "store/admission/actions";
-import { fetchAllInstructors } from "store/instructor/action";
+import { fetchInstructors } from "store/instructor/action";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { format } from "date-fns";
@@ -36,7 +36,7 @@ export default function AdmissionTable({ color = "light", title }) {
   // fetch instructors and admissions when the component mounts
   useEffect(() => {
     dispatch(fetchAdmissions(user?.branch?._id));
-    dispatch(fetchAllInstructors());
+    dispatch(fetchInstructors());
   }, [user, dispatch]);
 
   const handleEdit = (student) => {
