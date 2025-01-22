@@ -20,7 +20,7 @@ export default function AlertTable({ color, title }) {
   const dispatch = useDispatch();
   const { isAlertLoading, alerts } = useSelector((state) => state.alert);
   const [inputValue, setInputValue] = useState();
-  const [dueDate, setDueDate] = useState();
+  const [dueDate, setDueDate] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
   const { user } = useSelector((state) => state.auth);
@@ -40,7 +40,7 @@ export default function AlertTable({ color, title }) {
 
     dispatch(fetchAlert(user?.branch));
   }, []);
-
+  console.log(dueDate);
   const handleFormSubmit = (event) => {
     event.preventDefault();
 

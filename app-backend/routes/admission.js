@@ -6,7 +6,6 @@ const Notification = require("../models/Notification");
 const cron = require("node-cron");
 const mongoose = require("mongoose");
 cron.schedule("0 0 * * *", async () => {
-  console.log("ran");
   // This cron job runs every day at midnight
   await checkOverduePayments();
 });
