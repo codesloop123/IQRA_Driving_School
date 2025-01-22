@@ -22,6 +22,7 @@ export default function AdmissionCard() {
   const { courses } = useSelector((state) => state.course);
   const { registerLoading } = useSelector((state) => state.admission);
   const [open, setOpen] = useState(false);
+  const { isVehicleLoading, vehicles } = useSelector((state) => state.vehicle);
   const { isInstructorLoading, instructors } = useSelector(
     (state) => state.instructor
   );
@@ -33,6 +34,7 @@ export default function AdmissionCard() {
   const [dobError, setDobError] = useState("");
   const [openPreview, setOpenPreview] = useState(false);
   const [refNo, setRefNo] = useState("");
+
   const [formData, setFormData] = useState({
     firstName: generateRandomFirstName(),
     lastName: generateRandomLastName(),
@@ -136,16 +138,31 @@ export default function AdmissionCard() {
         ...formData,
         instructor: selectedInstructor,
       });
+    } else if (name === "vehicle") {
+      setFormData({ ...formData, vehicle: value });
+    } else if (name === "courseTimeDuration" && formData?.course === "Custom") {
+      setFormData({ ...formData, courseTimeDuration: Number(value) });
     } else if (name === "paymentDueDate") {
       setFormData((prev) => ({ ...prev, paymentDueDate: value }));
     } else if (name === "course") {
       setIdx(value);
-      setFormData({
-        ...formData,
-        course: courses[value]?.name,
-        courseTimeDuration: courses[value]?.duration,
-        vehicle: courses[value]?.vehicle,
-      });
+      if (value !== "-1") {
+        setFormData({
+          ...formData,
+          course: courses[value]?.name,
+          courseTimeDuration: courses[value]?.duration,
+          vehicle: courses[value]?.vehicle,
+        });
+      } else {
+        setFormData({
+          ...formData,
+          course: "Custom",
+          courseTimeDuration: "",
+          courseduration: "",
+          totalPayment: "",
+          vehicle: "",
+        });
+      }
     } else if (
       name === "additionalTime" &&
       formData?.courseTimeDuration &&
@@ -226,13 +243,21 @@ export default function AdmissionCard() {
         dob: value,
       });
     } else if (name === "courseduration") {
-      const numericValue = Number(courses[idx]?.pricelist[value]?.days);
-      setPriceIdx(value);
-      setFormData((prev) => ({
-        ...prev,
-        courseduration: numericValue,
-        totalPayment: Number(courses[idx].pricelist[value].price),
-      }));
+      if (formData.course === "Custom") {
+        setFormData({
+          ...formData,
+          courseduration: Number(value),
+          totalPayment: "",
+        });
+      } else {
+        const numericValue = Number(courses[idx]?.pricelist[value]?.days);
+        setPriceIdx(value);
+        setFormData((prev) => ({
+          ...prev,
+          courseduration: numericValue,
+          totalPayment: Number(courses[idx].pricelist[value].price),
+        }));
+      }
     } else if (name === "totalPayment") {
       const numericValue = Number(value);
       setFormData((prev) => ({
@@ -604,7 +629,7 @@ export default function AdmissionCard() {
       : formData?.totalPayment;
     const discountedTotal = formData.discount
       ? parseFloat(total || 0) -
-        parseFloat(total || 0) * (parseFloat(formData.discount || 0))
+        (parseFloat(total || 0) * parseFloat(formData.discount || 0)) / 100
       : parseFloat(total || 0);
     const remaining =
       discountedTotal - parseFloat(formData.paymentReceived || 0);
@@ -617,7 +642,13 @@ export default function AdmissionCard() {
   const total = formData?.pickanddropCharges
     ? Number(formData?.pickanddropCharges) + formData?.totalPayment
     : formData?.totalPayment;
-
+  console.log(
+    total - total * formData.discount,
+    total,
+    (total * Number(formData.discount)) / 100,
+    typeof total,
+    formData.discount
+  );
   return (
     <>
       <div className="relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded-lg bg-blueGray-100 border-0">
@@ -834,6 +865,7 @@ export default function AdmissionCard() {
                         {course?.name}
                       </option>
                     ))}
+                    <option value={-1}>Custom</option>
                   </select>
                 </div>
               </div>
@@ -845,13 +877,34 @@ export default function AdmissionCard() {
                   >
                     Vehicle
                   </label>
-                  <input
-                    required
-                    name="vehicle"
-                    readOnly
-                    value={formData?.vehicle}
-                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
-                  />
+                  {formData.course !== "Custom" ? (
+                    <input
+                      required
+                      id="vehicle"
+                      name="vehicle"
+                      readOnly
+                      value={formData?.vehicle}
+                      className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                    />
+                  ) : (
+                    <select
+                      required
+                      id="vehicle"
+                      name="vehicle"
+                      value={formData?.vehicle}
+                      onChange={handleChange}
+                      className="border-0 px-3 py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                    >
+                      <option value="" disabled>
+                        Select Vehicle
+                      </option>
+                      {vehicles.map((vehicle, index) => (
+                        <option value={vehicle?.name} key={vehicle?._id}>
+                          {vehicle?.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
               </div>
               <div className="w-full lg:w-6/12 px-4">
@@ -862,24 +915,35 @@ export default function AdmissionCard() {
                   >
                     Duration
                   </label>
-                  <select
-                    required
-                    id="courseduration"
-                    name="courseduration"
-                    value={priceIdx}
-                    onChange={handleChange}
-                    className="border-0 px-3 py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
-                  >
-                    <option value="" disabled>
-                      Select Duration (Days)
-                    </option>
-
-                    {courses[idx]?.pricelist.map((course, index) => (
-                      <option value={index} key={course?._id}>
-                        {course?.days} Day{`${course?.days > 1 ? "s" : ""}`}
+                  {formData?.course !== "Custom" ? (
+                    <select
+                      required
+                      id="courseduration"
+                      name="courseduration"
+                      value={priceIdx}
+                      onChange={handleChange}
+                      className="border-0 px-3 py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                    >
+                      <option value="" disabled>
+                        Select Duration (Days)
                       </option>
-                    ))}
-                  </select>
+
+                      {courses[idx]?.pricelist.map((course, index) => (
+                        <option value={index} key={course?._id}>
+                          {course?.days} Day{`${course?.days > 1 ? "s" : ""}`}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      required
+                      id="courseduration"
+                      onChange={handleChange}
+                      name="courseduration"
+                      value={formData?.courseduration}
+                      className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                    />
+                  )}
                 </div>
               </div>
               <h6 className="text-blueGray-700 text-center text-lg w-full pl-4 my-6 font-bold">
@@ -916,11 +980,14 @@ export default function AdmissionCard() {
                     Time Duration/Day
                   </label>
                   <input
-                    readOnly
+                    readOnly={formData?.course !== "Custom"}
                     required
                     type="number"
+                    min={15}
+                    max={180}
                     id="courseTimeDuration"
                     name="courseTimeDuration"
+                    onChange={handleChange}
                     value={formData.courseTimeDuration + additionalTime}
                     className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
                   />
@@ -1080,7 +1147,7 @@ export default function AdmissionCard() {
                   </label>
                   <input
                     required
-                    readOnly
+                    readOnly={formData?.course !== "Custom"}
                     type="number"
                     min={1}
                     id="totalPayment"
@@ -1173,7 +1240,7 @@ export default function AdmissionCard() {
               <div className="w-full lg:w-4/12 px-4">
                 <p className="mt-8">
                   Discounted Total:{" "}
-                  {total - (formData?.discount) || 0}
+                  {total - (total * Number(formData.discount)) / 100 || 0}
                 </p>
               </div>
             </div>

@@ -158,6 +158,7 @@ export default function AvailabilityModal({
     const rangeEvents = [];
     let x = parseInt((courseTimeDuration + additionalTime) / 15);
     let y = courseduration + Math.floor((positionInWeek + courseduration) / 7);
+    console.log(courseduration, y);
     for (let verticalOffset = 0; verticalOffset < x; verticalOffset++) {
       for (let horizontalOffset = 0; horizontalOffset < y; horizontalOffset++) {
         const eventStart = new Date(startDateTime.getTime()); // Clone startDateTime
