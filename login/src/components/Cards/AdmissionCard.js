@@ -629,7 +629,7 @@ export default function AdmissionCard() {
       : formData?.totalPayment;
     const discountedTotal = formData.discount
       ? parseFloat(total || 0) -
-        (parseFloat(total || 0) * parseFloat(formData.discount || 0)) / 100
+        Math.max(Math.min(parseFloat(formData.discount), total), 0)
       : parseFloat(total || 0);
     const remaining =
       discountedTotal - parseFloat(formData.paymentReceived || 0);
@@ -983,8 +983,6 @@ export default function AdmissionCard() {
                     readOnly={formData?.course !== "Custom"}
                     required
                     type="number"
-                    min={15}
-                    max={180}
                     id="courseTimeDuration"
                     name="courseTimeDuration"
                     onChange={handleChange}
@@ -1240,7 +1238,11 @@ export default function AdmissionCard() {
               <div className="w-full lg:w-4/12 px-4">
                 <p className="mt-8">
                   Discounted Total:{" "}
-                  {total - (total * Number(formData.discount)) / 100 || 0}
+                  {parseFloat(total || 0) -
+                    Math.max(
+                      Math.min(parseFloat(formData.discount), total),
+                      0
+                    ) || 0}
                 </p>
               </div>
             </div>
