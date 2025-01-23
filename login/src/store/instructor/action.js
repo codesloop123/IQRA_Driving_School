@@ -83,6 +83,32 @@ export const fetchSlots = createAsyncThunk(
     }
   }
 );
+
+export const setExtensions = createAsyncThunk(
+  "slots/get",
+  async (
+    { days, price, id, startTime, selectedDate, refNo, courseTimeDuration },
+    { dispatch }
+  ) => {
+    try {
+      dispatch(setInstructorLoader(true));
+      const response = await axiosInstance.put(
+        `/instructors/extend/slots/${id}`,
+        { days, price, startTime, selectedDate, refNo, courseTimeDuration }
+      );
+
+      if (response.status) {
+        console.log(response, "response data");
+        toast.success(response.data.message);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error.message);
+    } finally {
+      dispatch(setInstructorLoader(false));
+    }
+  }
+);
 export const fetchAllInstructors = createAsyncThunk(
   "instructor/get",
   async (_, { dispatch }) => {

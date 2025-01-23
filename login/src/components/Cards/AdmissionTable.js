@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { format } from "date-fns";
 import { ReactComponent as EditIcon } from "../../assets/img/edit.svg";
 import PDFModal from "components/Modals/PDFModal";
+import ExtensionModal from "components/Modals/ExtensionModal";
 
 export default function AdmissionTable({ color = "light", title }) {
   const history = useHistory();
@@ -15,9 +16,10 @@ export default function AdmissionTable({ color = "light", title }) {
   const { user } = useSelector((state) => state.auth);
   const instructors = useSelector((state) => state.instructor.instructors);
   const [openPreview, setOpenPreview] = useState(false);
-
+  const [open, setOpen] = useState(false);
   const [refNo, setRefNo] = useState("");
   const [formData, setFormData] = useState({});
+  const [idx, setIdx] = useState(null);
 
   const { registerLoading, admissions } = useSelector(
     (state) => state.admission
@@ -36,7 +38,7 @@ export default function AdmissionTable({ color = "light", title }) {
   // fetch instructors and admissions when the component mounts
   useEffect(() => {
     dispatch(fetchAdmissions(user?.branch?._id));
-    dispatch(fetchInstructors());
+    dispatch(fetchInstructors(user?.branch?._id));
   }, [user, dispatch]);
 
   const handleEdit = (student) => {
@@ -112,51 +114,53 @@ export default function AdmissionTable({ color = "light", title }) {
     return instructor ? instructor.name : "Not found.";
   };
 
-    // const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    // const link = document.createElement("a");
-    // link.href = URL.createObjectURL(blob);
-    // link.download = "admissions.csv";
-    // link.click();
+  // const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  // const link = document.createElement("a");
+  // link.href = URL.createObjectURL(blob);
+  // link.download = "admissions.csv";
+  // link.click();
   // };
   const [sortByProperty, setSortByProperty] = useState({
-      key: null,
-      direction: null
-    });
+    key: null,
+    direction: null,
+  });
   const handleSort = (column) => {
     if (sortByProperty.key === column) {
       setSortByProperty({
         key: column,
-        direction: sortByProperty.direction === 'ascending' ? 'descending' : 'ascending',
-      })
-    }
-    else {
+        direction:
+          sortByProperty.direction === "ascending" ? "descending" : "ascending",
+      });
+    } else {
       setSortByProperty({
         key: column,
-        direction: 'descending'
-      })
+        direction: "descending",
+      });
     }
-  }; 
-  console.log(admissions)
+  };
   const sortedAdmissions = [...admissions].sort((a, b) => {
     const { key, direction } = sortByProperty;
-    if (!key)
-      {
-        const dateA = new Date(a.startDate);
-        const dateB = new Date(b.startDate);
-        return dateB - dateA ;
-      } 
+    if (!key) {
+      const dateA = new Date(a.startDate);
+      const dateB = new Date(b.startDate);
+      return dateB - dateA;
+    }
     const order = direction === "ascending" ? 1 : -1;
     return a[key] > b[key] ? order : -order;
   });
- 
 
+  const handleModal = (idx) => {
+    setIdx(idx);
+    setOpen(true);
+  };
   return (
     <>
       <div
         className={
           "relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded " +
           (color === "light" ? "bg-white" : "bg-lightBlue-900 text-white")
-        }>
+        }
+      >
         <div className="rounded-t mb-0 px-2 py-3 border-0">
           <div className="flex flex-wrap justify-between items-center">
             <div className="relative w-full pl-4 max-w-full flex-grow flex-1">
@@ -166,19 +170,21 @@ export default function AdmissionTable({ color = "light", title }) {
                   (color === "light" ? "text-blueGray-700" : "text-white")
                 }
               >
-                 AdmissionTable
+                AdmissionTable
               </h3>
             </div>
             <div className="p-3">
               <button
                 onClick={() => {}}
                 className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
-              >Download CSV</button>
+              >
+                Download CSV
+              </button>
             </div>
-         <div className="mr-3">
-              <button
-                className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
-              >Sort by date</button>
+            <div className="mr-3">
+              <button className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none">
+                Sort by date
+              </button>
             </div>
           </div>
         </div>
@@ -296,8 +302,8 @@ export default function AdmissionTable({ color = "light", title }) {
                     }
                   >
                     Total Payment
-
-                    <i onClick={() => handleSort("totalPayment")}
+                    <i
+                      onClick={() => handleSort("totalPayment")}
                       className="fas fa-solid fa-caret-down ml-1 cursor-pointer"
                     ></i>
                   </th>
@@ -310,7 +316,8 @@ export default function AdmissionTable({ color = "light", title }) {
                     }
                   >
                     Recieved Payment
-                     <i onClick={() => handleSort("paymentReceived")}
+                    <i
+                      onClick={() => handleSort("paymentReceived")}
                       className="fas fa-solid fa-caret-down ml-1 cursor-pointer"
                     ></i>
                   </th>
@@ -323,19 +330,10 @@ export default function AdmissionTable({ color = "light", title }) {
                     }
                   >
                     Remaining Payment
-                    <i onClick={() => handleSort("remainingPayment")}
+                    <i
+                      onClick={() => handleSort("remainingPayment")}
                       className="fas fa-solid fa-caret-down ml-1 cursor-pointer text-green-500"
                     ></i>
-                  </th>
-                  <th
-                    className={
-                      "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
-                      (color === "light"
-                        ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
-                        : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
-                    }
-                  >
-                    Manager
                   </th>
                   <th
                     className={
@@ -413,9 +411,7 @@ export default function AdmissionTable({ color = "light", title }) {
                         <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                           {admission?.remainingPayment}
                         </td>
-                        <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                          {admission?.manager?.name}
-                        </td>
+
                         <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                           {format(new Date(admission?.startDate), "MM/dd/yyyy")}
                         </td>
@@ -424,11 +420,12 @@ export default function AdmissionTable({ color = "light", title }) {
                         </td>
                         <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                           <button
+                            onClick={handleModal.bind(null, index)}
                             className={`py-2 px-4 rounded text-white font-bold
                       bg-lightBlue-600 
                       `}
                           >
-                            Free Slots
+                            Extension
                           </button>
                         </td>
                       </tr>
@@ -644,6 +641,19 @@ export default function AdmissionTable({ color = "light", title }) {
           </div>
         )}
       </div>
+      {open && (
+        <ExtensionModal
+          open={open}
+          setOpen={setOpen}
+          courseTimeDuration={admissions[idx]?.courseTimeDuration}
+          instructorId={admissions[idx]?.instructor}
+          name={admissions[idx]?.firstName + " " + admissions[idx]?.lastName}
+          car={admissions[idx]?.vehicle}
+          phone={admissions[idx]?.cellNumber}
+          area={admissions[idx]?.address}
+          refNo={admissions[idx]?.referenceNumber}
+        />
+      )}
       {openPreview && (
         <PDFModal
           formData={formData}
@@ -655,7 +665,6 @@ export default function AdmissionTable({ color = "light", title }) {
     </>
   );
 }
-
 
 // AdmissionTable.propTypes = {
 //   color: PropTypes.oneOf(["light", "dark"]),

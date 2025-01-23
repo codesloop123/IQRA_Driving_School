@@ -32,7 +32,7 @@ const InstructorSchema = new mongoose.Schema(
           default: "Pending",
         },
         refNo: {
-          type: String, // Reference to Instructor document
+          type: String,
           required: true,
         },
       },
