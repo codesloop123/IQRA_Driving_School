@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Dialog,
@@ -11,6 +11,8 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import moment from "moment";
 import { fetchInstructors } from "store/instructor/action";
 import { toast } from "react-toastify";
+import { setExtensions } from "store/instructor/action";
+import { reference } from "@popperjs/core";
 
 const localizer = momentLocalizer(moment);
 
@@ -56,88 +58,68 @@ const CustomToolbar = (toolbar) => {
   );
 };
 
-export default function AvailabilityModal({
+export default function ExtensionModal({
   open,
   setOpen,
-  courseduration,
   courseTimeDuration,
-  changeStartDateTime,
-  changeInstructor,
   name,
   area,
   phone,
+  instructorId,
   car,
-  additionalTime,
+  refNo,
 }) {
-  const [modalData, setModalData] = useState([]);
+  const [modalData] = useState([]);
   const [openModal, setOpenModal] = useState(false);
 
   const dispatch = useDispatch();
-  const { instructors, isInstructorLoading } = useSelector(
-    (state) => state.instructor
-  );
+  const { instructors } = useSelector((state) => state.instructor);
   const { user } = useSelector((state) => state.auth);
   const [selectedInstructor, setSelectedInstructor] = useState(null);
+  const filterslot = () => {
+    const filteredSlots = selectedInstructor.bookedSlots || [];
+    if (filteredSlots.length > 0) {
+      const mergedSlots = mergeSlots(filteredSlots);
+      // Mapping mergedSlots to create a newEventsList for the calendar
+      const newEventsList = mergedSlots.map((slot) => {
+        // Create a Date object for the date and set the start and end times
+        const startDate = new Date(slot.date);
+        const [startHour, startMinute] = slot.startTime.split(":").map(Number);
+        startDate.setHours(startHour, startMinute, 0, 0); // Set hours and minutes
+
+        const endDate = new Date(slot.date);
+        const [endHour, endMinute] = slot.endTime.split(":").map(Number);
+        endDate.setHours(endHour, endMinute, 0, 0); // Set hours and minutes
+
+        return {
+          title: `Booked ${slot.startTime} to ${slot.endTime}`,
+          start: startDate,
+          end: endDate,
+          color: generateRandomColor(),
+          tooltip: `Booked from ${slot.startTime} to ${slot.endTime}`,
+        };
+      });
+
+      setHighlightedEvents(newEventsList);
+    } else {
+      setHighlightedEvents([]);
+    }
+    setNewEvents([]);
+  };
+  const [formData, setFormData] = useState();
   useEffect(() => {
-    dispatch(fetchInstructors(user.branch._id));
-  }, [dispatch]);
+    dispatch(fetchInstructors(user.branch._id)).then(() => {
+      setSelectedInstructor(
+        instructors.find((instructor) => instructor?._id === instructorId)
+      );
+    });
+  }, []);
+  useEffect(() => {
+    if (selectedInstructor !== null) filterslot();
+  }, [selectedInstructor]);
 
   const [highlightedEvents, setHighlightedEvents] = useState([]);
   const [newEvents, setNewEvents] = useState([]);
-  const stableChangeInstructor = useCallback(changeInstructor, [
-    changeInstructor,
-  ]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    if (name === "instructor") {
-      const selectedInstructor_1 = instructors.find(
-        (inst) => inst._id === value
-      );
-
-      if (!selectedInstructor_1) {
-        console.error("Instructor not found!");
-        return;
-      }
-      setSelectedInstructor(selectedInstructor_1);
-      stableChangeInstructor(selectedInstructor_1);
-
-      const filteredSlots = selectedInstructor_1.bookedSlots || [];
-      if (filteredSlots.length > 0) {
-        const mergedSlots = mergeSlots(filteredSlots);
-        // Mapping mergedSlots to create a newEventsList for the calendar
-        const newEventsList = mergedSlots.map((slot) => {
-          // Create a Date object for the date and set the start and end times
-          const startDate = new Date(slot.date);
-          const [startHour, startMinute] = slot.startTime
-            .split(":")
-            .map(Number);
-          startDate.setHours(startHour, startMinute, 0, 0); // Set hours and minutes
-
-          const endDate = new Date(slot.date);
-          const [endHour, endMinute] = slot.endTime.split(":").map(Number);
-          endDate.setHours(endHour, endMinute, 0, 0); // Set hours and minutes
-
-          return {
-            title: `Booked ${slot.startTime} to ${slot.endTime}`,
-            start: startDate,
-            end: endDate,
-            color: generateRandomColor(),
-            tooltip: `Booked from ${slot.startTime} to ${slot.endTime}`,
-          };
-        });
-
-        setHighlightedEvents(newEventsList);
-      } else {
-        setHighlightedEvents([]);
-      }
-      setNewEvents([]);
-    } else {
-      console.error("Unhandled change for:", name);
-    }
-  };
-
   const handleSelectSlot = ({ start }) => {
     if (!start) {
       console.error("Invalid start time received from slot selection.");
@@ -150,9 +132,8 @@ export default function AvailabilityModal({
       return;
     }
     const rangeEvents = [];
-    let x = parseInt((courseTimeDuration + additionalTime) / 15);
-    let y = courseduration + Math.floor((positionInWeek + courseduration) / 7);
-    console.log(courseduration, y);
+    let x = parseInt(courseTimeDuration / 15);
+    let y = formData?.days + Math.floor((positionInWeek + formData?.days) / 7);
     for (let verticalOffset = 0; verticalOffset < x; verticalOffset++) {
       for (let horizontalOffset = 0; horizontalOffset < y; horizontalOffset++) {
         const eventStart = new Date(startDateTime.getTime()); // Clone startDateTime
@@ -198,7 +179,34 @@ export default function AvailabilityModal({
     setNewEvents(rangeEvents);
     if (rangeEvents.length > 0) {
       const selectedDate = new Date(rangeEvents[0].start);
-      changeStartDateTime(selectedDate, rangeEvents[0].end);
+      const [hour, minute] = rangeEvents[0].start
+        .toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hourCycle: "h23", // Ensures a 24-hour format with leading zeros
+        })
+        .split(":");
+      setFormData({
+        ...formData,
+        selectedDate: selectedDate.toISOString().split("T")[0],
+        startTime: `${hour}:${minute}`,
+      });
+    }
+  };
+  const handleChange = (e) => {
+    const { name, value } = e.target; // Destructure name and value from event target
+
+    // Ensure the input is a valid number or empty
+    if (!isNaN(value) && value.trim() !== "") {
+      setFormData((prevState) => ({
+        ...prevState,
+        [name]: Number(value), // Dynamically update the field
+      }));
+    } else if (value.trim() === "") {
+      setFormData((prevState) => ({
+        ...prevState,
+        [name]: "", // Allow clearing the input
+      }));
     }
   };
 
@@ -274,28 +282,42 @@ export default function AvailabilityModal({
                         <div className="flex justify-between gap-2">
                           <label
                             className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
-                            htmlFor="instructor-select"
+                            htmlFor="extension"
                           >
-                            Instructor
+                            Extension (Days)
                           </label>
                         </div>
-                        <select
+                        <input
+                          type="number"
+                          id="extension"
+                          placeholder="Enter a number"
+                          min={1}
                           required
-                          id="instructor-select"
-                          name="instructor"
-                          value={selectedInstructor?._id || ""}
+                          name="days"
+                          value={formData?.days}
+                          onChange={handleChange}
+                          className="border-0 px-3 gap-2 w-full py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none  ease-linear transition-all duration-150"
+                        />
+
+                        <div className="flex justify-between gap-2">
+                          <label
+                            className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                            htmlFor="extension"
+                          >
+                            Price
+                          </label>
+                        </div>
+                        <input
+                          min={1}
+                          type="number"
+                          id="extension"
+                          placeholder="Enter Price"
+                          required
+                          name="price"
+                          value={formData?.price}
                           onChange={handleChange}
                           className="border-0 px-3 w-full py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none  ease-linear transition-all duration-150"
-                        >
-                          <option value="" disabled>
-                            Select Instructor
-                          </option>
-                          {instructors?.map((instructor) => (
-                            <option key={instructor?.id} value={instructor._id}>
-                              {instructor?.name}
-                            </option>
-                          ))}
-                        </select>
+                        />
                       </div>
                       <div className="relative  mb-3">
                         <h4 className="block uppercase text-blueGray-600 text-xs font-bold mb-2">
@@ -343,7 +365,36 @@ export default function AvailabilityModal({
                   </div>
                 </div>
               </div>
-              <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+              <div className="bg-gray-50 px-4 py-3 flex justify-between sm:flex sm:flex-row-reverse sm:px-6 ">
+                <button
+                  type="button"
+                  onClick={() => {
+                    dispatch(
+                      setExtensions({
+                        days: formData?.days,
+                        price: formData?.price,
+                        id: selectedInstructor?._id,
+                        startTime: formData?.startTime,
+                        selectedDate: formData?.selectedDate,
+                        refNo: refNo,
+                        courseTimeDuration: courseTimeDuration,
+                      })
+                    ).then(() => {
+                      dispatch(fetchInstructors(user.branch._id)).then(() => {
+                        setSelectedInstructor(
+                          instructors.find(
+                            (instructor) => instructor?._id === instructorId
+                          )
+                        );
+                      });
+                      setOpen(false);
+                    });
+                  }}
+                  style={{ backgroundColor: "#48bb78" }}
+                  className="mt-3 text-white inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm sm:mt-0 sm:w-auto"
+                >
+                  Save
+                </button>
                 <button
                   type="button"
                   onClick={() => setOpen(false)}

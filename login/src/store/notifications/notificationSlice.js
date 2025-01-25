@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
-  notifications: [],
+  notifications: JSON.parse(localStorage.getItem("notifications")) || [], // Parse the string back into an array
   isNotificationLoading: false,
 };
 
@@ -9,18 +9,24 @@ const notificationSlice = createSlice({
   initialState,
   reducers: {
     setNotification: (state, action) => {
-      state.notifications = action.payload;
+      console.log(action.payload);
+      state.notifications = [...state.notifications, ...action.payload];
+      localStorage.setItem(
+        "notifications",
+        JSON.stringify(state.notifications)
+      );
     },
     setNotificationLoader: (state, action) => {
       state.isNotificationLoading = action.payload;
     },
     updateNotifications: (state, action) => {
-      const id = action.payload;
-
-      const filteredNotification = state.notifications.filter(
-        (notification) => notification._id !== id
+      state.notifications = state.notifications.filter(
+        (notification) => notification._id !== action.payload
       );
-      state.notifications = filteredNotification;
+      localStorage.setItem(
+        "notifications",
+        JSON.stringify(state.notifications)
+      );
     },
   },
 });

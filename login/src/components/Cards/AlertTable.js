@@ -20,11 +20,11 @@ export default function AlertTable({ color, title }) {
   const dispatch = useDispatch();
   const { isAlertLoading, alerts } = useSelector((state) => state.alert);
   const [inputValue, setInputValue] = useState();
-  const [dueDate, setDueDate] = useState();
+  const [dueDate, setDueDate] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
   const { user } = useSelector((state) => state.auth);
-  console.log("here is:",alerts);
+  console.log("here is:", alerts);
   const openModal = (row) => {
     setSelectedRow(row);
     setIsModalOpen(true);
@@ -40,7 +40,7 @@ export default function AlertTable({ color, title }) {
 
     dispatch(fetchAlert(user?.branch));
   }, []);
-
+  console.log(dueDate);
   const handleFormSubmit = (event) => {
     event.preventDefault();
 
@@ -58,7 +58,12 @@ export default function AlertTable({ color, title }) {
     setInputValue();
     closeModal();
   };
-
+  console.log(dueDate);
+  console.log(
+    0 > inputValue,
+    alerts[selectedRow]?.remainingPayment < inputValue,
+    !checkDate()
+  );
   function checkDate() {
     const today = new Date();
     const date = new Date(dueDate);
@@ -177,7 +182,7 @@ export default function AlertTable({ color, title }) {
                       className="mt-2 block w-full border border-gray-300 rounded-md p-2 "
                       required
                     />
-                    {!checkDate() && (
+                    {dueDate !== null && !checkDate() && (
                       <p style={{ color: "#cf2b02" }}>
                         Date can not be less than today
                       </p>
@@ -191,7 +196,7 @@ export default function AlertTable({ color, title }) {
                     disabled={
                       0 > inputValue ||
                       alerts[selectedRow]?.remainingPayment < inputValue ||
-                      !checkDate()
+                      (dueDate !== null && !checkDate())
                     }
                   >
                     Submit

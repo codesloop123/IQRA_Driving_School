@@ -42,5 +42,5 @@ app.use("/api/notifications/", require("./routes/notificationRoute"));
 app.get("/", async (req, res) => {
   res.json("Hello DB");
 });
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5011;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

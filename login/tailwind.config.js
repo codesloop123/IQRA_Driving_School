@@ -2,27 +2,16 @@ const plugin = require("tailwindcss/plugin");
 const colors = require("tailwindcss/colors");
 
 module.exports = {
+  mode: 'jit',
   purge: {
-    enabled: true,
-    content: [
-      "./public/**/*.html",
-      "./src/**/*.{js,jsx,ts,tsx}",
-      "./pages/**/*.{html,js}",
-      "./components/**/*.{html,js}",
-    ],
-    options: {
-      safelist: [
-        /^w-/,
-        /^h-/,
-        /^bg-/,
-        /^text-/,
-        /^border-/,
-        /^top-/,
-        /^left-/,
-        /^right-/,
-        /^bottom-/,
-      ],
-    },
+    content: ['./src/**/*.{js,jsx,ts,tsx}'],
+    safelist: [
+      'hover:bg-blue-600',
+      'hover:shadow-md',
+      'hover:-translate-y-0.5',
+      'transform',
+      'transition-all'
+    ]
   },
   theme: {
     colors: {

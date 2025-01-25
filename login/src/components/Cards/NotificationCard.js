@@ -14,12 +14,14 @@ export default function NotificationCard({ color, title }) {
   const dispatch = useDispatch();
   const handleRemove = (id) => {
     toast.success("Notification Dismissed");
+    console.log(id);
     dispatch(mutateNotifications(id));
   };
   useEffect(() => {
     dispatch(fetchNotifications(user.role));
   }, []);
   const calculateDaysAgo = (date) => {
+    if (!date) return 1;
     const currentDate = new Date();
     const notificationDate = new Date(date).toISOString().split("T")[0];
     const timeDiff = currentDate - notificationDate;
@@ -32,7 +34,7 @@ export default function NotificationCard({ color, title }) {
     false: "255, 0, 0", // Red
     true: "0, 255, 0", // Green
   };
-
+  console.log(notifications);
   return (
     <>
       <div

@@ -5,9 +5,44 @@ const Instructor = require("../models/Instructor");
 const router = express.Router();
 const Notification = require("../models/Notification");
 const mongoose = require("mongoose");
+const Admission = require("../models/Admission");
 const ObjectId = mongoose.Types.ObjectId;
 
-// POST route to add a new instructor for a specific branch
+const calculateEndTime = (startTime, duration) => {
+  const [hours, minutes] = startTime.split(":").map(Number);
+  // Parse the duration
+  const durationMinutes = parseInt(duration, 10);
+
+  // Calculate the new time
+  const totalMinutes = hours * 60 + minutes + durationMinutes;
+
+  // Convert back to hours and minutes
+  const newHours = Math.floor(totalMinutes / 60) % 24; // Use % 24 to wrap around midnight
+  const newMinutes = totalMinutes % 60;
+
+  // Format the result in HH:MM
+  const formattedTime = `${String(newHours).padStart(2, "0")}:${String(
+    newMinutes
+  ).padStart(2, "0")}`;
+
+  return formattedTime;
+};
+
+const calculateEndDate = (startDate, durationInDays) => {
+  // Parse the input date
+  const date = new Date(startDate);
+  // Add the duration to the date
+  const positionInWeek = date.getDay();
+  let y = durationInDays + Math.floor((positionInWeek + durationInDays) / 7);
+  date.setDate(date.getDate() + parseInt(y, 10));
+
+  // Format the result in YYYY-MM-DD
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-indexed
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return { endDate: `${year}-${month}-${day}`, adjustedDuration: y };
+};
 router.post("/add", async (req, res) => {
   const { name, email, branch, vehicle, status, lecturerCode, availability } =
     req.body;
@@ -67,7 +102,6 @@ router.post("/add", async (req, res) => {
 // GET route to fetch all instructors for a specific branch
 router.get("/fetch/:id", async (req, res) => {
   const { id } = req.params;
-  console.log(id);
   try {
     const instructors = await Instructor.find({
       "branch._id": new ObjectId(id),
@@ -92,7 +126,6 @@ router.get("/fetch", async (req, res) => {
 
 router.get("/fetch/slots/:students", async (req, res) => {
   const { students } = req.params;
-  console.log(students);
   try {
     const lessons = await Instructor.aggregate([
       {
@@ -126,6 +159,12 @@ router.get("/fetch/slots/:students", async (req, res) => {
           status: "$bookedSlots.status",
           totalClasses: "$students.courseduration",
           refNo: "$bookedSlots.refNo",
+        },
+      },
+      {
+        $sort: {
+          date: 1, // Sort by date in ascending order
+          startTime: 1, // Within the same date, sort by startTime in ascending order
         },
       },
       {
@@ -189,6 +228,126 @@ router.put("/:id", async (req, res) => {
     console.error(error);
     res.status(500).json({ message: "Server error" });
   }
+});
+router.put("/update/slots", async (req, res) => {
+  const { slots } = req.body;
+  try {
+    const bulkOperations = slots.map((slot) => ({
+      updateOne: {
+        filter: {
+          // _id: instructorID,
+          "bookedSlots._id": new ObjectId(slot._id), // Match the specific bookedSlot by _id
+        },
+        update: {
+          $set: {
+            "bookedSlots.$.startTime": slot.startTime,
+            "bookedSlots.$.endTime": slot.endTime,
+            "bookedSlots.$.date": new Date(slot.date).toISOString(), // Ensure ISO string format
+            "bookedSlots.$.status": "Pending",
+          },
+        },
+      },
+    }));
+
+    await Instructor.bulkWrite(bulkOperations);
+    res.status(200).json({
+      message: "Slot Time Updated Successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.put("/extend/slots/:id", async (req, res) => {
+  const { id } = req.params;
+  const { days, price, startTime, selectedDate, refNo, courseTimeDuration } =
+    req.body;
+
+  const session = await mongoose.startSession(); // Start a new session
+  try {
+    if (
+      !days ||
+      !price ||
+      !startTime ||
+      !selectedDate ||
+      !refNo ||
+      !courseTimeDuration
+    )
+      return res.status(400).json({ message: "Please enter all fields" });
+    console.log(refNo);
+    const instructorDoc = await Instructor.findById(id);
+    if (!instructorDoc) {
+      return res
+        .status(404)
+        .json({ status: false, message: "Instructor not found." });
+    }
+    const { startTime: availableStart, endTime: availableEnd } =
+      instructorDoc.availability;
+    const courseStartTime = startTime;
+    const courseEndTime = calculateEndTime(startTime, courseTimeDuration);
+    if (courseStartTime < availableStart || courseEndTime > availableEnd) {
+      return res.status(400).json({
+        status: false,
+        message: "Requested time is outside instructor's availability.",
+      });
+    }
+    const { endDate, adjustedDuration } = calculateEndDate(selectedDate, days);
+    const bookedSlots = [];
+    let currentStartDate = new Date(selectedDate);
+    for (let i = 0; i < adjustedDuration; i++) {
+      if (currentStartDate.getDay() === 0) {
+        currentStartDate.setDate(currentStartDate.getDate() + 1);
+        continue;
+      }
+      bookedSlots.push({
+        date: new Date(currentStartDate).toISOString(),
+        startTime: courseStartTime,
+        endTime: courseEndTime,
+        refNo: refNo,
+      });
+
+      currentStartDate.setDate(currentStartDate.getDate() + 1);
+    }
+    const overlap = instructorDoc.bookedSlots.some((slot) => {
+      return bookedSlots.some(
+        (newSlot) =>
+          slot.date === newSlot.date &&
+          ((newSlot.startTime >= slot.startTime &&
+            newSlot.startTime < slot.endTime) ||
+            (newSlot.endTime > slot.startTime &&
+              newSlot.endTime <= slot.endTime))
+      );
+    });
+
+    if (overlap) {
+      return res.status(400).json({
+        status: false,
+        message:
+          "Some slots are already booked for the selected date and time.",
+      });
+    }
+    instructorDoc.bookedSlots.push(...bookedSlots);
+    session.startTransaction(); // Start a transaction
+    await instructorDoc.save({ session });
+    const admission = await Admission.findOne({
+      referenceNumber: refNo,
+    }).session(session);
+
+    admission.courseDuration += Number(days);
+    admission.totalPayment += Number(price);
+
+    await admission.save({ session });
+    await session.commitTransaction();
+    res.status(200).json({
+      message: "Slot Time Updated Successfully",
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+  await session.endSession();
 });
 
 module.exports = router;

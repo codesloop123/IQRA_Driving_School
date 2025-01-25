@@ -3,10 +3,116 @@ import { IoArrowBackOutline } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { fetchAttendees, postAttendance } from "store/attendance/action";
+import { PDFDocument, rgb } from "pdf-lib";
+
+async function downloadAttendancePDF(attendance, instructorname, date) {
+  // Create a new PDF document
+  const pdfDoc = await PDFDocument.create();
+
+  // Constants for layout
+  const pageWidth = 600;
+  const pageHeight = 800;
+  const margin = 90;
+  const fontSize = 12;
+  const rowHeight = 30;
+  const rowsPerPage = Math.floor((pageHeight - margin * 2) / rowHeight) - 3; // Reserve space for headers, title, and instructor name
+
+  // Create a page
+  let page = pdfDoc.addPage([pageWidth, pageHeight]);
+  let yPosition = pageHeight - margin;
+
+  // Function to draw headers and title
+  const drawHeaders = () => {
+    // Add instructor name
+    page.drawText(`Instructor: ${instructorname}`, {
+      x: margin,
+      y: yPosition,
+      size: fontSize,
+      color: rgb(0, 0, 0.6),
+    });
+
+    // Add title
+    page.drawText("Attendance Sheet", {
+      x: pageWidth / 2 - 100,
+      y: yPosition + 40,
+      size: 20,
+      color: rgb(0, 0, 0.8),
+    });
+
+    page.drawText(`Date: ${date}`, {
+      x: pageWidth / 2 + 100,
+      y: yPosition,
+      size: fontSize,
+      color: rgb(0, 0, 0.6),
+    });
+
+    yPosition -= rowHeight * 2; // Space for instructor and title
+
+    // Add table headers
+    const headers = ["Name", "RefID", "Attendance"];
+    headers.forEach((header, index) => {
+      page.drawText(header, {
+        x: margin + index * 150,
+        y: yPosition,
+        size: fontSize,
+        color: rgb(0, 0, 0),
+      });
+    });
+    yPosition -= rowHeight; // Space below headers
+  };
+
+  // Add headers and title to the first page
+  drawHeaders();
+
+  // Add rows dynamically, spanning multiple pages if needed
+  attendance.forEach(({ name, refId, instructorName }) => {
+    if (instructorName !== instructorname) return;
+    if (yPosition < margin) {
+      // Add a new page if space runs out
+      page = pdfDoc.addPage([pageWidth, pageHeight]);
+      yPosition = pageHeight - margin;
+      drawHeaders();
+    }
+
+    // Draw row data
+    const row = [name, refId, ""];
+    row.forEach((cell, cellIndex) => {
+      page.drawText(cell, {
+        x: margin + cellIndex * 150,
+        y: yPosition,
+        size: fontSize,
+        color: rgb(0, 0, 0),
+      });
+    });
+
+    yPosition -= rowHeight;
+  });
+
+  // Serialize the PDF and trigger download
+  const pdfBytes = await pdfDoc.save();
+  const blob = new Blob([pdfBytes], { type: "application/pdf" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `${instructorname}-${date}.pdf`;
+  link.click();
+}
+function downloadAllInstructorAttendance(attendance, date) {
+  const uniqueInstructors = attendance.reduce((acc, item) => {
+    if (!acc.includes(item.instructorName)) {
+      acc.push(item.instructorName);
+    }
+    return acc;
+  }, []);
+
+  uniqueInstructors.forEach(
+    async (entry) => await downloadAttendancePDF(attendance, entry, date)
+  );
+}
+
 export default function CardAttendance() {
   const history = useHistory();
   const dispatch = useDispatch();
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [search, setSearch] = useState("");
   const [selectedRow, setSelectedRow] = useState(null);
   const { user } = useSelector((state) => state.auth);
@@ -120,48 +226,61 @@ export default function CardAttendance() {
                   </svg>
                 </div>
               ) : (
-                <table className="items-center w-full bg-transparent border-collapse shadow-lg">
-                  <thead className="bg-blueGray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-xs text-blueGray-500 font-semibold text-left border-l-0 border-r-0 align-middle whitespace-nowrap">
-                        Name
-                      </th>
-                      <th className="px-6 py-3 text-xs text-blueGray-500 font-semibold text-left border-l-0 border-r-0 align-middle whitespace-nowrap">
-                        Ref ID
-                      </th>
-                      <th className="px-6 py-3 text-xs text-blueGray-500 font-semibold text-left border-l-0 border-r-0 align-middle whitespace-nowrap">
-                        Instructor Name
-                      </th>
-                      <th className="px-6 py-3 text-xs text-blueGray-500 font-semibold text-left border-l-0 border-r-0 align-middle whitespace-nowrap">
-                        Status
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white">
-                    {filteredData.map((row, index) => (
-                      <tr
-                        key={row._id}
-                        onClick={() => handleRowClick(row._id)}
-                        className={`cursor-pointer hover:bg-lightBlue-100 ${
-                          selectedRow === row._id ? "bg-lightBlue-200" : ""
-                        }`}
-                      >
-                        <td className="border-t-0 px-6 py-3 text-xs text-blueGray-500 align-middle whitespace-nowrap">
-                          {row.name}
-                        </td>
-                        <td className="border-t-0 px-6 py-3 text-xs text-blueGray-500 align-middle whitespace-nowrap">
-                          {row.refId}
-                        </td>
-                        <td className="border-t-0 px-6 py-3 text-xs text-blueGray-500 align-middle whitespace-nowrap">
-                          {row.instructorName}
-                        </td>
-                        <td className="border-t-0 px-6 py-3 text-xs text-blueGray-500 align-middle whitespace-nowrap">
-                          {row.status || "-"}
-                        </td>
+                <>
+                  <button
+                    type="button"
+                    onClick={downloadAllInstructorAttendance.bind(
+                      null,
+                      filteredData,
+                      date
+                    )}
+                    className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none my-4 self-end"
+                  >
+                    Download Attendance Sheet
+                  </button>
+                  <table className="items-center w-full bg-transparent border-collapse shadow-lg">
+                    <thead className="bg-blueGray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-xs text-blueGray-500 font-semibold text-left border-l-0 border-r-0 align-middle whitespace-nowrap">
+                          Name
+                        </th>
+                        <th className="px-6 py-3 text-xs text-blueGray-500 font-semibold text-left border-l-0 border-r-0 align-middle whitespace-nowrap">
+                          Ref ID
+                        </th>
+                        <th className="px-6 py-3 text-xs text-blueGray-500 font-semibold text-left border-l-0 border-r-0 align-middle whitespace-nowrap">
+                          Instructor Name
+                        </th>
+                        <th className="px-6 py-3 text-xs text-blueGray-500 font-semibold text-left border-l-0 border-r-0 align-middle whitespace-nowrap">
+                          Status
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="bg-white">
+                      {filteredData.map((row, index) => (
+                        <tr
+                          key={row._id}
+                          onClick={() => handleRowClick(row._id)}
+                          className={`cursor-pointer hover:bg-lightBlue-100 ${
+                            selectedRow === row._id ? "bg-lightBlue-200" : ""
+                          }`}
+                        >
+                          <td className="border-t-0 px-6 py-3 text-xs text-blueGray-500 align-middle whitespace-nowrap">
+                            {row.name}
+                          </td>
+                          <td className="border-t-0 px-6 py-3 text-xs text-blueGray-500 align-middle whitespace-nowrap">
+                            {row.refId}
+                          </td>
+                          <td className="border-t-0 px-6 py-3 text-xs text-blueGray-500 align-middle whitespace-nowrap">
+                            {row.instructorName}
+                          </td>
+                          <td className="border-t-0 px-6 py-3 text-xs text-blueGray-500 align-middle whitespace-nowrap">
+                            {row.status || "-"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </>
               )}
             </div>
 

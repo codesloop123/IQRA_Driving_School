@@ -8,6 +8,7 @@ import {
   setFetchUserLoader,
   setUsers,
 } from "./authSlice";
+
 import { toast } from "react-toastify";
 
 //==================SIGN-IN-USER==================
@@ -54,6 +55,7 @@ export const signInUser = createAsyncThunk(
 //==================SIGN-OUT-USER=====================
 export const signOutUser = (history) => async (dispatch) => {
   try {
+    localStorage.setItem("notifications", JSON.stringify([]));
     localStorage.clear();
     dispatch(resetStore());
     history.push("/login");

@@ -1,7 +1,8 @@
 import { Fragment, useEffect, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, rgb } from "pdf-lib";
 import admissionFormPdf from "../../assets/pdf/admissionForm.pdf";
+import { format } from 'date-fns';
 import { saveAs } from "file-saver";
 import img from "assets/img/iqra.png";
 
@@ -25,36 +26,32 @@ const PDFModal = ({ formData, refNo, open, setOpen }) => {
         throw new Error(`Failed to fetch PDF. Status: ${response.status}`);
       }
       const existingPdfBytes = await response.arrayBuffer(); // Read the file as an ArrayBuffer
-
+      
       // Load the PDFDocument
       const pdfDoc = await PDFDocument.load(existingPdfBytes);
-
+      
       // Get the first page of the PDF
       const pages = pdfDoc.getPages();
       const firstPage = pages[0];
-
+      
       const name = formData?.firstName + " " + formData?.lastName;
-      const education = "--"; // No field for education
+      const education = "--"; // No field for education was taken as input.
       const currentTime = new Date();
       const drivingdays = formData?.courseduration - 2;
       const learningdays = formData?.courseduration - drivingdays;
       const time = `${currentTime.getHours()}:${currentTime.getMinutes()}`;
-      const date = `${currentTime.getDate().toString().padStart(2, "0")}-${(
-        currentTime.getMonth() + 1
-      )
-        .toString()
-        .padStart(2, "0")}-${currentTime.getFullYear()}`;
-      console.log(formData);
+      const date = `${currentTime.getDate().toString().padStart(2, "0")}-${(currentTime.getMonth() + 1).toString().padStart(2, "0")}-${currentTime.getFullYear()}`;
+      
       // Define the data and positions
       const data = {
-        refNo: { x: 80, y: 654, value: refNo.toString() },
+        refNo: { x: 80, y: 642, value: refNo.toString() },
         "D/o,W/o,S/o": {
           x: 110,
           y: 604,
           value: formData?.fatherName.toString(),
         },
         Name: { x: 395, y: 603, value: name.toString() },
-        DOB: { x: 380, y: 568, value: formData?.dob.toString() },
+        DOB: { x: 380, y: 568, value: formData?.dob?format(new Date(formData.startDate), 'MM/dd/yyyy') : '' },
         CNIC: { x: 95, y: 568, value: formData?.cnic.toString() },
         "Ph#": { x: 55, y: 536, value: formData?.cellNumber.toString() },
         Cell: { x: 217, y: 534, value: formData?.cellNumber.toString() },
@@ -62,8 +59,8 @@ const PDFModal = ({ formData, refNo, open, setOpen }) => {
         Address: { x: 90, y: 507, value: formData?.address.toString() },
         Fee: { x: 55, y: 476, value: formData?.totalPayment.toString() },
         Time: { x: 150, y: 476, value: time.toString() },
-        "S.Date": { x: 305, y: 476, value: formData?.startDate.toString() },
-        Date: { x: 460, y: 476, value: date.toString() },
+        "S.Date": { x: 305, y: 476, value: formData?.startDate?format(new Date(formData.startDate), 'MM/dd/yyyy') : '' },
+        Date: { x: 460, y: 476, value: date?format(new Date(formData.startDate), 'MM/dd/yyyy') : ''  },
         "Total Days": {
           x: 465,
           y: 405,
@@ -91,7 +88,6 @@ const PDFModal = ({ formData, refNo, open, setOpen }) => {
       const pdfBlob = new Blob([pdfBytes], { type: "application/pdf" });
       const url = URL.createObjectURL(pdfBlob);
       setPreviewUrl(url);
-      console.log("setting url");
     } catch (error) {
       console.error("Error filling PDF:", error);
     }

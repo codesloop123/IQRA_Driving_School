@@ -6,7 +6,6 @@ import { format, parse, isWithinInterval } from "date-fns";
 import { postAdmission } from "store/admission/actions";
 import { toast } from "react-toastify";
 import AvailabilityModal from "components/Modals/AvailabilityModal";
-import { start } from "@popperjs/core";
 import { fetchCourses } from "store/courses/actions";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import admissionFormPdf from "../../assets/pdf/admissionForm.pdf";
@@ -23,17 +22,19 @@ export default function AdmissionCard() {
   const { courses } = useSelector((state) => state.course);
   const { registerLoading } = useSelector((state) => state.admission);
   const [open, setOpen] = useState(false);
+  const { isVehicleLoading, vehicles } = useSelector((state) => state.vehicle);
   const { isInstructorLoading, instructors } = useSelector(
     (state) => state.instructor
   );
-  const [openPreview, setOpenPreview] = useState(false);
   const [idx, setIdx] = useState("");
   const [priceIdx, setPriceIdx] = useState("");
   const [error, setError] = useState("");
   const [timeError, setTimeError] = useState("");
   const [cnicError, setCnicError] = useState("");
   const [dobError, setDobError] = useState("");
+  const [openPreview, setOpenPreview] = useState(false);
   const [refNo, setRefNo] = useState("");
+
   const [formData, setFormData] = useState({
     firstName: generateRandomFirstName(),
     lastName: generateRandomLastName(),
@@ -63,6 +64,7 @@ export default function AdmissionCard() {
   });
 
   const [additionalTime, setAdditionalTime] = useState(0);
+
   // Function to format Date to accordingly
   const formatDate = (date) => {
     const year = date.getFullYear();
@@ -96,10 +98,7 @@ export default function AdmissionCard() {
       setError("");
     }
     const [hours, minutes] = starttime.split(":").map(Number);
-    // if (minutes !== 0 && minutes !== 30) {
-    //   setTimeError("Please select a time ending in 00 or 30 minutes.");
-    //   return;
-    // }
+
     if (hours < 9 || hours > 16 || (hours === 17 && minutes > 0)) {
       setTimeError("Time must be between 9:00 AM and 5:00 PM.");
       return;
@@ -136,16 +135,31 @@ export default function AdmissionCard() {
         ...formData,
         instructor: selectedInstructor,
       });
+    } else if (name === "vehicle") {
+      setFormData({ ...formData, vehicle: value });
+    } else if (name === "courseTimeDuration" && formData?.course === "Custom") {
+      setFormData({ ...formData, courseTimeDuration: Number(value) });
     } else if (name === "paymentDueDate") {
       setFormData((prev) => ({ ...prev, paymentDueDate: value }));
     } else if (name === "course") {
       setIdx(value);
-      setFormData({
-        ...formData,
-        course: courses[value]?.name,
-        courseTimeDuration: courses[value]?.duration,
-        vehicle: courses[value]?.vehicle,
-      });
+      if (value !== "-1") {
+        setFormData({
+          ...formData,
+          course: courses[value]?.name,
+          courseTimeDuration: courses[value]?.duration,
+          vehicle: courses[value]?.vehicle,
+        });
+      } else {
+        setFormData({
+          ...formData,
+          course: "Custom",
+          courseTimeDuration: "",
+          courseduration: "",
+          totalPayment: "",
+          vehicle: "",
+        });
+      }
     } else if (
       name === "additionalTime" &&
       formData?.courseTimeDuration &&
@@ -226,13 +240,21 @@ export default function AdmissionCard() {
         dob: value,
       });
     } else if (name === "courseduration") {
-      const numericValue = Number(courses[idx]?.pricelist[value]?.days);
-      setPriceIdx(value);
-      setFormData((prev) => ({
-        ...prev,
-        courseduration: numericValue,
-        totalPayment: Number(courses[idx].pricelist[value].price),
-      }));
+      if (formData.course === "Custom") {
+        setFormData({
+          ...formData,
+          courseduration: Number(value),
+          totalPayment: "",
+        });
+      } else {
+        const numericValue = Number(courses[idx]?.pricelist[value]?.days);
+        setPriceIdx(value);
+        setFormData((prev) => ({
+          ...prev,
+          courseduration: numericValue,
+          totalPayment: Number(courses[idx].pricelist[value].price),
+        }));
+      }
     } else if (name === "totalPayment") {
       const numericValue = Number(value);
       setFormData((prev) => ({
@@ -264,6 +286,7 @@ export default function AdmissionCard() {
       });
     }
   };
+
   const checkBookingConflict = (
     bookedSlots,
     selectedDate,
@@ -388,127 +411,128 @@ export default function AdmissionCard() {
   //   }
   // }
 
-  async function createInvoicePdf() {
-    try {
-      // Extract invoice data
-      const { totalPayment, discount, paymentReceived, remainingPayment } =
-        formData;
-      const netPayment = totalPayment - totalPayment * (discount / 100);
+  // async function createInvoicePdf() {
+  //   try {
+  //     // Extract invoice data
+  //     const { totalPayment, discount, paymentReceived, remainingPayment } =
+  //       formData;
+  //     const netPayment = totalPayment - totalPayment * (discount / 100);
 
-      // Create a new PDF document
-      const pdfDoc = await PDFDocument.create();
-      const page = pdfDoc.addPage([400, 600]); // A6 page size
+  //     // Create a new PDF document
+  //     const pdfDoc = await PDFDocument.create();
+  //     const page = pdfDoc.addPage([400, 600]); // A6 page size
 
-      // Load fonts
-      const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-      const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  //     // Load fonts
+  //     const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  //     const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-      // Define colors and font sizes
-      const black = rgb(0, 0, 0);
-      const headerFontSize = 16;
-      const fieldFontSize = 12;
-      const lineSpacing = 20;
+  //     // Define colors and font sizes
+  //     const black = rgb(0, 0, 0);
+  //     const headerFontSize = 16;
+  //     const fieldFontSize = 12;
+  //     const lineSpacing = 20;
 
-      let yPosition = 550; // Start at the top of the page
+  //     let yPosition = 550; // Start at the top of the page
 
-      // Add Header
-      const pageWidth = 400; // Width of the page (example: A6 size, 400 points)
+  //     // Add Header
+  //     const pageWidth = 400; // Width of the page (example: A6 size, 400 points)
 
-      // Draw "IQRA Driving School"
-      const text1 = "IQRA Driving School";
-      const text1Width = boldFont.widthOfTextAtSize(text1, headerFontSize);
-      page.drawText(text1, {
-        x: (pageWidth - text1Width) / 2, // Center align
-        y: yPosition,
-        size: headerFontSize,
-        font: boldFont,
-        color: black,
-      });
-      yPosition -= lineSpacing;
+  //     // Draw "IQRA Driving School"
+  //     const text1 = "IQRA Driving School";
+  //     const text1Width = boldFont.widthOfTextAtSize(text1, headerFontSize);
+  //     page.drawText(text1, {
+  //       x: (pageWidth - text1Width) / 2, // Center align
+  //       y: yPosition,
+  //       size: headerFontSize,
+  //       font: boldFont,
+  //       color: black,
+  //     });
+  //     yPosition -= lineSpacing;
 
-      // Draw "INVOICE"
-      const text2 = "INVOICE";
-      const text2Width = boldFont.widthOfTextAtSize(text2, headerFontSize);
-      page.drawText(text2, {
-        x: (pageWidth - text2Width) / 2, // Center align
-        y: yPosition,
-        size: headerFontSize,
-        font: boldFont,
-        color: black,
-      });
-      yPosition -= lineSpacing * 2;
+  //     // Draw "INVOICE"
+  //     const text2 = "INVOICE";
+  //     const text2Width = boldFont.widthOfTextAtSize(text2, headerFontSize);
+  //     page.drawText(text2, {
+  //       x: (pageWidth - text2Width) / 2, // Center align
+  //       y: yPosition,
+  //       size: headerFontSize,
+  //       font: boldFont,
+  //       color: black,
+  //     });
+  //     yPosition -= lineSpacing * 2;
 
-      // Add Invoice Fields
-      const fields = [
-        { label: "Reference ID", value: "REFNUMBR123" },
-        {
-          label: "Total Payment (Without Discount)",
-          value: totalPayment.toString(),
-        },
-        { label: "Discount", value: discount.toString() },
-        { label: "Net Payment (With Discount)", value: netPayment.toString() },
-        { label: "Payment Received", value: paymentReceived.toString() },
-        { label: "Payment Remaining", value: remainingPayment.toString() },
-      ];
+  //     // Add Invoice Fields
+  //     const fields = [
+  //       { label: "Reference ID", value: "REFNUMBR123" },
+  //       {
+  //         label: "Total Payment (Without Discount)",
+  //         value: totalPayment.toString(),
+  //       },
+  //       { label: "Discount", value: discount.toString() },
+  //       { label: "Net Payment (With Discount)", value: netPayment.toString() },
+  //       { label: "Payment Received", value: paymentReceived.toString() },
+  //       { label: "Payment Remaining", value: remainingPayment.toString() },
+  //     ];
 
-      // Draw fields with bold labels
-      fields.forEach(({ label, value }) => {
-        // Draw Label (Bold)
-        page.drawText(`${label}:`, {
-          x: 50,
-          y: yPosition,
-          size: fieldFontSize,
-          font: boldFont, // Use bold font for label
-          color: black,
-        });
+  //     // Draw fields with bold labels
+  //     fields.forEach(({ label, value }) => {
+  //       // Draw Label (Bold)
+  //       page.drawText(`${label}:`, {
+  //         x: 50,
+  //         y: yPosition,
+  //         size: fieldFontSize,
+  //         font: boldFont, // Use bold font for label
+  //         color: black,
+  //       });
 
-        // Draw Value (Regular)
-        page.drawText(value, {
-          x: 300, // Align value next to the label
-          y: yPosition,
-          size: fieldFontSize,
-          font: regularFont, // Use regular font for value
-          color: black,
-        });
+  //       // Draw Value (Regular)
+  //       page.drawText(value, {
+  //         x: 300, // Align value next to the label
+  //         y: yPosition,
+  //         size: fieldFontSize,
+  //         font: regularFont, // Use regular font for value
+  //         color: black,
+  //       });
 
-        yPosition -= lineSpacing; // Move to the next line
-      });
+  //       yPosition -= lineSpacing; // Move to the next line
+  //     });
 
-      // Add Footer
-      page.drawText("Thank you for your payment!", {
-        x: 50,
-        y: 50, // Footer position
-        size: fieldFontSize,
-        font: regularFont,
-        color: black,
-      });
+  //     // Add Footer
+  //     page.drawText("Thank you for your payment!", {
+  //       x: 50,
+  //       y: 50, // Footer position
+  //       size: fieldFontSize,
+  //       font: regularFont,
+  //       color: black,
+  //     });
 
-      // Save the PDF
-      const pdfBytes = await pdfDoc.save();
-      const blob = new Blob([pdfBytes], { type: "application/pdf" });
-      const pdfUrl = URL.createObjectURL(blob);
+  //     // Save the PDF
+  //     const pdfBytes = await pdfDoc.save();
+  //     const blob = new Blob([pdfBytes], { type: "application/pdf" });
+  //     const pdfUrl = URL.createObjectURL(blob);
 
-      // Create and load the iframe
+  //     // Create and load the iframe
 
-      const iframe = document.createElement("iframe");
-      iframe.src = pdfUrl;
-      iframe.style.position = "fixed";
-      iframe.style.top = "0";
-      iframe.style.left = "0";
-      iframe.style.width = "0";
-      iframe.style.height = "0";
-      iframe.style.border = "none";
+  //     const iframe = document.createElement("iframe");
+  //     iframe.src = pdfUrl;
+  //     iframe.style.position = "fixed";
+  //     iframe.style.top = "0";
+  //     iframe.style.left = "0";
+  //     iframe.style.width = "0";
+  //     iframe.style.height = "0";
+  //     iframe.style.border = "none";
 
-      document.body.appendChild(iframe);
+  //     document.body.appendChild(iframe);
 
-      iframe.onload = () => {
-        iframe.contentWindow?.focus();
-        iframe.contentWindow?.print();
-      };
-    } catch (error) {
-      console.error("Error creating invoice PDF:", error);
-    }
-  }
+  //     iframe.onload = () => {
+  //       iframe.contentWindow?.focus();
+  //       iframe.contentWindow?.print();
+  //     };
+  //   } catch (error) {
+  //     console.error("Error creating invoice PDF:", error);
+  //   }
+  // }
+
   const cleanUpFunction = () => {
     setError("");
     setTimeError("");
@@ -549,9 +573,9 @@ export default function AdmissionCard() {
   useEffect(() => {
     if (!openPreview) cleanUpFunction();
   }, [openPreview]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("works");
     setFormData((prev) => ({
       ...prev,
       courseTimeDuration: formData?.courseTimeDuration + additionalTime,
@@ -589,6 +613,7 @@ export default function AdmissionCard() {
     dispatch(fetchInstructors(user.branch._id));
     dispatch(fetchCourses());
   }, []);
+
   useEffect(() => {
     if (!formData?.pickanddrop) {
       setFormData((prev) => ({ ...prev, pickanddropCharges: "" }));
@@ -601,7 +626,7 @@ export default function AdmissionCard() {
       : formData?.totalPayment;
     const discountedTotal = formData.discount
       ? parseFloat(total || 0) -
-        parseFloat(total || 0) * (parseFloat(formData.discount || 0) / 100)
+        Math.max(Math.min(parseFloat(formData.discount), total), 0)
       : parseFloat(total || 0);
     const remaining =
       discountedTotal - parseFloat(formData.paymentReceived || 0);
@@ -614,6 +639,13 @@ export default function AdmissionCard() {
   const total = formData?.pickanddropCharges
     ? Number(formData?.pickanddropCharges) + formData?.totalPayment
     : formData?.totalPayment;
+  console.log(
+    total - total * formData.discount,
+    total,
+    (total * Number(formData.discount)) / 100,
+    typeof total,
+    formData.discount
+  );
   return (
     <>
       <div className="relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded-lg bg-blueGray-100 border-0">
@@ -830,6 +862,7 @@ export default function AdmissionCard() {
                         {course?.name}
                       </option>
                     ))}
+                    <option value={-1}>Custom</option>
                   </select>
                 </div>
               </div>
@@ -841,13 +874,34 @@ export default function AdmissionCard() {
                   >
                     Vehicle
                   </label>
-                  <input
-                    required
-                    name="vehicle"
-                    readOnly
-                    value={formData?.vehicle}
-                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
-                  />
+                  {formData.course !== "Custom" ? (
+                    <input
+                      required
+                      id="vehicle"
+                      name="vehicle"
+                      readOnly
+                      value={formData?.vehicle}
+                      className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                    />
+                  ) : (
+                    <select
+                      required
+                      id="vehicle"
+                      name="vehicle"
+                      value={formData?.vehicle}
+                      onChange={handleChange}
+                      className="border-0 px-3 py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                    >
+                      <option value="" disabled>
+                        Select Vehicle
+                      </option>
+                      {vehicles.map((vehicle, index) => (
+                        <option value={vehicle?.name} key={vehicle?._id}>
+                          {vehicle?.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
               </div>
               <div className="w-full lg:w-6/12 px-4">
@@ -858,24 +912,35 @@ export default function AdmissionCard() {
                   >
                     Duration
                   </label>
-                  <select
-                    required
-                    id="courseduration"
-                    name="courseduration"
-                    value={priceIdx}
-                    onChange={handleChange}
-                    className="border-0 px-3 py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
-                  >
-                    <option value="" disabled>
-                      Select Duration (Days)
-                    </option>
-
-                    {courses[idx]?.pricelist.map((course, index) => (
-                      <option value={index} key={course?._id}>
-                        {course?.days} Day{`${course?.days > 1 ? "s" : ""}`}
+                  {formData?.course !== "Custom" ? (
+                    <select
+                      required
+                      id="courseduration"
+                      name="courseduration"
+                      value={priceIdx}
+                      onChange={handleChange}
+                      className="border-0 px-3 py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                    >
+                      <option value="" disabled>
+                        Select Duration (Days)
                       </option>
-                    ))}
-                  </select>
+
+                      {courses[idx]?.pricelist.map((course, index) => (
+                        <option value={index} key={course?._id}>
+                          {course?.days} Day{`${course?.days > 1 ? "s" : ""}`}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      required
+                      id="courseduration"
+                      onChange={handleChange}
+                      name="courseduration"
+                      value={formData?.courseduration}
+                      className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
+                    />
+                  )}
                 </div>
               </div>
               <h6 className="text-blueGray-700 text-center text-lg w-full pl-4 my-6 font-bold">
@@ -912,11 +977,12 @@ export default function AdmissionCard() {
                     Time Duration/Day
                   </label>
                   <input
-                    readOnly
+                    readOnly={formData?.course !== "Custom"}
                     required
                     type="number"
                     id="courseTimeDuration"
                     name="courseTimeDuration"
+                    onChange={handleChange}
                     value={formData.courseTimeDuration + additionalTime}
                     className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
                   />
@@ -1076,7 +1142,7 @@ export default function AdmissionCard() {
                   </label>
                   <input
                     required
-                    readOnly
+                    readOnly={formData?.course !== "Custom"}
                     type="number"
                     min={1}
                     id="totalPayment"
@@ -1169,7 +1235,11 @@ export default function AdmissionCard() {
               <div className="w-full lg:w-4/12 px-4">
                 <p className="mt-8">
                   Discounted Total:{" "}
-                  {total - total * (formData?.discount / 100) || 0}
+                  {parseFloat(total || 0) -
+                    Math.max(
+                      Math.min(parseFloat(formData.discount), total),
+                      0
+                    ) || 0}
                 </p>
               </div>
             </div>

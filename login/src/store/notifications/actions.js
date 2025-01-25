@@ -16,7 +16,7 @@ export const fetchNotifications = createAsyncThunk(
       });
 
       if (response.status) {
-        console.log(response.data, "response data");
+        console.log(response.data.notifications);
         dispatch(setNotification(response.data.notifications));
       }
     } catch (error) {
