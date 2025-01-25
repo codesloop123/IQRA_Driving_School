@@ -3,6 +3,9 @@ import { Dialog, Transition } from "@headlessui/react";
 import { PDFDocument, rgb } from "pdf-lib";
 import admissionFormPdf from "../../assets/pdf/admissionForm.pdf";
 import { format } from 'date-fns';
+import { saveAs } from "file-saver";
+import img from "assets/img/iqra.png";
+
 const PDFModal = ({ formData, refNo, open, setOpen }) => {
   const [previewUrl, setPreviewUrl] = useState(null);
 
@@ -102,17 +105,16 @@ const PDFModal = ({ formData, refNo, open, setOpen }) => {
     }
   }
 
-
-  const generateThermalFile = () => {
+  const generateThermalData = () => {
     const currentTime = new Date();
     const date = `${currentTime.getDate().toString().padStart(2, "0")}-${(
       currentTime.getMonth() + 1
     )
       .toString()
       .padStart(2, "0")}-${currentTime.getFullYear()}`;
-    const time = `${currentTime.getHours()}:${currentTime.getMinutes()}`;
-
-    const thermalData = `
+    const time = `${currentTime.getHours()}:${currentTime.getMinutes().toString().padStart(2, "0")}`;
+  
+    return `
       IQRA Driving School - Deposit Slip
       -----------------------------------
       Date: ${date}       Time: ${time}
@@ -121,31 +123,80 @@ const PDFModal = ({ formData, refNo, open, setOpen }) => {
       CNIC: ${formData?.cnic}
       Contact: ${formData?.cellNumber}
       Address: ${formData?.address}
-
+  
       The Total Payment: ${formData?.totalPayment}
-      payment received: ${formData?.paymentReceived || "N/A"}
+      Payment Received: ${formData?.paymentReceived || "N/A"}
       Payment Method: ${formData?.paymentMethod}
       Discount: ${formData?.discount}%
       Payment Due: ${formData?.remainingPayment}
       Start On: ${formData?.startDate}
-
+  
       -----------------------------------
       Advance Fee Not Refundable. 
       Not Valid For Court Use.
     `;
-
-    const blob = new Blob([thermalData], { type: "text/plain" });
-    return blob;
   };
+  
+  const printThermalData = () => {
+    const thermalData = generateThermalData();
+  
+    // Create a new window for printing
+    const printWindow = window.open('', '');
+  
+    // Prepare the content specifically for thermal printing
+    printWindow.document.write(`
+      <html>
+        <head>
+          <style>
+            @page {
+              size: 80mm 200mm; /* Set the thermal paper dimensions */
+              margin: 0; /* Remove default page margins */
+            }
+            body {
+              font-family: 'Courier New', Courier, monospace; /* Monospace font for thermal printers */
+              font-size: 12px; /* Adjust font size for readability */
+              margin: 0; /* Remove default margin */
+              padding: 0; /* Remove default padding */
+              width: 80mm; /* Ensure content fits within 80mm width */
+              height: 200mm; /* Ensure content fits within 200mm height */
+              display: flex;
+              align-items: center;
+              justify-content: flex-start;
+              flex-direction: column;
+            }
+            img {
+             max-height: 30mm; /* Limit height */
+              width: 100%; /* Ensure the image spans the full width */
+              object-fit: contain; /* Maintain aspect ratio */
+              margin-bottom: 10px; /* Add spacing below the image */
+            }
+            pre {
+              white-space: pre-wrap; /* Allow wrapping of long lines */
+              margin: 10px; /* Add some padding for better readability */
+            }
+          </style>
+        </head>
+        <body>
 
-  const downloadThermalFile = () => {
-    const blob = generateThermalFile();
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "thermal-deposit-slip.txt";
-    link.click();
-    URL.revokeObjectURL(link.href);
+
+          <img src="/iqra.png" alt="IQRA Logo" />
+           <pre>${thermalData}</pre>
+
+        </body>
+      </html>
+    `);
+  
+    setTimeout(() => {
+
+     printWindow.document.close(); // Close the document to apply styles
+     printWindow.focus(); // Focus on the new window
+     printWindow.print(); // Trigger the print dialog
+     printWindow.close(); // Close the print window after printing
+   },100) 
   };
+  
+  
+  // Use printThermalData() when the user clicks the print button
 
   useEffect(() => {
     generatePDF();
@@ -210,11 +261,11 @@ const PDFModal = ({ formData, refNo, open, setOpen }) => {
                       Download PDF
                     </button>
                     <button
-                      onClick={downloadThermalFile}
+                      onClick={printThermalData}
                       style={{ backgroundColor: "#4bb543" }}
                       className="my-3 bg-green-500 text-white inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm sm:mt-0 sm:w-auto"
                     >
-                      Download Thermal Slip
+                      Print Thermal Slip
                     </button>
                   </div>
                 </Dialog.Panel>
