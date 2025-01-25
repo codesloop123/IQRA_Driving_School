@@ -180,7 +180,11 @@ export default function ExtensionModal({
     if (rangeEvents.length > 0) {
       const selectedDate = new Date(rangeEvents[0].start);
       const [hour, minute] = rangeEvents[0].start
-        .toLocaleTimeString()
+        .toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hourCycle: "h23", // Ensures a 24-hour format with leading zeros
+        })
         .split(":");
       setFormData({
         ...formData,
