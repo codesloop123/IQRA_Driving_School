@@ -114,11 +114,11 @@ export default function AdmissionTable({ color, title }) {
                 className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
               >Download CSV</button>
             </div>
-         <div className="mr-3">
+         {/* <div className="mr-3">
               <button
                 className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
               >Sort by date</button>
-            </div>
+            </div> */}
           </div>
         </div>
         {registerLoading ? (
