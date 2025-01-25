@@ -61,7 +61,8 @@ router.patch("/complete/:id", async (req, res) => {
 
     // Calculate the remaining amount after the new payment
     const updatedRemainingAmount =
-      admission.totalPayment - updatedAmountReceived;
+      admission.totalPayment - updatedAmountReceived - admission.discount;
+    console.log(updatedRemainingAmount, newAmountReceived);
     if (updatedRemainingAmount > 0 && !paymentDueDate) {
       return res.status(400).json({ message: "Due Date Not Entered" });
     }
