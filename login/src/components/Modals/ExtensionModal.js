@@ -375,7 +375,16 @@ export default function ExtensionModal({
                         refNo: refNo,
                         courseTimeDuration: courseTimeDuration,
                       })
-                    ).then(() => setFormData({ price: "", days: "" }));
+                    ).then(() => {
+                      dispatch(fetchInstructors(user.branch._id)).then(() => {
+                        setSelectedInstructor(
+                          instructors.find(
+                            (instructor) => instructor?._id === instructorId
+                          )
+                        );
+                      });
+                      setOpen(false);
+                    });
                   }}
                   style={{ backgroundColor: "#48bb78" }}
                   className="mt-3 text-white inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm sm:mt-0 sm:w-auto"
