@@ -275,7 +275,7 @@ router.put("/extend/slots/:id", async (req, res) => {
       !courseTimeDuration
     )
       return res.status(400).json({ message: "Please enter all fields" });
-    console.log(refNo);
+
     const instructorDoc = await Instructor.findById(id);
     if (!instructorDoc) {
       return res
@@ -287,6 +287,7 @@ router.put("/extend/slots/:id", async (req, res) => {
     const courseStartTime = startTime;
     const courseEndTime = calculateEndTime(startTime, courseTimeDuration);
     if (courseStartTime < availableStart || courseEndTime > availableEnd) {
+      console.log("works");
       return res.status(400).json({
         status: false,
         message: "Requested time is outside instructor's availability.",
@@ -334,8 +335,14 @@ router.put("/extend/slots/:id", async (req, res) => {
       referenceNumber: refNo,
     }).session(session);
 
-    admission.courseDuration += Number(days);
+    admission.courseduration += Number(days);
     admission.totalPayment += Number(price);
+    if (admission.remainingPayment === 0) {
+      const currentDate = new Date();
+      currentDate.setDate(currentDate.getDate() + 4);
+      admission.paymentDueDate = currentDate.toISOString();
+    }
+    admission.remainingPayment += Number(price);
 
     await admission.save({ session });
     await session.commitTransaction();
@@ -344,6 +351,7 @@ router.put("/extend/slots/:id", async (req, res) => {
     });
   } catch (error) {
     await session.abortTransaction();
+
     console.error(error);
     res.status(500).json({ message: "Server error" });
   }

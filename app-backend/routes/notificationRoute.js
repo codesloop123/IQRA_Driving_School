@@ -10,7 +10,7 @@ router.post("/fetch", async (req, res) => {
     if (notifications.length <= 0) return;
 
     // Asynchronously delete notifications with status true
-    Notification.deleteMany({ status: true })
+    Notification.deleteMany()
       .then((result) => {
         console.log(
           `Deleted ${result.deletedCount} notifications with status true.`

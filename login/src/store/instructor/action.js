@@ -103,7 +103,7 @@ export const setExtensions = createAsyncThunk(
       }
     } catch (error) {
       console.log(error);
-      toast.error(error.message);
+      toast.error(error?.response?.data?.message || error.message);
     } finally {
       dispatch(setInstructorLoader(false));
     }
