@@ -14,10 +14,6 @@ const PDFModal = ({ formData, refNo, open, setOpen }) => {
     setPreviewUrl(null); // Reset preview
   };
 
-
-
-
-  console.log(formData);
   async function generatePDF() {
     try {
       // Load the existing PDF file from the public folder
@@ -97,7 +93,7 @@ const PDFModal = ({ formData, refNo, open, setOpen }) => {
     if (previewUrl) {
       const link = document.createElement("a");
       link.href = previewUrl;
-      link.download = "filled-form.pdf";
+      link.download = `${refNo}.pdf`;
       link.click();
       URL.revokeObjectURL(previewUrl);
       setPreviewUrl(null); // Optional: Reset the URL after download
