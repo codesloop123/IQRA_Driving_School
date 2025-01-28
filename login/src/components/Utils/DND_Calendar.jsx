@@ -34,8 +34,7 @@ export default function ScheduleCalendar({
       return;
     }
 
-    const modifierKeyPressed =
-      window.event?.ctrlKey || window.event?.metaKey;  // meta key is command key for mac and windows key for windows
+    const modifierKeyPressed = window.event?.ctrlKey || window.event?.metaKey; // meta key is command key for mac and windows key for windows
 
     setSelectedEvents((prev) => {
       if (modifierKeyPressed) {
@@ -256,6 +255,7 @@ export default function ScheduleCalendar({
     };
   };
 
+  const dragStart = (event) => (true);
   return (
     <>
       <div className="rounded-t mb-0 px-4 py-3 border-0">
@@ -287,8 +287,8 @@ export default function ScheduleCalendar({
           endAccessor="end"
           step={30}
           timeslots={1}
-          min={new Date(2024, 0, 1, 9, 0, 0)}
-          max={new Date(2024, 0, 1, 17, 0, 0)}
+          min={new Date(2024, 0, 1, 5, 0, 0)}
+          max={new Date(2024, 0, 1, 22, 0, 0)}
           defaultView="month"
           defaultDate={new Date()}
           selectable
@@ -300,6 +300,7 @@ export default function ScheduleCalendar({
           onSelectSlot={handleSelectSlot}
           eventLimit={2}
           popup={true}
+          handleDragStart={dragStart}
           components={{
             event: (props) => (
               <div

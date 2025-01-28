@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import PropTypes from "prop-types";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { fetchAdmissions, updateAdmission } from "store/admission/actions";
 import { fetchInstructors } from "store/instructor/action";
@@ -182,7 +181,7 @@ export default function AdmissionTable({ color = "light", title }) {
               </button>
             </div>
             <div className="mr-3">
-              <button className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none">
+              <button onClick={handleSort} className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none">
                 Sort by date
               </button>
             </div>
@@ -370,7 +369,7 @@ export default function AdmissionTable({ color = "light", title }) {
               </thead>
               <tbody>
                 {admissions?.length > 0 &&
-                  admissions.map((admission, index) => (
+                  admissions.toReversed().map((admission, index) => (
                     <React.Fragment key={admission._id || index}>
                       <tr>
                         <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
@@ -665,7 +664,3 @@ export default function AdmissionTable({ color = "light", title }) {
     </>
   );
 }
-
-// AdmissionTable.propTypes = {
-//   color: PropTypes.oneOf(["light", "dark"]),
-// };
