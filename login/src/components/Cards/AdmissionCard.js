@@ -7,8 +7,6 @@ import { postAdmission } from "store/admission/actions";
 import { toast } from "react-toastify";
 import AvailabilityModal from "components/Modals/AvailabilityModal";
 import { fetchCourses } from "store/courses/actions";
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-import admissionFormPdf from "../../assets/pdf/admissionForm.pdf";
 import {
   generateRandomBirthdate,
   generateRandomCnic,
@@ -104,7 +102,6 @@ export default function AdmissionCard() {
       return;
     }
     setTimeError("");
-    const selectedTime = format(parse(starttime, "HH:mm", new Date()), "hh:mm");
     const { instructor } = formData;
     if (instructor) {
       const isAvailable = checkInstructorAvailability(
@@ -349,190 +346,6 @@ export default function AdmissionCard() {
     return true; // No collisions
   };
 
-  // async function createAdmissionPdf() {
-  //   try {
-  //     // Load the existing PDF file from the public folder
-  //     const response = await fetch(admissionFormPdf);
-  //     if (!response.ok) {
-  //     throw new Error(`Failed to fetch PDF. Status: ${response.status}`);
-  //     }
-  //     const existingPdfBytes = await response.arrayBuffer(); // Read the file as an ArrayBuffer
-
-  //     // Load the PDFDocument
-  //     const pdfDoc = await PDFDocument.load(existingPdfBytes);
-
-  //     // Get the first page of the PDF
-  //     const pages = pdfDoc.getPages();
-  //     const firstPage = pages[0];
-
-  //     const { firstName, lastName, fatherName, cnic, dob, cellNumber, address, totalPayment, startDate } = formData;
-
-  //     const name = firstName + " " + lastName;
-  //     const education = "--";  // No field for education
-  //     const currentTime = new Date();
-  //     const time = `${currentTime.getHours()}:${currentTime.getMinutes()}`;
-  //     const date = `${currentTime.getDate().toString().padStart(2, '0')}-${(currentTime.getMonth() + 1).toString().padStart(2, '0')}-${currentTime.getFullYear()}`;
-
-  //     // Define the data and positions
-  //     const data = {
-  //       "D/o,W/o,S/o": { x: 110, y: 604, value: fatherName.toString() },
-  //       "Name": { x: 395, y: 603, value: name.toString() },
-  //       "DOB": { x: 380, y: 568, value: dob.toString() },
-  //       "CNIC": { x: 95, y: 568, value: cnic.toString() },
-  //       "Ph#": { x: 55, y: 536, value: cellNumber.toString() },
-  //       "Cell": { x: 217, y: 534, value: cellNumber.toString() },
-  //       "Education": { x: 440, y: 534, value: education.toString() },
-  //       "Address": { x: 90, y: 507, value: address.toString() },
-  //       "Fee": { x: 55, y: 476, value: totalPayment.toString() },
-  //       "Time": { x: 150, y: 476, value: time.toString() },
-  //       "S.Date": { x: 305, y: 476, value: startDate.toString() },
-  //       "Date": { x: 460, y: 476, value: date.toString() },
-  //     };
-
-  //     // Add text to the appropriate fields on the first page
-  //     for (const [field, { x, y, value }] of Object.entries(data)) {
-  //       firstPage.drawText(value, {
-  //         x,
-  //         y,
-  //         size: 12,
-  //         color: rgb(0, 0, 0),
-  //       });
-  //     }
-
-  //     // Save the updated PDF
-  //     const pdfBytes = await pdfDoc.save();
-
-  //     // Using FileSaver.js to trigger the download
-  //     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-  //     saveAs(blob, 'admissionForm(filled).pdf');
-
-  //   } catch (error) {
-  //     console.error("Error filling PDF:", error);
-  //   }
-  // }
-
-  // async function createInvoicePdf() {
-  //   try {
-  //     // Extract invoice data
-  //     const { totalPayment, discount, paymentReceived, remainingPayment } =
-  //       formData;
-  //     const netPayment = totalPayment - totalPayment * (discount / 100);
-
-  //     // Create a new PDF document
-  //     const pdfDoc = await PDFDocument.create();
-  //     const page = pdfDoc.addPage([400, 600]); // A6 page size
-
-  //     // Load fonts
-  //     const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  //     const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-
-  //     // Define colors and font sizes
-  //     const black = rgb(0, 0, 0);
-  //     const headerFontSize = 16;
-  //     const fieldFontSize = 12;
-  //     const lineSpacing = 20;
-
-  //     let yPosition = 550; // Start at the top of the page
-
-  //     // Add Header
-  //     const pageWidth = 400; // Width of the page (example: A6 size, 400 points)
-
-  //     // Draw "IQRA Driving School"
-  //     const text1 = "IQRA Driving School";
-  //     const text1Width = boldFont.widthOfTextAtSize(text1, headerFontSize);
-  //     page.drawText(text1, {
-  //       x: (pageWidth - text1Width) / 2, // Center align
-  //       y: yPosition,
-  //       size: headerFontSize,
-  //       font: boldFont,
-  //       color: black,
-  //     });
-  //     yPosition -= lineSpacing;
-
-  //     // Draw "INVOICE"
-  //     const text2 = "INVOICE";
-  //     const text2Width = boldFont.widthOfTextAtSize(text2, headerFontSize);
-  //     page.drawText(text2, {
-  //       x: (pageWidth - text2Width) / 2, // Center align
-  //       y: yPosition,
-  //       size: headerFontSize,
-  //       font: boldFont,
-  //       color: black,
-  //     });
-  //     yPosition -= lineSpacing * 2;
-
-  //     // Add Invoice Fields
-  //     const fields = [
-  //       { label: "Reference ID", value: "REFNUMBR123" },
-  //       {
-  //         label: "Total Payment (Without Discount)",
-  //         value: totalPayment.toString(),
-  //       },
-  //       { label: "Discount", value: discount.toString() },
-  //       { label: "Net Payment (With Discount)", value: netPayment.toString() },
-  //       { label: "Payment Received", value: paymentReceived.toString() },
-  //       { label: "Payment Remaining", value: remainingPayment.toString() },
-  //     ];
-
-  //     // Draw fields with bold labels
-  //     fields.forEach(({ label, value }) => {
-  //       // Draw Label (Bold)
-  //       page.drawText(`${label}:`, {
-  //         x: 50,
-  //         y: yPosition,
-  //         size: fieldFontSize,
-  //         font: boldFont, // Use bold font for label
-  //         color: black,
-  //       });
-
-  //       // Draw Value (Regular)
-  //       page.drawText(value, {
-  //         x: 300, // Align value next to the label
-  //         y: yPosition,
-  //         size: fieldFontSize,
-  //         font: regularFont, // Use regular font for value
-  //         color: black,
-  //       });
-
-  //       yPosition -= lineSpacing; // Move to the next line
-  //     });
-
-  //     // Add Footer
-  //     page.drawText("Thank you for your payment!", {
-  //       x: 50,
-  //       y: 50, // Footer position
-  //       size: fieldFontSize,
-  //       font: regularFont,
-  //       color: black,
-  //     });
-
-  //     // Save the PDF
-  //     const pdfBytes = await pdfDoc.save();
-  //     const blob = new Blob([pdfBytes], { type: "application/pdf" });
-  //     const pdfUrl = URL.createObjectURL(blob);
-
-  //     // Create and load the iframe
-
-  //     const iframe = document.createElement("iframe");
-  //     iframe.src = pdfUrl;
-  //     iframe.style.position = "fixed";
-  //     iframe.style.top = "0";
-  //     iframe.style.left = "0";
-  //     iframe.style.width = "0";
-  //     iframe.style.height = "0";
-  //     iframe.style.border = "none";
-
-  //     document.body.appendChild(iframe);
-
-  //     iframe.onload = () => {
-  //       iframe.contentWindow?.focus();
-  //       iframe.contentWindow?.print();
-  //     };
-  //   } catch (error) {
-  //     console.error("Error creating invoice PDF:", error);
-  //   }
-  // }
-
   const cleanUpFunction = () => {
     setError("");
     setTimeError("");
@@ -639,13 +452,6 @@ export default function AdmissionCard() {
   const total = formData?.pickanddropCharges
     ? Number(formData?.pickanddropCharges) + formData?.totalPayment
     : formData?.totalPayment;
-  console.log(
-    total - total * formData.discount,
-    total,
-    (total * Number(formData.discount)) / 100,
-    typeof total,
-    formData.discount
-  );
   return (
     <>
       <div className="relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded-lg bg-blueGray-100 border-0">
