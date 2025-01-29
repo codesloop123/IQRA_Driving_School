@@ -12,14 +12,13 @@ export default function BranchesTable({ color = "light", title }) {
   const { isbranchLoading, branches } = useSelector((state) => state.branch);
   useEffect(() => {
     dispatch(fetchBranches());
-  }, []);
+  }, [dispatch]);
   const handleDelete = (id) => {
     dispatch(deleteBranch({ id })).then(() => {
       dispatch(fetchBranches());
     });
   };
 
-  console.log(branches);
   return (
     <>
       <div

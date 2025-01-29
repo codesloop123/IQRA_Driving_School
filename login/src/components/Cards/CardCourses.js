@@ -3,12 +3,8 @@ import { IoArrowBackOutline } from "react-icons/io5";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchVehicles } from "store/vehicle/actions";
 import { FaX } from "react-icons/fa6";
-import { registerUser } from "store/auth/actions";
-import { duration } from "moment";
 import { postCourse } from "store/courses/actions";
-import { previousDay } from "date-fns";
 // components
 
 export default function CardCourses() {

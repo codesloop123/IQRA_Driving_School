@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import {
-  Dialog,
-} from "@headlessui/react";
+import { Dialog } from "@headlessui/react";
 import { format } from "date-fns";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAlert, patchAlert } from "store/alerts/actions";
@@ -26,9 +24,8 @@ export default function AlertTable({ color, title }) {
   };
 
   useEffect(() => {
-
     dispatch(fetchAlert(user?.branch));
-  }, [dispatch,user]);
+  }, [dispatch, user]);
   const handleFormSubmit = (event) => {
     event.preventDefault();
 

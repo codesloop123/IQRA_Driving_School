@@ -16,7 +16,7 @@ export default function AttendanceTable({ color = "light", title }) {
 
   useEffect(() => {
     if (date) dispatch(fetchAttendance({ branchid: user?.branch?._id, date }));
-  }, [date]);
+  }, [date,dispatch,user]);
 
   const navigateButtonHandler = (action) => {
     if (!date) return;

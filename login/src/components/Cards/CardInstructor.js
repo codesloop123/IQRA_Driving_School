@@ -21,7 +21,6 @@ export default function CardInstructor() {
     lecturerCode: "",
     availability: { startTime: "09:00", endTime: "17:00" },
   });
-  console.log(formData, "vehicle formdata>>>>>>>>>>>>>");
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === "branch") {

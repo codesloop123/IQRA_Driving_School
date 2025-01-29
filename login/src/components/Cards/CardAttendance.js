@@ -136,7 +136,6 @@ export default function CardAttendance() {
       const updatedData = attendanceData.map((row) =>
         row._id === selectedRow ? { ...row, status } : row
       );
-      console.log(updatedData);
       setAttendanceData(updatedData);
     }
   };
