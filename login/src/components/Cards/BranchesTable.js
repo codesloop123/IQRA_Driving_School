@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchBranches } from "store/branch/actions";
 import { deleteBranch } from "store/branch/actions";
 
-export default function BranchesTable({ color, title }) {
+export default function BranchesTable({ color = "light", title }) {
   const history = useHistory();
   const dispatch = useDispatch();
   const { isbranchLoading, branches } = useSelector((state) => state.branch);
@@ -107,8 +107,6 @@ export default function BranchesTable({ color, title }) {
                     Branch Code
                   </th>
 
-
-
                   <th
                     className={
                       "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
@@ -119,8 +117,6 @@ export default function BranchesTable({ color, title }) {
                   >
                     View
                   </th>
-
-
 
                   <th
                     className={
@@ -170,10 +166,6 @@ export default function BranchesTable({ color, title }) {
     </>
   );
 }
-
-BranchesTable.defaultProps = {
-  color: "light",
-};
 
 BranchesTable.propTypes = {
   color: PropTypes.oneOf(["light", "dark"]),

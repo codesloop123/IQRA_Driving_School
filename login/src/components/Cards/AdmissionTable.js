@@ -171,9 +171,8 @@ export default function AdmissionTable({ color = "light", title }) {
       finance?.paymentDetails?.paymentMethod || "",
     ]);
 
-
     const csvContent = [
-      headers.join(","), 
+      headers.join(","),
       ...rows.map((row) => row.join(",")),
     ].join("\n");
 
@@ -187,7 +186,6 @@ export default function AdmissionTable({ color = "light", title }) {
     link.click();
     document.body.removeChild(link);
   };
-
 
   return (
     <>
@@ -211,7 +209,9 @@ export default function AdmissionTable({ color = "light", title }) {
             </div>
             <div className="p-3">
               <button
-                onClick={() => {downloadCSV()}}
+                onClick={() => {
+                  downloadCSV();
+                }}
                 className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
               >
                 Download CSV

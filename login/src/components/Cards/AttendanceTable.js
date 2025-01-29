@@ -2,10 +2,9 @@ import PropTypes from "prop-types";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { useState } from "react";
-import { fetchBranches } from "store/branch/actions";
 import { useEffect } from "react";
 import { fetchAttendance } from "store/attendance/action";
-export default function AttendanceTable({ color, title }) {
+export default function AttendanceTable({ color = "light", title }) {
   const history = useHistory();
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
@@ -192,10 +191,6 @@ export default function AttendanceTable({ color, title }) {
     </>
   );
 }
-
-AttendanceTable.defaultProps = {
-  color: "light",
-};
 
 AttendanceTable.propTypes = {
   color: PropTypes.oneOf(["light", "dark"]),
