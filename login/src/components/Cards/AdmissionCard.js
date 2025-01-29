@@ -20,10 +20,8 @@ export default function AdmissionCard() {
   const { courses } = useSelector((state) => state.course);
   const { registerLoading } = useSelector((state) => state.admission);
   const [open, setOpen] = useState(false);
-  const { isVehicleLoading, vehicles } = useSelector((state) => state.vehicle);
-  const { isInstructorLoading, instructors } = useSelector(
-    (state) => state.instructor
-  );
+  const { vehicles } = useSelector((state) => state.vehicle);
+  const { instructors } = useSelector((state) => state.instructor);
   const [idx, setIdx] = useState("");
   const [priceIdx, setPriceIdx] = useState("");
   const [error, setError] = useState("");
@@ -425,7 +423,7 @@ export default function AdmissionCard() {
   useEffect(() => {
     dispatch(fetchInstructors(user.branch._id));
     dispatch(fetchCourses());
-  }, []);
+  }, [dispatch, user.branch._id]);
 
   useEffect(() => {
     if (!formData?.pickanddrop) {
