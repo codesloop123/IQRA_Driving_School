@@ -69,7 +69,7 @@ router.post("/login", async (req, res) => {
         branch: user.branch,
       },
     };
-    jwt.sign(payload, "yourJWTSecret", { expiresIn: "1h" }, (err, token) => {
+    jwt.sign(payload,process.env.JWT_SECRET, { expiresIn: "1h" }, (err, token) => {
       if (err) throw err;
       res.json({ token, user: payload.user });
     });
