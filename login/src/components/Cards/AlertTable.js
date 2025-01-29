@@ -1,19 +1,10 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import { FaCheckCircle } from "react-icons/fa";
-import { MdCancel } from "react-icons/md";
-import { IoIosArrowDown } from "react-icons/io";
 import {
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuItems,
   Dialog,
 } from "@headlessui/react";
-
 import { format } from "date-fns";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchBranches } from "store/branch/actions";
 import { fetchAlert, patchAlert } from "store/alerts/actions";
 
 export default function AlertTable({ color, title }) {
@@ -24,7 +15,6 @@ export default function AlertTable({ color, title }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
   const { user } = useSelector((state) => state.auth);
-  console.log("here is:", alerts);
   const openModal = (row) => {
     setSelectedRow(row);
     setIsModalOpen(true);
@@ -36,11 +26,9 @@ export default function AlertTable({ color, title }) {
   };
 
   useEffect(() => {
-    console.log(user);
 
     dispatch(fetchAlert(user?.branch));
-  }, []);
-  console.log(dueDate);
+  }, [dispatch,user]);
   const handleFormSubmit = (event) => {
     event.preventDefault();
 
@@ -58,12 +46,6 @@ export default function AlertTable({ color, title }) {
     setInputValue();
     closeModal();
   };
-  console.log(dueDate);
-  console.log(
-    0 > inputValue,
-    alerts[selectedRow]?.remainingPayment < inputValue,
-    !checkDate()
-  );
   function checkDate() {
     const today = new Date();
     const date = new Date(dueDate);
@@ -74,14 +56,6 @@ export default function AlertTable({ color, title }) {
     const date = new Date(str);
     return date.toISOString().split("T")[0];
   }
-  // const navigateButtonHandler = (action) => {
-  //   if (action === "INCREMENT")
-  //     setIdx((idx) => Math.min(branches.length - 1, idx + 1));
-  //   else if (action === "DECREMENT") setIdx((idx) => Math.max(0, idx - 1));
-  // };
-  // const handleClick = (i) => {
-  //   setIdx(i); // Update the state with the clicked branch's index
-  // };
   return (
     <>
       <div
@@ -102,32 +76,6 @@ export default function AlertTable({ color, title }) {
                 {title}
               </h3>
             </div>
-            {/* <Menu as="div" className="relative inline-block text-left pr-4">
-              <div>
-                <MenuButton className="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-lightBlue-600">
-                  {branches[idx]?.name}
-                  <IoIosArrowDown aria-hidden="true" className="mt-1 ml-1" />
-                </MenuButton>
-              </div>
-
-              <MenuItems
-                transition
-                className="absolute right-0 z-10 mt-2 w-56 mr-4 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black/5 transition focus:outline-none data-[closed]:scale-95 data-[closed]:transform data-[closed]:opacity-0 data-[enter]:duration-100 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
-              >
-                <div className="py-1">
-                  {branches.map((branch, idx) => (
-                    <MenuItem key={idx}>
-                      <button
-                        onClick={handleClick.bind(null, idx)}
-                        className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-gray-900 data-[focus]:outline-none"
-                      >
-                        {branch?.name}
-                      </button>
-                    </MenuItem>
-                  ))}
-                </div>
-              </MenuItems>
-            </Menu> */}
           </div>
         </div>
 
@@ -446,26 +394,6 @@ export default function AlertTable({ color, title }) {
           </div>
         )}
       </div>
-      {/* <div className="flex justify-between items-center">
-        <div className={idx > 0 ? "block" : "w-[100px]"}>
-          {idx > 0 && (
-            <button
-              onClick={navigateButtonHandler.bind(null, "DECREMENT")}
-              class="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
-            >
-              Prev Branch
-            </button>
-          )}
-        </div>
-        {idx < branches?.length - 1 && (
-          <button
-            onClick={navigateButtonHandler.bind(null, "INCREMENT")}
-            className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
-          >
-            Next Branch
-          </button>
-        )}
-      </div> */}
     </>
   );
 }

@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { fetchAdmissions, updateAdmission } from "store/admission/actions";
 import { fetchInstructors } from "store/instructor/action";
 import { useEffect } from "react";
@@ -11,7 +10,6 @@ import ExtensionModal from "components/Modals/ExtensionModal";
 import { toast } from "react-toastify";
 
 export default function AdmissionTable({ color = "light", title }) {
-  const history = useHistory();
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const instructors = useSelector((state) => state.instructor.instructors);
