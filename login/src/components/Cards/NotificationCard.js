@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect} from "react";
 import PropTypes from "prop-types";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
@@ -7,19 +7,18 @@ import {
   mutateNotifications,
 } from "store/notifications/actions";
 export default function NotificationCard({ color, title }) {
-  const { notifications, notificationLoading } = useSelector(
+  const { notifications } = useSelector(
     (state) => state.notification
   );
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const handleRemove = (id) => {
     toast.success("Notification Dismissed");
-    console.log(id);
     dispatch(mutateNotifications(id));
   };
   useEffect(() => {
     dispatch(fetchNotifications(user.role));
-  }, []);
+  }, [dispatch,user.role]);
   const calculateDaysAgo = (date) => {
     if (!date) return 1;
     const currentDate = new Date();
@@ -34,7 +33,6 @@ export default function NotificationCard({ color, title }) {
     false: "255, 0, 0", // Red
     true: "0, 255, 0", // Green
   };
-  console.log(notifications);
   return (
     <>
       <div

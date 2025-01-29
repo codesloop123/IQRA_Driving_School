@@ -1,6 +1,5 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { MdDelete } from "react-icons/md";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
@@ -15,36 +14,13 @@ export default function ManagersTable({ color, title }) {
   useEffect(() => {
     dispatch(fetchBranches());
     dispatch(fetchUsers());
-  }, []);
-  const managers = [
-    {
-      email: "iftikhar@gmail.com",
-      name: "Iftikhar",
-      branch: "Golra",
-    },
-    {
-      email: "john.doe@example.com",
-      name: "John Doe",
-      branch: "F-10",
-    },
-    {
-      email: "alice.smith@example.com",
-      name: "Alice Smith",
-      branch: "G-11",
-    },
-    {
-      email: "bob.jones@example.com",
-      name: "Bob Jones",
-      branch: "G-12",
-    },
-  ];
+  }, [dispatch]);
   const handleDelete = (id) => {
     dispatch(deleteManager({ id })).then(() => {
       dispatch(fetchUsers());
     });
   };
   const handleUpdate = (id, status) => {
-    console.log(status, "status>>>>>>>>>>>.");
     dispatch(updateManagerStatus({ id, status })).then(() => {
       dispatch(fetchUsers());
     });

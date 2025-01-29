@@ -344,46 +344,46 @@ export default function AdmissionCard() {
     return true; // No collisions
   };
 
-  const cleanUpFunction = () => {
-    setError("");
-    setTimeError("");
-    setDobError("");
-    setIdx("");
-    setPriceIdx("");
-    setRefNo("");
-    setFormData({
-      firstName: generateRandomFirstName(),
-      lastName: generateRandomLastName(),
-      fatherName: "Robert Doe",
-      cnic: generateRandomCnic(),
-      gender: "Male",
-      dob: generateRandomBirthdate(),
-      cellNumber: "+92 300 1234567",
-      address: "123 Main Street, Islamabad",
-      instructor: null,
-      courseduration: "", // Example: 30 days
-      courseTimeDuration: "", // Example: 90 minutes
-      startDate: "", // Example date
-      startTime: "",
-      paymentMethod: "Cash",
-      totalPayment: "", // Total payment in PKR
-      paymentReceived: "", // Received payment in PKR
-      remainingPayment: "", // Remaining payment in PKR
-      manager: user,
-      status: true, // Active status
-      discount: "40", // Discount in PKR
-      course: "",
-      vehicle: "",
-
-      pickanddrop: false,
-      pickanddropCharges: "",
-      paymentDueDate: "",
-    });
-  };
-
   useEffect(() => {
-    if (!openPreview) cleanUpFunction();
-  }, [openPreview]);
+    if (!openPreview){
+      const cleanUpFunction = () => {
+        setError("");
+        setTimeError("");
+        setDobError("");
+        setIdx("");
+        setPriceIdx("");
+        setRefNo("");
+        setFormData({
+          firstName: generateRandomFirstName(),
+          lastName: generateRandomLastName(),
+          fatherName: "Robert Doe",
+          cnic: generateRandomCnic(),
+          gender: "Male",
+          dob: generateRandomBirthdate(),
+          cellNumber: "+92 300 1234567",
+          address: "123 Main Street, Islamabad",
+          instructor: null,
+          courseduration: "", // Example: 30 days
+          courseTimeDuration: "", // Example: 90 minutes
+          startDate: "", // Example date
+          startTime: "",
+          paymentMethod: "Cash",
+          totalPayment: "", // Total payment in PKR
+          paymentReceived: "", // Received payment in PKR
+          remainingPayment: "", // Remaining payment in PKR
+          manager: user,
+          status: true, // Active status
+          discount: "40", // Discount in PKR
+          course: "",
+          vehicle: "",
+    
+          pickanddrop: false,
+          pickanddropCharges: "",
+          paymentDueDate: "",
+        });
+      };
+      cleanUpFunction();}
+  }, [openPreview,user]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -446,7 +446,7 @@ export default function AdmissionCard() {
       ...prev,
       remainingPayment: remaining >= 0 ? remaining : 0,
     }));
-  }, [formData.totalPayment, formData.paymentReceived, formData.discount]);
+  }, [formData.totalPayment, formData.paymentReceived, formData.discount,formData.pickanddropCharges]);
   const total = formData?.pickanddropCharges
     ? Number(formData?.pickanddropCharges) + formData?.totalPayment
     : formData?.totalPayment;

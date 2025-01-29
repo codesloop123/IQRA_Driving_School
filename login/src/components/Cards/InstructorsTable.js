@@ -17,40 +17,13 @@ export default function InstructorsTable({ color, title }) {
     dispatch(fetchBranches());
     dispatch(fetchVehicles());
     dispatch(fetchAllInstructors());
-  }, []);
-  const managers = [
-    {
-      email: "iftikhar@gmail.com",
-      name: "Iftikhar",
-      branch: "Golra",
-      vehicle: "Alto",
-    },
-    {
-      email: "john.doe@example.com",
-      name: "John Doe",
-      branch: "F-10",
-      vehicle: "Alto",
-    },
-    {
-      email: "alice.smith@example.com",
-      name: "Alice Smith",
-      branch: "G-11",
-      vehicle: "Alto",
-    },
-    {
-      email: "bob.jones@example.com",
-      name: "Bob Jones",
-      branch: "G-12",
-      vehicle: "Alto",
-    },
-  ];
+  }, [dispatch]);
   const handleDelete = (id) => {
     dispatch(deleteInstructor({ id })).then(() => {
       dispatch(fetchAllInstructors());
     });
   };
   const handleUpdate = (id, status) => {
-    console.log(status, "status>>>>>>>>>>>.");
     dispatch(updateInstructorStatus({ id, status })).then(() => {
       dispatch(fetchAllInstructors());
     });

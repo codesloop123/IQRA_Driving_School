@@ -15,8 +15,6 @@ async function downloadAttendancePDF(attendance, instructorname, date) {
   const margin = 90;
   const fontSize = 12;
   const rowHeight = 30;
-  const rowsPerPage = Math.floor((pageHeight - margin * 2) / rowHeight) - 3; // Reserve space for headers, title, and instructor name
-
   // Create a page
   let page = pdfDoc.addPage([pageWidth, pageHeight]);
   let yPosition = pageHeight - margin;
@@ -123,7 +121,7 @@ export default function CardAttendance() {
 
   useEffect(() => {
     if (date) dispatch(fetchAttendees({ branchid: user?.branch?._id, date }));
-  }, [date]);
+  }, [date,dispatch,user]);
   useEffect(() => {
     setAttendanceData(students);
   }, [students]);

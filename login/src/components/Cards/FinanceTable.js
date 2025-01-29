@@ -10,81 +10,77 @@ import { toast } from "react-toastify";
 export default function FinanceTable({ color, title }) {
   const history = useHistory();
   const dispatch = useDispatch();
-  const { registerLoading, finances, financesByDate } = useSelector((state) => state.finance);
+  const { registerLoading, finances, financesByDate } = useSelector(
+    (state) => state.finance
+  );
   const { branches } = useSelector((state) => state.branch);
   const [sortByProperty, setSortByProperty] = useState({
     key: null,
-    direction: null
+    direction: null,
   });
 
-  const [totalPayment,SetTotalPayment] = useState({ paymentReceived: 0, totalPayment: 0,remainingPayment:0 });
-  useEffect(()=>{
-    if (finances)
-    {
+  const [totalPayment, SetTotalPayment] = useState({
+    paymentReceived: 0,
+    totalPayment: 0,
+    remainingPayment: 0,
+  });
+  useEffect(() => {
+    if (finances) {
       const totalPayments = finances.reduce(
         (acc, curr) => {
-          console.log("Here is ",curr)
           acc.paymentReceived += curr.paymentDetails.paymentReceived || 0; // Add receivedPayment
           acc.remainingPayment += curr.paymentDetails.remainingPayment || 0; // Add receivedPayment
           acc.totalPayment += curr.paymentDetails.totalPayment || 0; // Add receivedPayment
           return acc;
         },
-        { paymentReceived: 0, totalPayment: 0,remainingPayment:0 } // Initial accumulator values
+        { paymentReceived: 0, totalPayment: 0, remainingPayment: 0 } // Initial accumulator values
       );
       SetTotalPayment(totalPayments);
     }
-    },[finances])
-    console.log(totalPayment)
+  }, [finances]);
 
   useEffect(() => {
     if (!financesByDate) {
       dispatch(fetchFinances({}));
     }
     dispatch(fetchBranches());
-  }, []);
+  }, [dispatch,financesByDate]);
   const handleSortByBranch = async (e) => {
     dispatch(fetchFinances({ id: e.target.value }));
-  }
-  // updates the sortByProperty 
+  };
+  // updates the sortByProperty
   const handleSort = (column) => {
     if (sortByProperty.key === column) {
       setSortByProperty({
         key: column,
-        direction: sortByProperty.direction === 'ascending' ? 'descending' : 'ascending',
-      })
-    }
-    else {
+        direction:
+          sortByProperty.direction === "ascending" ? "descending" : "ascending",
+      });
+    } else {
       setSortByProperty({
         key: column,
-        direction: 'descending'
-      })
+        direction: "descending",
+      });
     }
-  }
+  };
   const sortedFinances = [...finances].sort((a, b) => {
     if (sortByProperty.key === null) return 0;
 
     const aValue = a.paymentDetails[sortByProperty.key];
     const bValue = b.paymentDetails[sortByProperty.key];
 
-    if (sortByProperty.direction === 'ascending') {
+    if (sortByProperty.direction === "ascending") {
       return aValue - bValue;
-    }
-    else if (sortByProperty.direction === 'descending') {
+    } else if (sortByProperty.direction === "descending") {
       return bValue - aValue;
     }
     return 0;
-  })
+  });
   //function to handle sort by date button
   const handleSortByDateButton = () => {
     dispatch(setFinancesByDate(false)); // if user after sorting one time, again tries to click sortbydate btn
     history.push("/sort-finances-by-date");
-  }
-
-
-
-
-
-
+  };
 
   const downloadCSV = () => {
     if (!sortedFinances || sortedFinances.length === 0) {
@@ -111,9 +107,8 @@ export default function FinanceTable({ color, title }) {
       finance?.paymentDetails?.paymentMethod || "",
     ]);
 
-
     const csvContent = [
-      headers.join(","), 
+      headers.join(","),
       ...rows.map((row) => row.join(",")),
     ].join("\n");
 
@@ -127,13 +122,6 @@ export default function FinanceTable({ color, title }) {
     link.click();
     document.body.removeChild(link);
   };
-
-
-
-
-
-
-
 
   return (
     <>
@@ -158,19 +146,26 @@ export default function FinanceTable({ color, title }) {
 
             <div className="p-3">
               <button
-                onClick={() => {downloadCSV()}}
+                onClick={() => {
+                  downloadCSV();
+                }}
                 className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
-              >Download CSV</button>
+              >
+                Download CSV
+              </button>
             </div>
-
 
             <div className="mr-3">
               <select onChange={(e) => handleSortByBranch(e)}>
-                <option disabled selected>Select branch</option>
-                <option value={'All'}>All</option>
+                <option disabled selected>
+                  Select branch
+                </option>
+                <option value={"All"}>All</option>
                 {branches.map((ele, ind) => {
                   return (
-                    <option key={ind} value={ele._id}>{ele.name}</option>
+                    <option key={ind} value={ele._id}>
+                      {ele.name}
+                    </option>
                   );
                 })}
               </select>
@@ -179,7 +174,9 @@ export default function FinanceTable({ color, title }) {
               <button
                 onClick={() => handleSortByDateButton()}
                 className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
-              >Sort by date</button>
+              >
+                Sort by date
+              </button>
             </div>
           </div>
         </div>
@@ -203,92 +200,158 @@ export default function FinanceTable({ color, title }) {
             </svg>
           </div>
         ) : (
-          
-<div className="flex flex-col w-full overflow-x-auto relative" style={{ height: "450px" }}>
-  <div className="table-container relative flex flex-col h-full overflow-auto">
-    {/* Table Header and Body */}
-    <table className="items-center w-full bg-transparent border-collapse relative flex-grow">
-      <thead>
-        <tr>
-          <th className={"px-6 align-middle border py-3 text-xs uppercase font-semibold text-left " + (color === "light" ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100" : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")}>
-            First Name
-          </th>
-          <th className={"px-6 align-middle border py-3 text-xs uppercase font-semibold text-left " + (color === "light" ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100" : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")}>
-            Father Name
-          </th>
-          <th className={"px-6 align-middle border py-3 text-xs uppercase font-semibold text-left " + (color === "light" ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100" : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")}>
-            Date Registered
-          </th>
-          <th className={"px-6 align-middle border py-3 text-xs uppercase font-semibold text-left " + (color === "light" ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100" : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")}>
-            Payment Received
-            <i onClick={() => handleSort("paymentReceived")} className="fas fa-solid fa-caret-down ml-1 cursor-pointer"></i>
-          </th>
-          <th className={"px-6 align-middle border py-3 text-xs uppercase font-semibold text-left " + (color === "light" ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100" : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")}>
-            Remaining Payment
-            <i onClick={() => handleSort("remainingPayment")} className="fas fa-solid fa-caret-down ml-1 cursor-pointer text-green-500"></i>
-          </th>
-          <th className={"px-6 align-middle border py-3 text-xs uppercase font-semibold text-left " + (color === "light" ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100" : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")}>
-            Total Payment
-            <i onClick={() => handleSort("totalPayment")} className="fas fa-solid fa-caret-down ml-1 cursor-pointer text-green-500"></i>
-          </th>
-          <th className={"px-6 align-middle border py-3 text-xs uppercase font-semibold text-left " + (color === "light" ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100" : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")}>
-            Payment Method
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        {sortedFinances?.length > 0 &&
-          sortedFinances.map((finance, index) => (
-            <tr key={index}>
-              <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">{finance?.firstName}</td>
-              <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">{finance?.fatherName}</td>
-              <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">{finance?.dateRegistered}</td>
-              <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">{finance?.paymentDetails.paymentReceived}</td>
-              <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">{finance?.paymentDetails.remainingPayment}</td>
-              <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">{finance?.paymentDetails.totalPayment}</td>
-              <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">{finance?.paymentDetails.paymentMethod}</td>
-            </tr>
-          ))}
-      </tbody>
-      <tfoot className="sticky bottom-0" style={{ position: 'sticky', bottom: 0 ,background:"#ffffff"}}>
-        <tr>
-          <td className="border-t-0 px-6 align-middle text-left border-l-0 border-r-0 font-semibold whitespace-nowrap p-4"></td>
-          <td className="border-t-0 px-6 align-middle text-left border-l-0 border-r-0 font-semibold whitespace-nowrap p-4"></td>
-          <td className="border-t-0 px-6 align-middle text-left border-l-0 border-r-0 font-semibold whitespace-nowrap p-4">Total</td>
-          <td className="border-t-0 px-6 align-middle text-left border-l-0 border-r-0 font-semibold whitespace-nowrap p-4">{totalPayment.paymentReceived}</td>
-          <td className="border-t-0 px-6 align-middle text-left border-l-0 border-r-0 font-semibold whitespace-nowrap p-4">{totalPayment.remainingPayment}</td>
-          <td className="border-t-0 px-6 align-middle text-left border-l-0 border-r-0 font-semibold whitespace-nowrap p-4">{totalPayment.totalPayment}</td>
-          <td className="border-t-0 px-6 align-middle text-left border-l-0 border-r-0 font-semibold whitespace-nowrap p-4"></td>
-        </tr>
-      </tfoot>
-    </table>
-  </div>
-</div>
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-           
+          <div
+            className="flex flex-col w-full overflow-x-auto relative"
+            style={{ height: "450px" }}
+          >
+            <div className="table-container relative flex flex-col h-full overflow-auto">
+              {/* Table Header and Body */}
+              <table className="items-center w-full bg-transparent border-collapse relative flex-grow">
+                <thead>
+                  <tr>
+                    <th
+                      className={
+                        "px-6 align-middle border py-3 text-xs uppercase font-semibold text-left " +
+                        (color === "light"
+                          ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                          : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
+                      }
+                    >
+                      First Name
+                    </th>
+                    <th
+                      className={
+                        "px-6 align-middle border py-3 text-xs uppercase font-semibold text-left " +
+                        (color === "light"
+                          ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                          : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
+                      }
+                    >
+                      Father Name
+                    </th>
+                    <th
+                      className={
+                        "px-6 align-middle border py-3 text-xs uppercase font-semibold text-left " +
+                        (color === "light"
+                          ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                          : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
+                      }
+                    >
+                      Date Registered
+                    </th>
+                    <th
+                      className={
+                        "px-6 align-middle border py-3 text-xs uppercase font-semibold text-left " +
+                        (color === "light"
+                          ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                          : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
+                      }
+                    >
+                      Payment Received
+                      <i
+                        onClick={() => handleSort("paymentReceived")}
+                        className="fas fa-solid fa-caret-down ml-1 cursor-pointer"
+                      ></i>
+                    </th>
+                    <th
+                      className={
+                        "px-6 align-middle border py-3 text-xs uppercase font-semibold text-left " +
+                        (color === "light"
+                          ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                          : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
+                      }
+                    >
+                      Remaining Payment
+                      <i
+                        onClick={() => handleSort("remainingPayment")}
+                        className="fas fa-solid fa-caret-down ml-1 cursor-pointer text-green-500"
+                      ></i>
+                    </th>
+                    <th
+                      className={
+                        "px-6 align-middle border py-3 text-xs uppercase font-semibold text-left " +
+                        (color === "light"
+                          ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                          : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
+                      }
+                    >
+                      Total Payment
+                      <i
+                        onClick={() => handleSort("totalPayment")}
+                        className="fas fa-solid fa-caret-down ml-1 cursor-pointer text-green-500"
+                      ></i>
+                    </th>
+                    <th
+                      className={
+                        "px-6 align-middle border py-3 text-xs uppercase font-semibold text-left " +
+                        (color === "light"
+                          ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                          : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
+                      }
+                    >
+                      Payment Method
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedFinances?.length > 0 &&
+                    sortedFinances.map((finance, index) => (
+                      <tr key={index}>
+                        <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                          {finance?.firstName}
+                        </td>
+                        <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                          {finance?.fatherName}
+                        </td>
+                        <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                          {finance?.dateRegistered}
+                        </td>
+                        <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                          {finance?.paymentDetails.paymentReceived}
+                        </td>
+                        <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                          {finance?.paymentDetails.remainingPayment}
+                        </td>
+                        <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                          {finance?.paymentDetails.totalPayment}
+                        </td>
+                        <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                          {finance?.paymentDetails.paymentMethod}
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+                <tfoot
+                  className="sticky bottom-0"
+                  style={{
+                    position: "sticky",
+                    bottom: 0,
+                    background: "#ffffff",
+                  }}
+                >
+                  <tr>
+                    <td className="border-t-0 px-6 align-middle text-left border-l-0 border-r-0 font-semibold whitespace-nowrap p-4"></td>
+                    <td className="border-t-0 px-6 align-middle text-left border-l-0 border-r-0 font-semibold whitespace-nowrap p-4"></td>
+                    <td className="border-t-0 px-6 align-middle text-left border-l-0 border-r-0 font-semibold whitespace-nowrap p-4">
+                      Total
+                    </td>
+                    <td className="border-t-0 px-6 align-middle text-left border-l-0 border-r-0 font-semibold whitespace-nowrap p-4">
+                      {totalPayment.paymentReceived}
+                    </td>
+                    <td className="border-t-0 px-6 align-middle text-left border-l-0 border-r-0 font-semibold whitespace-nowrap p-4">
+                      {totalPayment.remainingPayment}
+                    </td>
+                    <td className="border-t-0 px-6 align-middle text-left border-l-0 border-r-0 font-semibold whitespace-nowrap p-4">
+                      {totalPayment.totalPayment}
+                    </td>
+                    <td className="border-t-0 px-6 align-middle text-left border-l-0 border-r-0 font-semibold whitespace-nowrap p-4"></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
         )}
       </div>
-
-
-
     </>
   );
 }

@@ -3,7 +3,6 @@ import { IoArrowBackOutline } from "react-icons/io5";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { useDispatch, useSelector } from "react-redux";
 import { postVehicle } from "store/vehicle/actions";
-import { Spinner } from "reactstrap";
 // components
 
 export default function CardVehicle() {
@@ -16,7 +15,6 @@ export default function CardVehicle() {
     branch: null,
     type: "",
   });
-  console.log(formData, "formData>>>>>>>>>>>");
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === "branch") {

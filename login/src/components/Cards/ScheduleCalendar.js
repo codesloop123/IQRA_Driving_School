@@ -1,28 +1,17 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
-import DND_Calendar from "../Utils/DND_Calendar";
+import DndCalendar from "../Utils/DND_Calendar";
 import { fetchInstructors, fetchSlots } from "store/instructor/action";
 import { useDispatch, useSelector } from "react-redux";
-// import { useEffect } from "react";
-import moment from "moment";
+
 export default function ScheduleCalendar({ color = "light", title }) {
   const dispatch = useDispatch();
   const { slots, instructors, isInstructorLoading } = useSelector(
     (state) => state.instructor
   );
   const [events, setEvents] = useState([]);
-  const [selectedInstructor, setSelectedInstructor] = useState("");
-  const [dateRange, setDateRange] = useState({
-    start: moment().format("YYYY-MM-DD"),
-    end: moment().add(6, "days").format("YYYY-MM-DD"),
-  });
   const [instructorIdx, setInstructorIdx] = useState(null);
-  const [filters, setFilters] = useState({
-    status: "all",
-    studentName: "",
-    showAvailableOnly: false,
-  });
-  const [alerts, setAlerts] = useState([]);
+ 
   const { user } = useSelector((state) => state.auth);
 
   const setEventsHandler = () => {
@@ -45,51 +34,17 @@ export default function ScheduleCalendar({ color = "light", title }) {
         resourceId: instructors[instructorIdx]?._id,
       }))
     );
-
-    // const filteredEvents = formattedEvents.filter((event) => {
-    //   if (selectedInstructor && event.instructorId !== selectedInstructor)
-    //     return false;
-    //   if (
-    //     filters.studentName &&
-    //     !event.studentName
-    //       .toLowerCase()
-    //       .includes(filters.studentName.toLowerCase())
-    //   )
-    //     return false;
-    //   if (filters.status !== "all" && event.status !== filters.status)
-    //     return false;
-    //   if (filters.showAvailableOnly && event.status !== "available")
-    //     return false;
-    //   return true;
-    // });
     setEvents(formattedEvents);
-
-    // Check for alerts
-    // const newAlerts = formattedEvents.reduce((acc, event) => {
-    //   if (event.status === "missed") {
-    //     acc.push({
-    //       type: "error",
-    //       message: `${event.studentName} missed Class ${event.classNumber} - Needs rescheduling`,
-    //     });
-    //   } else if (event.status === "pending_reschedule") {
-    //     acc.push({
-    //       type: "warning",
-    //       message: `Rescheduling needed for ${event.studentName}'s Class ${event.classNumber}`,
-    //     });
-    //   }
-    //   return acc;
-    // }, []);
-
-    // setAlerts(newAlerts);
   };
   useEffect(() => {
     dispatch(fetchInstructors(user?.branch?._id));
-  }, []);
+  }, [dispatch,user?.branch?._id]);
   useEffect(() => {
     if (instructors[instructorIdx]?._id) {
       dispatch(fetchSlots(instructors[instructorIdx]?._id));
     }
-  }, [instructorIdx]);
+  }, [instructorIdx,dispatch,instructors]);
+  // eslint-disable-next-line
   useEffect(setEventsHandler, [isInstructorLoading]);
   const handleEventsChange = (updatedEvents) => {
     setEvents(updatedEvents);
@@ -122,7 +77,7 @@ export default function ScheduleCalendar({ color = "light", title }) {
           ))}
         </select>
 
-        <DND_Calendar
+        <DndCalendar
           events={events}
           onEventsChange={handleEventsChange}
           title={title}
