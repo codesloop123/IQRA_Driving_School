@@ -69,13 +69,11 @@ export default function AvailabilityModal({
   car,
   additionalTime,
 }) {
-  const [modalData, setModalData] = useState([]);
+  const [modalData] = useState([]);
   const [openModal, setOpenModal] = useState(false);
 
   const dispatch = useDispatch();
-  const { instructors, isInstructorLoading } = useSelector(
-    (state) => state.instructor
-  );
+  const { instructors } = useSelector((state) => state.instructor);
   const { user } = useSelector((state) => state.auth);
   const [selectedInstructor, setSelectedInstructor] = useState(null);
   useEffect(() => {
@@ -105,7 +103,7 @@ export default function AvailabilityModal({
 
       const filteredSlots = selectedInstructor_1.bookedSlots || [];
       if (filteredSlots.length > 0) {
-        const mergedSlots = filteredSlots; //mergeSlots(filteredSlots);
+        const mergedSlots = mergeSlots(filteredSlots);
         // Mapping mergedSlots to create a newEventsList for the calendar
         const newEventsList = mergedSlots.map((slot) => {
           // Create a Date object for the date and set the start and end times

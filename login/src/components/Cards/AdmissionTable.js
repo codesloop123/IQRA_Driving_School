@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { fetchAdmissions, updateAdmission } from "store/admission/actions";
 import { fetchInstructors } from "store/instructor/action";
 import { useEffect } from "react";
@@ -10,7 +9,6 @@ import PDFModal from "components/Modals/PDFModal";
 import ExtensionModal from "components/Modals/ExtensionModal";
 
 export default function AdmissionTable({ color = "light", title }) {
-  const history = useHistory();
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const instructors = useSelector((state) => state.instructor.instructors);
@@ -137,16 +135,6 @@ export default function AdmissionTable({ color = "light", title }) {
       });
     }
   };
-  const sortedAdmissions = [...admissions].sort((a, b) => {
-    const { key, direction } = sortByProperty;
-    if (!key) {
-      const dateA = new Date(a.startDate);
-      const dateB = new Date(b.startDate);
-      return dateB - dateA;
-    }
-    const order = direction === "ascending" ? 1 : -1;
-    return a[key] > b[key] ? order : -order;
-  });
 
   const handleModal = (idx) => {
     setIdx(idx);

@@ -4,25 +4,15 @@ import DND_Calendar from "../Utils/DND_Calendar";
 import { fetchInstructors, fetchSlots } from "store/instructor/action";
 import { useDispatch, useSelector } from "react-redux";
 // import { useEffect } from "react";
-import moment from "moment";
 export default function ScheduleCalendar({ color = "light", title }) {
   const dispatch = useDispatch();
   const { slots, instructors, isInstructorLoading } = useSelector(
     (state) => state.instructor
   );
   const [events, setEvents] = useState([]);
-  const [selectedInstructor, setSelectedInstructor] = useState("");
-  const [dateRange, setDateRange] = useState({
-    start: moment().format("YYYY-MM-DD"),
-    end: moment().add(6, "days").format("YYYY-MM-DD"),
-  });
+
   const [instructorIdx, setInstructorIdx] = useState(null);
-  const [filters, setFilters] = useState({
-    status: "all",
-    studentName: "",
-    showAvailableOnly: false,
-  });
-  const [alerts, setAlerts] = useState([]);
+
   const { user } = useSelector((state) => state.auth);
 
   const setEventsHandler = () => {
