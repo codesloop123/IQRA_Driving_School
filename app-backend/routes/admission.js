@@ -49,20 +49,27 @@ async function checkOverduePayments() {
 const generateReferenceNumber = async (branchCode, lecturerCode) => {
   const currentMonth = new Date().getMonth() + 1;
   const currentYear = new Date().getFullYear().toString().slice(-2);
+  const currentDate = new Date();
+
   const startOfMonth = new Date(
-    new Date().getFullYear(),
-    new Date().getMonth(),
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
     1
   );
+
   const endOfMonth = new Date(
-    new Date().getFullYear(),
-    new Date().getMonth() + 1,
-    0
+    currentDate.getFullYear(),
+    currentDate.getMonth() + 1,
+    0,
+    23,
+    59,
+    59,
+    999
   );
   const admissionCount = await Admission.countDocuments({
     dateRegistered: {
-      $gte: startOfMonth,
-      $lt: endOfMonth,
+      $gte: startOfMonth.toISOString(),
+      $lte: endOfMonth.toISOString(),
     },
   });
   const entryOfMonth = (admissionCount + 1).toString().padStart(2, "0");

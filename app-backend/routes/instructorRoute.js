@@ -144,62 +144,46 @@ router.get("/fetch/slots/:students", async (req, res) => {
           as: "students",
         },
       },
-      // {
-      //   $unwind: "$students",
-      // },
-      // {
-      //   $project: {
-      //     studentName: {
-      //       $concat: ["$students.firstName", " ", "$students.lastName"],
-      //     },
-      //     _id: "$bookedSlots._id",
-      //     date: "$bookedSlots.date",
-      //     startTime: "$bookedSlots.startTime",
-      //     endTime: "$bookedSlots.endTime",
-      //     status: "$bookedSlots.status",
-      //     totalClasses: "$students.courseduration",
-      //     refNo: "$bookedSlots.refNo",
-      //   },
-      // },
-      // {
-      //   $sort: {
-      //     date: 1, // Sort by date in ascending order
-      //     startTime: 1, // Within the same date, sort by startTime in ascending order
-      //   },
-      // },
-      // {
-      //   $group: {
-      //     _id: "$refNo",
-      //     slots: {
-      //       $push: {
-      //         _id: "$_id",
-      //         date: "$date",
-      //         startTime: "$startTime",
-      //         endTime: "$endTime",
-      //         status: "$status",
-      //         totalClasses: "$totalClasses",
-      //         studentName: "$studentName",
-      //       },
-      //     },
-      //   },
-      // },
+      {
+        $unwind: "$students",
+      },
+      {
+        $project: {
+          studentName: {
+            $concat: ["$students.firstName", " ", "$students.lastName"],
+          },
+          _id: "$bookedSlots._id",
+          date: "$bookedSlots.date",
+          startTime: "$bookedSlots.startTime",
+          endTime: "$bookedSlots.endTime",
+          status: "$bookedSlots.status",
+          totalClasses: "$students.courseduration",
+          refNo: "$bookedSlots.refNo",
+        },
+      },
+      {
+        $sort: {
+          date: 1, // Sort by date in ascending order
+          startTime: 1, // Within the same date, sort by startTime in ascending order
+        },
+      },
+      {
+        $group: {
+          _id: "$refNo",
+          slots: {
+            $push: {
+              _id: "$_id",
+              date: "$date",
+              startTime: "$startTime",
+              endTime: "$endTime",
+              status: "$status",
+              totalClasses: "$totalClasses",
+              studentName: "$studentName",
+            },
+          },
+        },
+      },
     ]);
-    const formattedLessons = lessons?.map((lesson) => {
-      const bookedSlotRefNo = lesson.bookedSlots.refNo;
-
-      // Step 2: Filter the students array to keep only those with matching referenceNumber
-      const filteredStudents = lesson.students.filter(
-        (student) => student.referenceNumber === bookedSlotRefNo
-      );
-
-      console.log(filteredStudents);
-      // Step 3: Return a new object with the filtered students
-      return {
-        ...lesson, // Spread the original lesson object
-        students: filteredStudents, // Overwrite the students array with the filtered one
-      };
-    });
-    // console.log(formattedLessons);
 
     res.status(200).json({ status: true, lessons: lessons });
   } catch (error) {
