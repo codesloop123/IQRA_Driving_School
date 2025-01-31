@@ -105,7 +105,7 @@ export default function AvailabilityModal({
 
       const filteredSlots = selectedInstructor_1.bookedSlots || [];
       if (filteredSlots.length > 0) {
-        const mergedSlots = mergeSlots(filteredSlots);
+        const mergedSlots = filteredSlots; //mergeSlots(filteredSlots);
         // Mapping mergedSlots to create a newEventsList for the calendar
         const newEventsList = mergedSlots.map((slot) => {
           // Create a Date object for the date and set the start and end times

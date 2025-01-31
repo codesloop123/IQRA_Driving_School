@@ -94,7 +94,7 @@ export default function ScheduleCalendar({ color = "light", title }) {
   const handleEventsChange = (updatedEvents) => {
     setEvents(updatedEvents);
   };
-
+  console.log(slots);
   return (
     <>
       <div
