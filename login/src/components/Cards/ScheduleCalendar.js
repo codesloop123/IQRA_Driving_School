@@ -11,7 +11,7 @@ export default function ScheduleCalendar({ color = "light", title }) {
   );
   const [events, setEvents] = useState([]);
   const [instructorIdx, setInstructorIdx] = useState(null);
- 
+
   const { user } = useSelector((state) => state.auth);
 
   const setEventsHandler = () => {
@@ -38,18 +38,18 @@ export default function ScheduleCalendar({ color = "light", title }) {
   };
   useEffect(() => {
     dispatch(fetchInstructors(user?.branch?._id));
-  }, [dispatch,user?.branch?._id]);
+  }, [dispatch, user?.branch?._id]);
   useEffect(() => {
     if (instructors[instructorIdx]?._id) {
       dispatch(fetchSlots(instructors[instructorIdx]?._id));
     }
-  }, [instructorIdx,dispatch,instructors]);
+  }, [instructorIdx, dispatch, instructors]);
   // eslint-disable-next-line
   useEffect(setEventsHandler, [isInstructorLoading]);
   const handleEventsChange = (updatedEvents) => {
     setEvents(updatedEvents);
   };
-
+  console.log(slots);
   return (
     <>
       <div

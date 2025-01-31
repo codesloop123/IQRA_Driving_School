@@ -287,7 +287,6 @@ router.put("/extend/slots/:id", async (req, res) => {
     const courseStartTime = startTime;
     const courseEndTime = calculateEndTime(startTime, courseTimeDuration);
     if (courseStartTime < availableStart || courseEndTime > availableEnd) {
-      console.log("works");
       return res.status(400).json({
         status: false,
         message: "Requested time is outside instructor's availability.",

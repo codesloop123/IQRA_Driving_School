@@ -12,7 +12,6 @@ import moment from "moment";
 import { fetchInstructors } from "store/instructor/action";
 import { toast } from "react-toastify";
 import { setExtensions } from "store/instructor/action";
-import { reference } from "@popperjs/core";
 
 const localizer = momentLocalizer(moment);
 
@@ -79,7 +78,7 @@ export default function ExtensionModal({
   const filterslot = () => {
     const filteredSlots = selectedInstructor.bookedSlots || [];
     if (filteredSlots.length > 0) {
-      const mergedSlots = mergeSlots(filteredSlots);
+      const mergedSlots = filteredSlots; //mergeSlots(filteredSlots);
       // Mapping mergedSlots to create a newEventsList for the calendar
       const newEventsList = mergedSlots.map((slot) => {
         // Create a Date object for the date and set the start and end times
@@ -209,36 +208,6 @@ export default function ExtensionModal({
       }));
     }
   };
-
-  function mergeSlots(slots) {
-    const clonedSlots = slots.map((slot) => ({ ...slot }));
-    const sortedSlots = clonedSlots.sort((a, b) => {
-      if (a.date === b.date) {
-        return a.startTime.localeCompare(b.startTime);
-      }
-      return a.date.localeCompare(b.date);
-    });
-
-    const mergedSlots = [];
-    let currentSlot = sortedSlots[0];
-
-    for (let i = 1; i < sortedSlots.length; i++) {
-      const nextSlot = sortedSlots[i];
-      if (
-        currentSlot.date === nextSlot.date &&
-        currentSlot.endTime === nextSlot.startTime
-      ) {
-        currentSlot = { ...currentSlot, endTime: nextSlot.endTime };
-      } else {
-        mergedSlots.push(currentSlot);
-        currentSlot = nextSlot;
-      }
-    }
-
-    mergedSlots.push(currentSlot);
-
-    return mergedSlots;
-  }
 
   function generateRandomColor() {
     const letters = "0123456789ABCDEF";

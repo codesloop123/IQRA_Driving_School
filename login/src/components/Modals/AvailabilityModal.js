@@ -69,13 +69,11 @@ export default function AvailabilityModal({
   car,
   additionalTime,
 }) {
-  const [modalData, setModalData] = useState([]);
+  const [modalData] = useState([]);
   const [openModal, setOpenModal] = useState(false);
 
   const dispatch = useDispatch();
-  const { instructors, isInstructorLoading } = useSelector(
-    (state) => state.instructor
-  );
+  const { instructors } = useSelector((state) => state.instructor);
   const { user } = useSelector((state) => state.auth);
   const [selectedInstructor, setSelectedInstructor] = useState(null);
   useEffect(() => {

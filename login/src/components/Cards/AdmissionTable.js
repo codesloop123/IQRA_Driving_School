@@ -106,7 +106,7 @@ export default function AdmissionTable({ color = "light", title }) {
       console.error("Error updating student:", error);
     }
   };
-
+  console.log(idx, admissions);
   const findInstructorName = (id) => {
     const instructor = instructors.find((instructor) => instructor._id === id);
     return instructor ? instructor.name : "Not found.";
@@ -130,16 +130,6 @@ export default function AdmissionTable({ color = "light", title }) {
       });
     }
   };
-  const sortedAdmissions = [...admissions].sort((a, b) => {
-    const { key, direction } = sortByProperty;
-    if (!key) {
-      const dateA = new Date(a.startDate);
-      const dateB = new Date(b.startDate);
-      return dateB - dateA;
-    }
-    const order = direction === "ascending" ? 1 : -1;
-    return a[key] > b[key] ? order : -order;
-  });
 
   const handleModal = (idx) => {
     setIdx(idx);
@@ -401,7 +391,7 @@ export default function AdmissionTable({ color = "light", title }) {
               </thead>
               <tbody>
                 {admissions?.length > 0 &&
-                  admissions.toReversed().map((admission, index) => (
+                  admissions.map((admission, index) => (
                     <React.Fragment key={admission._id || index}>
                       <tr>
                         <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
