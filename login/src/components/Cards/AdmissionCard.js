@@ -7,12 +7,7 @@ import { postAdmission } from "store/admission/actions";
 import { toast } from "react-toastify";
 import AvailabilityModal from "components/Modals/AvailabilityModal";
 import { fetchCourses } from "store/courses/actions";
-import {
-  generateRandomBirthdate,
-  generateRandomCnic,
-  generateRandomFirstName,
-  generateRandomLastName,
-} from "components/Utils/AdmissionGeneration";
+
 import PDFModal from "components/Modals/PDFModal";
 export default function AdmissionCard() {
   const dispatch = useDispatch();
@@ -32,12 +27,12 @@ export default function AdmissionCard() {
   const [refNo, setRefNo] = useState("");
 
   const [formData, setFormData] = useState({
-    firstName: generateRandomFirstName(),
-    lastName: generateRandomLastName(),
+    firstName: "",
+    lastName: "",
     fatherName: "Robert Doe",
-    cnic: generateRandomCnic(),
+    cnic: "",
     gender: "Male",
-    dob: generateRandomBirthdate(), // Use YYYY-MM-DD format for dates
+    dob: "", // Use YYYY-MM-DD format for dates
     cellNumber: "+92 300 1234567",
     address: "123 Main Street, Islamabad",
     instructor: null,
@@ -345,7 +340,7 @@ export default function AdmissionCard() {
   };
 
   useEffect(() => {
-    if (!openPreview){
+    if (!openPreview) {
       const cleanUpFunction = () => {
         setError("");
         setTimeError("");
@@ -354,12 +349,12 @@ export default function AdmissionCard() {
         setPriceIdx("");
         setRefNo("");
         setFormData({
-          firstName: generateRandomFirstName(),
-          lastName: generateRandomLastName(),
+          firstName: "",
+          lastName: "",
           fatherName: "Robert Doe",
-          cnic: generateRandomCnic(),
+          cnic: "",
           gender: "Male",
-          dob: generateRandomBirthdate(),
+          dob: "",
           cellNumber: "+92 300 1234567",
           address: "123 Main Street, Islamabad",
           instructor: null,
@@ -376,14 +371,15 @@ export default function AdmissionCard() {
           discount: "40", // Discount in PKR
           course: "",
           vehicle: "",
-    
+
           pickanddrop: false,
           pickanddropCharges: "",
           paymentDueDate: "",
         });
       };
-      cleanUpFunction();}
-  }, [openPreview,user]);
+      cleanUpFunction();
+    }
+  }, [openPreview, user]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -446,7 +442,12 @@ export default function AdmissionCard() {
       ...prev,
       remainingPayment: remaining >= 0 ? remaining : 0,
     }));
-  }, [formData.totalPayment, formData.paymentReceived, formData.discount,formData.pickanddropCharges]);
+  }, [
+    formData.totalPayment,
+    formData.paymentReceived,
+    formData.discount,
+    formData.pickanddropCharges,
+  ]);
   const total = formData?.pickanddropCharges
     ? Number(formData?.pickanddropCharges) + formData?.totalPayment
     : formData?.totalPayment;
