@@ -7,7 +7,6 @@ import { format } from "date-fns";
 import { ReactComponent as EditIcon } from "../../assets/img/edit.svg";
 import PDFModal from "components/Modals/PDFModal";
 import ExtensionModal from "components/Modals/ExtensionModal";
-import { toast } from "react-toastify";
 
 export default function AdmissionTable({ color = "light", title }) {
   const dispatch = useDispatch();
@@ -112,6 +111,12 @@ export default function AdmissionTable({ color = "light", title }) {
     return instructor ? instructor.name : "Not found.";
   };
 
+  // const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  // const link = document.createElement("a");
+  // link.href = URL.createObjectURL(blob);
+  // link.download = "admissions.csv";
+  // link.click();
+  // };
   const [sortByProperty, setSortByProperty] = useState({
     key: null,
     direction: null,
@@ -135,48 +140,6 @@ export default function AdmissionTable({ color = "light", title }) {
     setIdx(idx);
     setOpen(true);
   };
-
-  const downloadCSV = () => {
-    if (!sortedAdmissions || sortedAdmissions.length === 0) {
-      toast.error("Internet Error");
-      return;
-    }
-    const headers = [
-      "First Name",
-      "Father Name",
-      "Date Registered",
-      "Payment Received",
-      "Remaining Payment",
-      "Total Payment",
-      "Payment Method",
-    ];
-
-    const rows = sortedAdmissions.map((finance) => [
-      finance?.firstName || "",
-      finance?.fatherName || "",
-      finance?.dateRegistered || "",
-      finance?.paymentDetails?.paymentReceived || "",
-      finance?.paymentDetails?.remainingPayment || "",
-      finance?.paymentDetails?.totalPayment || "",
-      finance?.paymentDetails?.paymentMethod || "",
-    ]);
-
-    const csvContent = [
-      headers.join(","),
-      ...rows.map((row) => row.join(",")),
-    ].join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", "finance_data.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   return (
     <>
       <div
@@ -199,12 +162,18 @@ export default function AdmissionTable({ color = "light", title }) {
             </div>
             <div className="p-3">
               <button
-                onClick={() => {
-                  downloadCSV();
-                }}
+                onClick={() => {}}
                 className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
               >
                 Download CSV
+              </button>
+            </div>
+            <div className="mr-3">
+              <button
+                onClick={handleSort}
+                className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
+              >
+                Sort by date
               </button>
             </div>
           </div>
