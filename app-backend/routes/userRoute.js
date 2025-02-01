@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const Notification = require("../models/Notification");
+require("dotenv").config();
 
 const router = express.Router();
 
@@ -69,10 +70,15 @@ router.post("/login", async (req, res) => {
         branch: user.branch,
       },
     };
-    jwt.sign(payload,process.env.JWT_SECRET, { expiresIn: "1h" }, (err, token) => {
-      if (err) throw err;
-      res.json({ token, user: payload.user });
-    });
+    jwt.sign(
+      payload,
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" },
+      (err, token) => {
+        if (err) throw err;
+        res.json({ token, user: payload.user });
+      }
+    );
   } catch (error) {
     console.error(error.message);
     res.status(500).send("Server error");

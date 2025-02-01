@@ -3,6 +3,8 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const app = express();
+require("dotenv").config();
+
 mongoose
   .connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
@@ -14,7 +16,6 @@ mongoose
     console.log("MongoDB connected for userAuthDB");
   })
   .catch((err) => console.log(err));
-
 
 app.use(cors());
 app.use(express.json());
