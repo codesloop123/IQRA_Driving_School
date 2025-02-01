@@ -106,7 +106,6 @@ router.get("/fetch/:id", async (req, res) => {
     const instructors = await Instructor.find({
       "branch._id": new ObjectId(id),
     });
-    // console.log(instructors);
     res.status(200).json({ status: true, instructors: instructors });
   } catch (error) {
     console.error(error);
