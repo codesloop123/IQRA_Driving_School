@@ -6,5 +6,5 @@ const axiosInstance = axios.create({
   },
   timeout: 5000,
 });
-
+console.log(process.env.BACKEND_URL);
 export default axiosInstance;
