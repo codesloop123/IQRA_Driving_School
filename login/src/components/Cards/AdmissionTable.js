@@ -105,7 +105,6 @@ export default function AdmissionTable({ color = "light", title }) {
       console.error("Error updating student:", error);
     }
   };
-  console.log(idx, admissions);
   const findInstructorName = (id) => {
     const instructor = instructors.find((instructor) => instructor._id === id);
     return instructor ? instructor.name : "Not found.";

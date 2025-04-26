@@ -760,7 +760,6 @@ export default function AdmissionCard() {
                           formData?.courseduration > 0
                         ) {
                           setOpen(true);
-                          console.log('a')
                         } else {
                           toast.error("Fill Course Duration and Time Duration");
                         }

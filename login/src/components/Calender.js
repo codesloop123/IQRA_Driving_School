@@ -4,7 +4,6 @@ import moment from "moment";
 const localizer = momentLocalizer(moment);
 
 const MyCalendar = ({ myEventsList }) => {
-  console.log(myEventsList, "myEventsList>>>>>>");
   const eventStyleGetter = (event) => {
     const backgroundColor = event.color;
     return {
