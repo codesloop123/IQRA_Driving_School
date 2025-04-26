@@ -29,18 +29,18 @@ export default function AdmissionCard() {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
-    fatherName: "Robert Doe",
+    fatherName: "",
     cnic: "",
-    gender: "Male",
+    gender: "",
     dob: "", // Use YYYY-MM-DD format for dates
-    cellNumber: "+92 300 1234567",
-    address: "123 Main Street, Islamabad",
+    cellNumber: "",
+    address: "",
     instructor: null,
     courseduration: "", // Example: 30 days
     courseTimeDuration: "", // Example: 90 minutes
     startDate: "", // Example date
     startTime: "",
-    paymentMethod: "Cash",
+    paymentMethod: "",
     totalPayment: "", // Total payment in PKR
     paymentReceived: "", // Received payment in PKR
     remainingPayment: "", // Remaining payment in PKR
@@ -48,9 +48,9 @@ export default function AdmissionCard() {
     pickanddrop: false,
     pickanddropCharges: "",
     status: true, // Active status
-    discount: "40", // Discount in PKR
-    course: "Basic Driving Course",
-    vehicle: "Toyota Corolla",
+    discount: "", // Discount in PKR
+    course: "",
+    vehicle: "",
     paymentDueDate: null,
   });
 
@@ -351,24 +351,24 @@ export default function AdmissionCard() {
         setFormData({
           firstName: "",
           lastName: "",
-          fatherName: "Robert Doe",
+          fatherName: "",
           cnic: "",
-          gender: "Male",
+          gender: "",
           dob: "",
-          cellNumber: "+92 300 1234567",
-          address: "123 Main Street, Islamabad",
+          cellNumber: "",
+          address: "",
           instructor: null,
           courseduration: "", // Example: 30 days
           courseTimeDuration: "", // Example: 90 minutes
           startDate: "", // Example date
           startTime: "",
-          paymentMethod: "Cash",
+          paymentMethod: "",
           totalPayment: "", // Total payment in PKR
           paymentReceived: "", // Received payment in PKR
           remainingPayment: "", // Remaining payment in PKR
           manager: user,
           status: true, // Active status
-          discount: "40", // Discount in PKR
+          discount: "", // Discount in PKR
           course: "",
           vehicle: "",
 
@@ -888,9 +888,9 @@ export default function AdmissionCard() {
                     <option value="" disabled>
                       Select Payment Method
                     </option>
-                    <option value="cash">Cash</option>
+                    <option value="Cash">Cash</option>
                     <option value="easypaisa">EasyPaisa</option>
-                    <option value="bankTransfer">Bank Transfer</option>
+                    <option value="bank transfer">Bank Transfer</option>
                   </select>
                 </div>
               </div>

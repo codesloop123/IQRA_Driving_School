@@ -21,7 +21,7 @@ const AdmissionSchema = new mongoose.Schema({
   gender: { type: String},
   dob: { type: Date},
   cellNumber: { type: String},
-  address: { type: String, required: true },
+  address: { type: String },
   instructor: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Instructor",

@@ -116,16 +116,14 @@ const PDFModal = ({ formData, refNo, open, setOpen }) => {
       Date: ${date}       Time: ${time}
       Ref No: ${refNo}
       Received from: ${formData?.firstName} ${formData?.lastName}
-      CNIC: ${formData?.cnic}
-      Contact: ${formData?.cellNumber}
-      Address: ${formData?.address}
-  
+    
       The Total Payment: ${formData?.totalPayment}
       Payment Received: ${formData?.paymentReceived || "N/A"}
       Payment Method: ${formData?.paymentMethod}
-      Discount: ${formData?.discount}%
+      Discount: ${formData?.discount}
       Payment Due: ${formData?.remainingPayment}
       Start On: ${formData?.startDate}
+      Start Time: ${formData?.startTime}
   
       -----------------------------------
       Advance Fee Not Refundable. 
@@ -139,7 +137,6 @@ const PDFModal = ({ formData, refNo, open, setOpen }) => {
     // Create a new window for printing
     const printWindow = window.open('', '');
   
-    // Prepare the content specifically for thermal printing
     printWindow.document.write(`
       <html>
         <head>
