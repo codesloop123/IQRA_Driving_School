@@ -476,7 +476,7 @@ export default function AdmissionCard() {
                     First Name
                   </label>
                   <input
-                    required
+                    
                     type="text"
                     name="firstName"
                     value={formData.firstName}
@@ -495,7 +495,7 @@ export default function AdmissionCard() {
                     Last Name
                   </label>
                   <input
-                    required
+                    
                     type="text"
                     name="lastName"
                     value={formData.lastName}
@@ -514,7 +514,7 @@ export default function AdmissionCard() {
                     Father Name
                   </label>
                   <input
-                    required
+                    
                     id="fatherName"
                     type="text"
                     name="fatherName"
@@ -534,14 +534,13 @@ export default function AdmissionCard() {
                     CNIC
                   </label>
                   <input
-                    required
+                    
                     id="cnic"
                     type="text"
                     name="cnic"
-                    pattern="^\d{5}-\d{7}-\d{1}$"
                     value={formData.cnic}
                     onChange={handleChange}
-                    placeholder="62202-5658860-7"
+                    placeholder="6220256588607"
                     className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
                   />
                   {cnicError && (
@@ -560,7 +559,7 @@ export default function AdmissionCard() {
                     Phone Number
                   </label>
                   <input
-                    required
+                    
                     type="text"
                     name="cellNumber"
                     value={formData.cellNumber}
@@ -603,7 +602,7 @@ export default function AdmissionCard() {
                     Date of Birth
                   </label>
                   <input
-                    required
+                    
                     id="dob"
                     type="date"
                     name="dob"
@@ -628,7 +627,7 @@ export default function AdmissionCard() {
                     Address
                   </label>
                   <textarea
-                    required
+                    
                     id="address"
                     name="address"
                     value={formData.address}
@@ -761,6 +760,7 @@ export default function AdmissionCard() {
                           formData?.courseduration > 0
                         ) {
                           setOpen(true);
+                          console.log('a')
                         } else {
                           toast.error("Fill Course Duration and Time Duration");
                         }
@@ -1089,11 +1089,8 @@ export default function AdmissionCard() {
       )}
       {formData?.courseduration &&
         formData?.courseTimeDuration &&
-        formData?.firstName &&
-        formData?.lastName &&
         formData?.vehicle &&
-        formData?.address &&
-        formData?.cellNumber && (
+         (
           <AvailabilityModal
             open={open}
             setOpen={setOpen}

@@ -16,7 +16,15 @@ mongoose
     console.log("MongoDB connected for userAuthDB");
   })
   .catch((err) => console.log(err));
+  const User = require("./models/User");
+const Branch = require("./models/Branch");
+// Function to create a user using an existing branch
 
+
+
+
+ 
+  
 app.use(cors());
 app.use(express.json());
 app.use("/api/user", require("./routes/userRoute"));

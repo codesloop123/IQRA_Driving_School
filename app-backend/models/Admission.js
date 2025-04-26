@@ -14,13 +14,13 @@ const managerSchema = new mongoose.Schema(
 );
 // Schema for the Admission model
 const AdmissionSchema = new mongoose.Schema({
-  firstName: { type: String, required: true },
-  lastName: { type: String, required: true },
-  fatherName: { type: String, required: true },
-  cnic: { type: String, required: true },
-  gender: { type: String, required: true },
-  dob: { type: Date, required: true },
-  cellNumber: { type: String, required: true },
+  firstName: { type: String},
+  lastName: { type: String},
+  fatherName: { type: String},
+  cnic: { type: String},
+  gender: { type: String},
+  dob: { type: Date},
+  cellNumber: { type: String},
   address: { type: String, required: true },
   instructor: {
     type: mongoose.Schema.Types.ObjectId,

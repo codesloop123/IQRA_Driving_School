@@ -150,8 +150,9 @@ export default function AvailabilityModal({
     const rangeEvents = [];
     let x = parseInt((courseTimeDuration + additionalTime) / 15);
     let y = courseduration + Math.floor((positionInWeek + courseduration) / 7);
-    console.log(courseduration, y);
+    console.log(x, y)
     for (let verticalOffset = 0; verticalOffset < x; verticalOffset++) {
+      
       for (let horizontalOffset = 0; horizontalOffset < y; horizontalOffset++) {
         const eventStart = new Date(startDateTime.getTime()); // Clone startDateTime
         const eventEnd = new Date(startDateTime.getTime()); // Clone startDateTime
@@ -190,9 +191,9 @@ export default function AvailabilityModal({
           color: "#FFD700",
           tooltip: `Booked: ${eventStart.toLocaleTimeString()} - ${eventEnd.toLocaleTimeString()}`,
         });
+        console.log(rangeEvents)
       }
     }
-
     setNewEvents(rangeEvents);
     if (rangeEvents.length > 0) {
       const selectedDate = new Date(rangeEvents[0].start);

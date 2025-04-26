@@ -111,14 +111,7 @@ router.post("/add", async (req, res) => {
     } = req.body;
 
     if (
-      !firstName ||
-      !lastName ||
-      !fatherName ||
-      !cnic ||
-      !gender ||
-      !dob ||
-      !cellNumber ||
-      !address ||
+      
       !instructor ||
       !courseduration ||
       !courseTimeDuration ||
