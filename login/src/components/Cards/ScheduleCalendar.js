@@ -82,6 +82,8 @@ export default function ScheduleCalendar({ color = "light", title }) {
           title={title}
           instructorIdx={instructorIdx}
           instructors={instructors}
+          min={new Date(1970, 1, 1, 6, 0)}   // 6:00 AM
+          max={new Date(1970, 1, 1, 23, 0)}  // 11:00 PM
         />
       </div>
     </>

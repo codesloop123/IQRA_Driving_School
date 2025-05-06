@@ -120,6 +120,7 @@ export default function AdmissionTable({ color = "light", title }) {
     key: null,
     direction: null,
   });
+  
   const handleSort = (column) => {
     if (sortByProperty.key === column) {
       setSortByProperty({

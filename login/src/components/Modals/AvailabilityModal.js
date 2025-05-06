@@ -332,8 +332,8 @@ export default function AvailabilityModal({
                         onSelectSlot={handleSelectSlot}
                         step={15}
                         timeslots={1}
-                        min={new Date(1970, 1, 1, 9, 0, 0)}
-                        max={new Date(1970, 1, 1, 18, 0, 0)}
+                        min={new Date(1970, 1, 1, 6, 0, 0)}
+                        max={new Date(1970, 1, 1, 23, 0, 0)}
                         formats={{
                           timeGutterFormat: "h:mm a",
                         }}

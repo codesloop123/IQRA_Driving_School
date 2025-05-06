@@ -1,9 +1,10 @@
-require("dotenv").config();
+require('dotenv').config({ path: '../login/.env' });
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const app = express();
 require("dotenv").config();
+console.log('Connecting to MongoDB at:', process.env.MONGO_URI);
 
 mongoose
   .connect(process.env.MONGO_URI, {

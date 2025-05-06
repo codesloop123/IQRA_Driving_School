@@ -24,6 +24,8 @@ const MyCalendar = ({ myEventsList }) => {
         endAccessor="end"
         style={{ height: 400 }}
         eventPropGetter={eventStyleGetter}
+        min={new Date(1970, 1, 1, 6, 0)}   // 6:00 AM
+        max={new Date(1970, 1, 1, 23, 0)}  // 11:00 PM
       />
     </div>
   );

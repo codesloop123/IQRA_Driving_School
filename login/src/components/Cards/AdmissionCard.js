@@ -90,8 +90,8 @@ export default function AdmissionCard() {
     }
     const [hours, minutes] = starttime.split(":").map(Number);
 
-    if (hours < 9 || hours > 16 || (hours === 17 && minutes > 0)) {
-      setTimeError("Time must be between 9:00 AM and 5:00 PM.");
+    if (hours < 6 || hours > 22 || (hours === 23 && minutes > 0)) {
+      setTimeError("Time must be between 6:00 AM and 11:00 PM.");
       return;
     }
     setTimeError("");
@@ -164,7 +164,7 @@ export default function AdmissionCard() {
         setTimeError("Please select a time ending in 00 or 30 minutes.");
         return;
       }
-      if (hours < 9 || hours > 16 || (hours === 17 && minutes > 0)) {
+      if (hours < 6 || hours > 22 || (hours === 23 && minutes > 0)) {
         setTimeError("Time must be between 9:00 AM and 5:00 PM.");
         return;
       }

@@ -287,8 +287,8 @@ export default function ScheduleCalendar({
           endAccessor="end"
           step={30}
           timeslots={1}
-          min={new Date(2024, 0, 1, 5, 0, 0)}
-          max={new Date(2024, 0, 1, 22, 0, 0)}
+          min={new Date(2024, 0, 1, 6, 0, 0)}
+          max={new Date(2024, 0, 1, 23, 0, 0)}
           defaultView="month"
           defaultDate={new Date()}
           selectable

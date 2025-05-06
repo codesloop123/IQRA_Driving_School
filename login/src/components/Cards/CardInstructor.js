@@ -19,7 +19,7 @@ export default function CardInstructor() {
     vehicle: null,
     status: true,
     lecturerCode: "",
-    availability: { startTime: "09:00", endTime: "17:00" },
+    availability: { startTime: "06:00", endTime: "23:00" },
   });
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -48,7 +48,7 @@ export default function CardInstructor() {
         email: "",
         branch: null,
         vehicle: null,
-        availability: { startTime: "09:00", endTime: "17:00" },
+        availability: { startTime: "06:00", endTime: "23:00" },
         status: true,
         lecturerCode: "",
       });
