@@ -7,9 +7,14 @@ import { fetchBranches } from "store/branch/actions";
 import { fetchUsers } from "store/auth/actions";
 import { deleteManager } from "store/auth/actions";
 import { updateManagerStatus } from "store/auth/actions";
+import PasswordModal from "./PasswordModal";
+import { useState } from "react";
 export default function ManagersTable({ color, title }) {
   const history = useHistory();
   const { users, fetchLoading } = useSelector((state) => state.auth);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState(null);
+
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch(fetchBranches());
@@ -20,6 +25,7 @@ export default function ManagersTable({ color, title }) {
       dispatch(fetchUsers());
     });
   };
+
   const handleUpdate = (id, status) => {
     dispatch(updateManagerStatus({ id, status })).then(() => {
       dispatch(fetchUsers());
@@ -159,9 +165,21 @@ export default function ManagersTable({ color, title }) {
                         {manager?.status ? "Active" : "InActive"}
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        <button className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none">
+                        <button
+                          className="bg-lightBlue-600 text-white text-md font-bold py-2 px-4 rounded focus:outline-none"
+                          onClick={() => {
+                            setSelectedUserId(manager?._id);
+                            setShowModal(true);
+                          }}
+                        >
                           Change
                         </button>
+                        <PasswordModal
+  isOpen={showModal}
+  onClose={() => setShowModal(false)}
+  userId={selectedUserId}
+/>
+
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                         <button

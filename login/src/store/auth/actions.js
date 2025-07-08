@@ -52,6 +52,30 @@ export const signInUser = createAsyncThunk(
   }
 );
 
+export const changeManagerPassword = createAsyncThunk(
+  "auth/changePassword",
+  async ({ id, newPassword }, { dispatch }) => {
+    try {
+      dispatch(setRegisterLoader(true)); // reuse existing loader
+      const response = await axiosInstance.put(`/user/${id}/password`, {
+        password: newPassword,
+      });
+
+      if (response.status) {
+        toast.success(response.data.message || "Password updated successfully.");
+      }
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to update password"
+      );
+    } finally {
+      dispatch(setRegisterLoader(false));
+    }
+  }
+);
+
 //==================SIGN-OUT-USER=====================
 export const signOutUser = (history) => async (dispatch) => {
   try {
