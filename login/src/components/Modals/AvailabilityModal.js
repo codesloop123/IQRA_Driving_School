@@ -103,9 +103,9 @@ export default function AvailabilityModal({
 
       const filteredSlots = selectedInstructor_1.bookedSlots || [];
       if (filteredSlots.length > 0) {
-        const mergedSlots = mergeSlots(filteredSlots);
+        // const mergedSlots = mergeSlots(filteredSlots);
         // Mapping mergedSlots to create a newEventsList for the calendar
-        const newEventsList = mergedSlots.map((slot) => {
+        const newEventsList = filteredSlots.map((slot) => {
           // Create a Date object for the date and set the start and end times
           const startDate = new Date(slot.date);
           const [startHour, startMinute] = slot.startTime
@@ -150,7 +150,6 @@ export default function AvailabilityModal({
     const rangeEvents = [];
     let x = parseInt((courseTimeDuration + additionalTime) / 15);
     let y = courseduration + Math.floor((positionInWeek + courseduration) / 7);
-    console.log(x, y)
     for (let verticalOffset = 0; verticalOffset < x; verticalOffset++) {
       
       for (let horizontalOffset = 0; horizontalOffset < y; horizontalOffset++) {
@@ -191,7 +190,6 @@ export default function AvailabilityModal({
           color: "#FFD700",
           tooltip: `Booked: ${eventStart.toLocaleTimeString()} - ${eventEnd.toLocaleTimeString()}`,
         });
-        console.log(rangeEvents)
       }
     }
     setNewEvents(rangeEvents);
