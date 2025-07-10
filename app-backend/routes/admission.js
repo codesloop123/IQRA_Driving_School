@@ -412,41 +412,101 @@ router.get("/:branch/:instructorId/slots", async (req, res) => {
 });
 
 // Route to update only (firstName,lastName,fatherName,cnic,gender,dob,cellNumber,address) of the students enrolled
+
 router.put("/update/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    // Validate MongoDB ID format
+
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      console.log("Invalid MongoDB ID format");
       return res.status(400).json({ message: "Invalid admission ID format" });
     }
-    // Find existing admission
+
     const existingAdmission = await Admission.findById(id);
     if (!existingAdmission) {
-      console.log("Admission not found");
       return res.status(404).json({ message: "Admission not found" });
     }
-    // Filter out undefined and empty values from request body
+
     const updatedData = Object.fromEntries(
       Object.entries(req.body).filter(
         ([_, value]) => value !== undefined && value !== ""
       )
     );
-    // Merge existing data with updates
+
+    const currentInstructorId = existingAdmission.instructor.toString();
+    const newInstructorId = updatedData.instructor;
+
+    // Only run this if instructor is being changed
+    if (newInstructorId && newInstructorId !== currentInstructorId) {
+      const [oldInstructor, newInstructor] = await Promise.all([
+        Instructor.findById(currentInstructorId),
+        Instructor.findById(newInstructorId),
+      ]);
+
+      if (!newInstructor) {
+        return res.status(404).json({ message: "New instructor not found" });
+      }
+
+      const refNo = existingAdmission.referenceNumber;
+      const { startDate, endDate, startTime, endTime } = existingAdmission;
+
+      // Format date range to string (as in Instructor.bookedSlots)
+      const daysToCheck = [];
+      const currentDate = new Date(startDate);
+      while (currentDate <= new Date(endDate)) {
+        daysToCheck.push(currentDate.toISOString().split("T")[0]); // "YYYY-MM-DD"
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+
+      // Check for conflicts in new instructor's pending slots
+      const hasConflict = newInstructor.bookedSlots.some((slot) => {
+        return (
+          daysToCheck.includes(slot.date) &&
+          slot.status === "Pending" &&
+          (
+            (slot.startTime <= startTime && startTime < slot.endTime) ||
+            (slot.startTime < endTime && endTime <= slot.endTime) ||
+            (startTime <= slot.startTime && slot.endTime <= endTime)
+          )
+        );
+      });
+
+      if (hasConflict) {
+        return res.status(409).json({
+          message:
+            "Time slot conflict with the desired instructor’s schedule. Please select a different instructor or timing.",
+        });
+      }
+
+      // Transfer booked slots
+      // 1. Remove old slots from current instructor
+      oldInstructor.bookedSlots = oldInstructor.bookedSlots.filter(
+        (slot) => slot.refNo !== refNo
+      );
+      await oldInstructor.save();
+
+      // 2. Add same slots to new instructor
+      const newSlots = daysToCheck.map((date) => ({
+        date,
+        startTime,
+        endTime,
+        status: "Pending",
+        refNo,
+      }));
+      newInstructor.bookedSlots.push(...newSlots);
+      await newInstructor.save();
+    }
+
+    // Merge and update admission
     const finalUpdatedData = {
       ...existingAdmission.toObject(),
       ...updatedData,
       updatedAt: new Date(),
     };
 
-    // Update admission
     const updatedAdmission = await Admission.findByIdAndUpdate(
       id,
       finalUpdatedData,
-      {
-        new: true,
-        runValidators: true,
-      }
+      { new: true, runValidators: true }
     );
 
     if (!updatedAdmission) {
@@ -467,6 +527,7 @@ router.put("/update/:id", async (req, res) => {
     });
   }
 });
+
 // PUT route to toggle student's active status
 router.put("/:branch/:id/status", async (req, res) => {
   console.log("/:branch/:id/status");

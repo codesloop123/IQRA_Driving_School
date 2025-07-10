@@ -17,7 +17,10 @@ export default function AdmissionTable({ color = "light", title }) {
   const [refNo, setRefNo] = useState("");
   const [formData, setFormData] = useState({});
   const [idx, setIdx] = useState(null);
-
+ 
+  useEffect(() => {
+    dispatch(fetchInstructors(user.branch._id));
+  }, [dispatch]);
   const { registerLoading, admissions } = useSelector(
     (state) => state.admission
   );
@@ -31,7 +34,9 @@ export default function AdmissionTable({ color = "light", title }) {
     dob: "",
     cellNumber: "",
     address: "",
+    instructor: "", // add this
   });
+
   // fetch instructors and admissions when the component mounts
   useEffect(() => {
     dispatch(fetchAdmissions(user?.branch?._id));
@@ -51,6 +56,7 @@ export default function AdmissionTable({ color = "light", title }) {
         dob: "",
         cellNumber: "",
         address: "",
+        instructor: "",
       });
     } else {
       // If clicking a different student's edit button, show their form
@@ -61,6 +67,7 @@ export default function AdmissionTable({ color = "light", title }) {
         fatherName: student.fatherName || "",
         cnic: student.cnic || "",
         gender: student.gender || "",
+        instructor: student.instructor || "",
         dob: student.dob
           ? new Date(student.dob).toISOString().split("T")[0]
           : "",
@@ -120,7 +127,7 @@ export default function AdmissionTable({ color = "light", title }) {
     key: null,
     direction: null,
   });
-  
+
   const handleSort = (column) => {
     if (sortByProperty.key === column) {
       setSortByProperty({
@@ -603,6 +610,41 @@ export default function AdmissionTable({ color = "light", title }) {
                                     rows="2"
                                   />
                                 </div>
+                              <div
+                                className="relative mb-3"
+                              >
+                                <label
+                                  className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                                  htmlFor="instructor-select"
+                                >
+                                  Instructor
+                                </label>
+                                <select
+                                  required
+                                  id="instructor-select"
+                                  name="instructor"
+                                  value={editForm.instructor}
+                                  onChange={(e) =>
+                                    setEditForm({
+                                      ...editForm,
+                                      instructor: e.target.value,
+                                    })
+                                  }
+                                  className="border-0 px-3 w-full py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none ease-linear transition-all duration-150"
+                                >
+                                  <option value="" disabled>
+                                    Select Instructor
+                                  </option>
+                                  {instructors?.map((instructor) => (
+                                    <option
+                                      key={instructor._id}
+                                      value={instructor._id}
+                                    >
+                                      {instructor.name}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
                               </div>
 
                               {/* Action Buttons */}

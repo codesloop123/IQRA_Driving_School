@@ -88,7 +88,7 @@ router.post("/:branch", async (req, res) => {
 
 router.get("/students/:branchid/:date", async (req, res) => {
   const { branchid, date } = req.params;
-
+  console.log(branchid, date);
   async function getStudentDetailsForDateAndBranch(date, branchId) {
     try {
       const results = await Instructor.aggregate([
@@ -152,6 +152,7 @@ router.get("/students/:branchid/:date", async (req, res) => {
 router.get("/:branch/:date", async (req, res) => {
   const { branch, date } = req.params;
 
+  console.log(branch, date, "1");
   try {
     // Find the attendance record for the given branch and date
     const attendanceRecord = await Attendance.aggregate([

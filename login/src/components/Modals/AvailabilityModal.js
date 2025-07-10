@@ -74,8 +74,8 @@ export default function AvailabilityModal({
 
   const dispatch = useDispatch();
   const { instructors } = useSelector((state) => state.instructor);
-  const { user } = useSelector((state) => state.auth);
   const [selectedInstructor, setSelectedInstructor] = useState(null);
+  const { user } = useSelector((state) => state.auth);
   useEffect(() => {
     dispatch(fetchInstructors(user.branch._id));
   }, [dispatch]);
@@ -199,36 +199,7 @@ export default function AvailabilityModal({
     }
   };
 
-  function mergeSlots(slots) {
-    const clonedSlots = slots.map((slot) => ({ ...slot }));
-    const sortedSlots = clonedSlots.sort((a, b) => {
-      if (a.date === b.date) {
-        return a.startTime.localeCompare(b.startTime);
-      }
-      return a.date.localeCompare(b.date);
-    });
-
-    const mergedSlots = [];
-    let currentSlot = sortedSlots[0];
-
-    for (let i = 1; i < sortedSlots.length; i++) {
-      const nextSlot = sortedSlots[i];
-      if (
-        currentSlot.date === nextSlot.date &&
-        currentSlot.endTime === nextSlot.startTime
-      ) {
-        currentSlot = { ...currentSlot, endTime: nextSlot.endTime };
-      } else {
-        mergedSlots.push(currentSlot);
-        currentSlot = nextSlot;
-      }
-    }
-
-    mergedSlots.push(currentSlot);
-
-    return mergedSlots;
-  }
-
+ 
   function generateRandomColor() {
     const letters = "0123456789ABCDEF";
     let color = "#";
