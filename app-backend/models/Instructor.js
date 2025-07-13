@@ -31,8 +31,9 @@ const InstructorSchema = new mongoose.Schema(
           enum: ["Completed", "Missed", "Pending"],
           default: "Pending",
         },
-        refNo: {
-          type: String,
+        admission: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Admission",
           required: true,
         },
       },

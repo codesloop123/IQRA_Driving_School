@@ -5,8 +5,9 @@ const AttendanceSchema = new mongoose.Schema({
   branch: { type: String, required: true }, // Add branch to schema
   attendance: [
     {
-      refId: {
-        type: String,
+      admission: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Admission",
         required: true,
       },
       name: {

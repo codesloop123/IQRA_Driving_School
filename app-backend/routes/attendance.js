@@ -6,129 +6,173 @@ const Instructor = require("../models/Instructor");
 const mongoose = require("mongoose");
 const ObjectId = mongoose.Types.ObjectId;
 
-// POST route to save attendance for a specific branch and date
 const saveToInstructor = async (savedAttendance, date, session) => {
   const { attendance } = savedAttendance;
 
   const formattedDate = new Date(date);
 
-  const instructorIds = [
-    ...new Set(attendance.map((entry) => entry.instructor)),
-  ];
-  const instructors = await Instructor.find({
-    _id: { $in: instructorIds },
-  }).session(session);
+  // Populate admission so we can access referenceNumber
+  await Admission.populate(attendance, {
+    path: "admission",
+    select: "referenceNumber",
+  });
 
+  const instructorIds = [
+    ...new Set(attendance.map((entry) => entry.instructor.toString())),
+  ];
+
+  const instructors = await mongoose
+    .model("Instructor")
+    .find({ _id: { $in: instructorIds } })
+    .session(session);
+
+  console.log(instructors);
   for (const instructor of instructors) {
     for (const entry of attendance) {
       if (instructor._id.toString() === entry.instructor.toString()) {
-        instructor.bookedSlots = instructor.bookedSlots.map((slot) => {
-          if (
-            slot.refNo === entry.refId &&
-            slot.date === formattedDate.toISOString()
-          ) {
-            return {
-              ...slot,
-              status: entry.status === "Present" ? "Completed" : "Missed",
-            };
-          }
-          return slot;
-        });
+        const refNo = entry.admission.referenceNumber;
+
+        instructor.bookedSlots = await Promise.all(
+          instructor.bookedSlots.map(async (slot) => {
+            await Admission.populate(slot, {
+              path: "admission",
+              select: "referenceNumber",
+            });
+            console.log(slot)
+            if (
+              slot.admission.referenceNumber === refNo &&
+              slot.date === formattedDate.toISOString()
+            ) {
+              return {
+                ...slot,
+                status: entry.status === "Present" ? "Completed" : "Missed",
+              };
+            }
+
+            return slot;
+          })
+        );
       }
     }
     await instructor.save({ session });
   }
+
   await session.commitTransaction();
   session.endSession();
 };
+
 router.post("/:branch", async (req, res) => {
+  console.log("/:branch", req);
   const { branch } = req.params;
   const { date, attendance } = req.body;
+
   if (!attendance.every((obj) => obj.status !== undefined)) {
-    res.status(400).json({ message: "Kindly mark the attendance completely." });
-    return;
+    return res
+      .status(400)
+      .json({ message: "Kindly mark the attendance completely." });
   } else if (!date) {
-    res.status(400).json({ message: "Set the date" });
-    return;
+    return res.status(400).json({ message: "Set the date" });
   }
 
-  const session = await mongoose.startSession(); // Start a new session
-  session.startTransaction(); // Start a transaction
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    const filteredattendance = attendance.map((entry) => ({
-      refId: entry.refId,
-      status: entry.status,
-      name: entry.name,
-      instructor: new mongoose.Types.ObjectId(entry.instructorId),
-    }));
-    const existingRecord = await Attendance.findOne({ branch, date });
+    // Step 1: Map refId → Admission._id
+    const refIds = attendance.map((entry) => entry.refId);
+    const admissions = await Admission.find({
+      referenceNumber: { $in: refIds },
+    });
+    const admissionMap = {};
+    admissions.forEach((adm) => {
+      admissionMap[adm.referenceNumber] = adm._id;
+    });
+
+    const filteredattendance = attendance.map((entry) => {
+      const admissionId = admissionMap[entry.refId];
+      if (!admissionId)
+        throw new Error(`Admission not found for refId: ${entry.refId}`);
+
+      return {
+        admission: admissionId,
+        status: entry.status,
+        name: entry.name,
+        instructor: new mongoose.Types.ObjectId(entry.instructorId),
+      };
+    });
+
+    let savedAttendance;
+    const existingRecord = await Attendance.findOne({ branch, date }).session(
+      session
+    );
+
     if (existingRecord) {
-      // Update existing attendance record
       existingRecord.attendance = filteredattendance;
-      const savedAttendance = await existingRecord.save({ session });
-      saveToInstructor(savedAttendance, date, session);
+      savedAttendance = await existingRecord.save({ session });
     } else {
-      // Create new attendance record
       const newAttendance = new Attendance({
         date,
         branch,
-        attendance: filteredattendance, // attendance should be keyed by reference ID
+        attendance: filteredattendance,
       });
-
-      const savedAttendance = await newAttendance.save({ session });
-      saveToInstructor(savedAttendance, date, session);
+      savedAttendance = await newAttendance.save({ session });
     }
+
+    await saveToInstructor(savedAttendance, date, session);
+
     res.status(201).json({ msg: "Attendance saved successfully" });
   } catch (error) {
     await session.abortTransaction();
+    session.endSession();
     console.error("Error saving attendance:", error);
     res.status(500).json({ msg: "Server error" });
   }
 });
 
 router.get("/students/:branchid/:date", async (req, res) => {
+  console.log("/students/:branchid/:date", req.params);
+
   const { branchid, date } = req.params;
-  console.log(branchid, date);
+
   async function getStudentDetailsForDateAndBranch(date, branchId) {
     try {
       const results = await Instructor.aggregate([
         {
           $match: {
-            "branch._id": new ObjectId(branchId), // Filter instructors by branch ID
+            "branch._id": new ObjectId(branchId),
           },
         },
         {
-          $unwind: "$bookedSlots", // Decompose bookedSlots into individual documents
+          $unwind: "$bookedSlots",
         },
         {
           $match: {
-            "bookedSlots.date": new Date(date).toISOString(), // Match only booked slots with the specified date
+            "bookedSlots.date": new Date(date).toISOString(),
           },
         },
         {
           $lookup: {
-            from: "admissions", // Collection name for students
-            localField: "bookedSlots.refNo", // Reference field in bookedSlots
-            foreignField: "referenceNumber", // Field in Admission collection to match
-            as: "matchedStudents", // Resulting array of matching students
+            from: "admissions",
+            localField: "bookedSlots.admission",
+            foreignField: "_id",
+            as: "matchedAdmission",
           },
         },
         {
-          $unwind: "$matchedStudents", // Decompose matched students into individual documents
+          $unwind: "$matchedAdmission",
         },
         {
           $project: {
-            _id: 0, // Exclude instructor ID
-            _id: "$matchedStudents._id", // Include student ID
+            studentId: "$matchedAdmission._id",
             name: {
               $concat: [
-                "$matchedStudents.firstName",
+                "$matchedAdmission.firstName",
                 " ",
-                "$matchedStudents.lastName",
+                "$matchedAdmission.lastName",
               ],
             },
-            refId: "$bookedSlots.refNo", // Include slot date
-            instructorName: "$name",
+            refId: "$matchedAdmission.referenceNumber",
+            instructorName: "$name", // this is instructor's name
             instructorId: "$_id",
           },
         },
@@ -140,6 +184,7 @@ router.get("/students/:branchid/:date", async (req, res) => {
       throw error;
     }
   }
+
   try {
     const attendees = await getStudentDetailsForDateAndBranch(date, branchid);
     res.status(200).json(attendees);
@@ -150,44 +195,45 @@ router.get("/students/:branchid/:date", async (req, res) => {
 });
 
 router.get("/:branch/:date", async (req, res) => {
+  console.log("/:branch/:date", req.body);
+
   const { branch, date } = req.params;
 
-  console.log(branch, date, "1");
   try {
-    // Find the attendance record for the given branch and date
     const attendanceRecord = await Attendance.aggregate([
       {
         $match: {
           branch: branch,
-          date: date, // Filter by branch and date
+          date: date,
         },
       },
       {
-        $unwind: "$attendance", // Deconstruct the attendance array
+        $unwind: "$attendance",
       },
       {
         $lookup: {
-          from: "admissions", // The name of the Admission collection (lowercase and pluralized by default)
-          localField: "attendance.refId", // Field in Attendance to match
-          foreignField: "referenceNumber", // Field in Admission to match
-          as: "admissionDetails", // Alias for joined data
+          from: "admissions",
+          localField: "attendance.admission",
+          foreignField: "_id",
+          as: "admissionDetails",
         },
       },
       {
-        $unwind: "$admissionDetails", // Deconstruct the admissionDetails array
+        $unwind: "$admissionDetails",
       },
       {
         $project: {
-          _id: 1, // Exclude _id
+          _id: 1,
           firstName: "$admissionDetails.firstName",
           lastName: "$admissionDetails.lastName",
-          refId: "$admissionDetails.referenceNumber",
-          status: "$admissionDetails.status", // Status from Attendance
-          presence: "$attendance.status",
+          refId: "$admissionDetails.referenceNumber", // keep for frontend use
+          status: "$admissionDetails.status", // could be student status
+          presence: "$attendance.status", // attendance status: Present/Absent/Leave
         },
       },
     ]);
-    if (!attendanceRecord) {
+
+    if (!attendanceRecord || attendanceRecord.length === 0) {
       return res
         .status(404)
         .json({ message: "No attendance found for this date." });
@@ -200,17 +246,26 @@ router.get("/:branch/:date", async (req, res) => {
   }
 });
 
-// GET route to fetch attendance history by reference ID
 router.get("/:branch/history/:referenceId", async (req, res) => {
+  console.log("/:branch/history/:referenceId", req.body);
+
   const { branch, referenceId } = req.params;
 
   try {
+    // Step 1: Find the admission by referenceNumber
+    const admission = await Admission.findOne({ referenceNumber: referenceId });
+
+    if (!admission) {
+      return res.status(404).json({ msg: "Student not found." });
+    }
+
+    // Step 2: Find all attendance records for this admission ID
     const attendanceHistory = await Attendance.find({
       branch,
-      [`attendance.${referenceId}`]: { $exists: true },
+      "attendance.admission": admission._id,
     });
 
-    if (!attendanceHistory) {
+    if (!attendanceHistory || attendanceHistory.length === 0) {
       return res
         .status(404)
         .json({ msg: "No attendance history found for this student." });
@@ -222,5 +277,4 @@ router.get("/:branch/history/:referenceId", async (req, res) => {
     res.status(500).json({ msg: "Server error" });
   }
 });
-
 module.exports = router;

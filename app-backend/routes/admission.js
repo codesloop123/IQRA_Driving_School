@@ -80,6 +80,7 @@ const generateReferenceNumber = async (branchCode, lecturerCode) => {
       "0"
     )}-${entryOfMonth}-${lecturerCode}-${branchCode}-${currentYear}`;
 };
+
 router.post("/add", async (req, res) => {
   try {
     const {
@@ -111,7 +112,6 @@ router.post("/add", async (req, res) => {
     } = req.body;
 
     if (
-      
       !instructor ||
       !courseduration ||
       !courseTimeDuration ||
@@ -130,71 +130,43 @@ router.post("/add", async (req, res) => {
     ) {
       return res.status(400).json({ message: "All fields are required." });
     }
+
     if (remainingPayment > 0 && !paymentDueDate) {
       return res
         .status(400)
         .json({ message: "Please add the Payment Due Date" });
     }
-    const referenceNumber = await generateReferenceNumber(
-      manager.branch.branchCode,
-      instructor.lecturerCode
-    );
+
     const instructorDoc = await Instructor.findById(instructor._id);
     if (!instructorDoc) {
       return res
         .status(404)
         .json({ status: false, message: "Instructor not found." });
     }
+
+    const referenceNumber = await generateReferenceNumber(
+      manager.branch.branchCode,
+      instructor.lecturerCode
+    );
+
     const { startTime: availableStart, endTime: availableEnd } =
       instructorDoc.availability;
     const courseStartTime = startTime;
     const courseEndTime = calculateEndTime(startTime, courseTimeDuration);
+
     if (courseStartTime < availableStart || courseEndTime > availableEnd) {
       return res.status(400).json({
         status: false,
         message: "Requested time is outside instructor's availability.",
       });
     }
+
     const { endDate, adjustedDuration } = calculateEndDate(
       startDate,
       courseduration
     );
-    const bookedSlots = [];
-    let currentStartDate = new Date(startDate);
-    for (let i = 0; i < adjustedDuration; i++) {
-      if (currentStartDate.getDay() === 0) {
-        currentStartDate.setDate(currentStartDate.getDate() + 1);
-        continue;
-      }
-      bookedSlots.push({
-        date: formatDate(currentStartDate),
-        startTime: courseStartTime,
-        endTime: courseEndTime,
-        refNo: referenceNumber,
-      });
 
-      currentStartDate.setDate(currentStartDate.getDate() + 1);
-    }
-    const overlap = instructorDoc.bookedSlots.some((slot) => {
-      return bookedSlots.some(
-        (newSlot) =>
-          slot.date === newSlot.date &&
-          ((newSlot.startTime >= slot.startTime &&
-            newSlot.startTime < slot.endTime) ||
-            (newSlot.endTime > slot.startTime &&
-              newSlot.endTime <= slot.endTime))
-      );
-    });
-
-    if (overlap) {
-      return res.status(400).json({
-        status: false,
-        message:
-          "Some slots are already booked for the selected date and time.",
-      });
-    }
-    instructorDoc.bookedSlots.push(...bookedSlots);
-    await instructorDoc.save();
+    // First create admission
     const admission = new Admission({
       firstName,
       lastName,
@@ -223,28 +195,70 @@ router.post("/add", async (req, res) => {
       status,
       pickanddrop,
       pickanddropCharges: pickanddrop ? pickanddropCharges : null,
-      paymentDueDate: paymentDueDate ? paymentDueDate : null,
+      paymentDueDate: paymentDueDate || null,
     });
 
     const savedAdmission = await admission.save();
-    if (savedAdmission) {
-      const message = `Student: ${firstName} ${lastName} Has Been Added Successfully`;
-      const eventDate = new Date();
-      const newNotification = new Notification({
-        message,
-        status: true,
-        eventDate,
-        branch: null,
-        role: "admin",
+
+    // Build bookedSlots after saving admission
+    const bookedSlots = [];
+    let currentStartDate = new Date(startDate);
+
+    for (let i = 0; i < adjustedDuration; i++) {
+      if (currentStartDate.getDay() === 0) {
+        currentStartDate.setDate(currentStartDate.getDate() + 1);
+        continue;
+      }
+      bookedSlots.push({
+        date: formatDate(currentStartDate),
+        startTime: courseStartTime,
+        endTime: courseEndTime,
+        admission: savedAdmission._id, // store proper reference
+        status: "Pending",
       });
-      const result = await newNotification.save();
-      return res.status(200).json({
-        status: true,
-        message: "Admission booked successfully.",
-        bookedSlots,
-        refNumber: admission.referenceNumber,
+      currentStartDate.setDate(currentStartDate.getDate() + 1);
+    }
+
+    // Check overlap
+    const overlap = instructorDoc.bookedSlots.some((slot) =>
+      bookedSlots.some(
+        (newSlot) =>
+          slot.date === newSlot.date &&
+          ((newSlot.startTime >= slot.startTime &&
+            newSlot.startTime < slot.endTime) ||
+            (newSlot.endTime > slot.startTime &&
+              newSlot.endTime <= slot.endTime))
+      )
+    );
+
+    if (overlap) {
+      return res.status(400).json({
+        status: false,
+        message:
+          "Some slots are already booked for the selected date and time.",
       });
     }
+
+    instructorDoc.bookedSlots.push(...bookedSlots);
+    await instructorDoc.save();
+
+    // Notification
+    const newNotification = new Notification({
+      message: `Student: ${firstName} ${lastName} Has Been Added Successfully`,
+      status: true,
+      eventDate: new Date(),
+      branch: null,
+      role: "admin",
+    });
+
+    await newNotification.save();
+
+    res.status(200).json({
+      status: true,
+      message: "Admission booked successfully.",
+      bookedSlots,
+      refNumber: referenceNumber,
+    });
   } catch (error) {
     console.error("Error adding admission:", error);
     return res
@@ -416,7 +430,7 @@ router.get("/:branch/:instructorId/slots", async (req, res) => {
 router.put("/update/:id", async (req, res) => {
   try {
     const { id } = req.params;
-
+    console.log(req.body);
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: "Invalid admission ID format" });
     }
@@ -452,21 +466,43 @@ router.put("/update/:id", async (req, res) => {
       // Format date range to string (as in Instructor.bookedSlots)
       const daysToCheck = [];
       const currentDate = new Date(startDate);
+
       while (currentDate <= new Date(endDate)) {
-        daysToCheck.push(currentDate.toISOString().split("T")[0]); // "YYYY-MM-DD"
+        const dateStr = currentDate.toISOString().split("T")[0]; // "YYYY-MM-DD"
+
+        if (
+          currentDate.getDay() !== 0 && // Not Sunday
+          oldInstructor.bookedSlots.find(
+            (slot) =>
+              slot.date === dateStr &&
+              slot.admission?.toString() === id &&
+              slot.status !== "Completed"
+          )
+        ) {
+          daysToCheck.push(currentDate.toISOString().split("T")[0]); // "YYYY-MM-DD"
+        }
         currentDate.setDate(currentDate.getDate() + 1);
       }
 
       // Check for conflicts in new instructor's pending slots
-      const hasConflict = newInstructor.bookedSlots.some((slot) => {
+      const isOverlapping = (aStart, aEnd, bStart, bEnd) => {
+        return aStart < bEnd && aEnd > bStart;
+      };
+
+      const hasConflict = newInstructor.bookedSlots.some((newSlot) => {
         return (
-          daysToCheck.includes(slot.date) &&
-          slot.status === "Pending" &&
-          (
-            (slot.startTime <= startTime && startTime < slot.endTime) ||
-            (slot.startTime < endTime && endTime <= slot.endTime) ||
-            (startTime <= slot.startTime && slot.endTime <= endTime)
-          )
+          daysToCheck.includes(newSlot.date) &&
+          oldInstructor.bookedSlots.some((oldSlot) => {
+            return (
+              oldSlot.date === newSlot.date &&
+              isOverlapping(
+                oldSlot.startTime,
+                oldSlot.endTime,
+                newSlot.startTime,
+                newSlot.endTime
+              )
+            );
+          })
         );
       });
 
@@ -479,21 +515,26 @@ router.put("/update/:id", async (req, res) => {
 
       // Transfer booked slots
       // 1. Remove old slots from current instructor
-      oldInstructor.bookedSlots = oldInstructor.bookedSlots.filter(
-        (slot) => slot.refNo !== refNo
-      );
-      await oldInstructor.save();
 
       // 2. Add same slots to new instructor
-      const newSlots = daysToCheck.map((date) => ({
-        date,
-        startTime,
-        endTime,
-        status: "Pending",
-        refNo,
-      }));
+      const newSlots = oldInstructor.bookedSlots
+        .filter(
+          (slot) =>
+            slot.admission?.toString() === id && daysToCheck.includes(slot.date)
+        )
+        .map(({ date, admission, startTime, endTime, status }) => ({
+          date,
+          admission,
+          startTime,
+          endTime,
+          status,
+        }));
       newInstructor.bookedSlots.push(...newSlots);
       await newInstructor.save();
+      oldInstructor.bookedSlots = oldInstructor.bookedSlots.filter(
+        (slot) => slot.admission !== id
+      );
+      await oldInstructor.save();
     }
 
     // Merge and update admission

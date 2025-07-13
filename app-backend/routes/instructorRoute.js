@@ -115,7 +115,6 @@ router.get("/fetch/:id", async (req, res) => {
 router.get("/fetch", async (req, res) => {
   try {
     const instructors = await Instructor.find();
-    // console.log(instructors);
     res.status(200).json({ status: true, instructors: instructors });
   } catch (error) {
     console.error(error);
@@ -123,13 +122,14 @@ router.get("/fetch", async (req, res) => {
   }
 });
 
-router.get("/fetch/slots/:students", async (req, res) => {
-  const { students } = req.params;
+router.get("/fetch/slots/:instructorId", async (req, res) => {
+  const { instructorId } = req.params;
+
   try {
     const lessons = await Instructor.aggregate([
       {
         $match: {
-          _id: new ObjectId(students),
+          _id: new ObjectId(instructorId),
         },
       },
       {
@@ -138,37 +138,37 @@ router.get("/fetch/slots/:students", async (req, res) => {
       {
         $lookup: {
           from: "admissions",
-          localField: "bookedSlots.refNo",
-          foreignField: "referenceNumber",
-          as: "students",
+          localField: "bookedSlots.admission",
+          foreignField: "_id",
+          as: "student",
         },
       },
       {
-        $unwind: "$students",
+        $unwind: "$student",
       },
       {
         $project: {
           studentName: {
-            $concat: ["$students.firstName", " ", "$students.lastName"],
+            $concat: ["$student.firstName", " ", "$student.lastName"],
           },
+          admissionId: "$student._id",
           _id: "$bookedSlots._id",
           date: "$bookedSlots.date",
           startTime: "$bookedSlots.startTime",
           endTime: "$bookedSlots.endTime",
           status: "$bookedSlots.status",
-          totalClasses: "$students.courseduration",
-          refNo: "$bookedSlots.refNo",
+          totalClasses: "$student.courseduration",
         },
       },
       {
         $sort: {
-          date: 1, // Sort by date in ascending order
-          startTime: 1, // Within the same date, sort by startTime in ascending order
+          date: 1,
+          startTime: 1,
         },
       },
       {
         $group: {
-          _id: "$refNo",
+          _id: "$admissionId", // group by student admission ID
           slots: {
             $push: {
               _id: "$_id",
@@ -183,8 +183,9 @@ router.get("/fetch/slots/:students", async (req, res) => {
         },
       },
     ]);
-
-    res.status(200).json({ status: true, lessons: lessons });
+    console.log(lessons[0].slots)
+    // console.log(lessons.slots)
+    res.status(200).json({ status: true, lessons });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
