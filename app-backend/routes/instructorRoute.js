@@ -183,8 +183,7 @@ router.get("/fetch/slots/:instructorId", async (req, res) => {
         },
       },
     ]);
-    console.log(lessons[0].slots)
-    // console.log(lessons.slots)
+
     res.status(200).json({ status: true, lessons });
   } catch (error) {
     console.error(error);

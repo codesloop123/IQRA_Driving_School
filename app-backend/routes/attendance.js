@@ -6,7 +6,8 @@ const Instructor = require("../models/Instructor");
 const mongoose = require("mongoose");
 const ObjectId = mongoose.Types.ObjectId;
 
-const saveToInstructor = async (savedAttendance, date, session) => {
+// const saveToInstructor = async (savedAttendance, date, session) => {
+const saveToInstructor = async (savedAttendance, date) => {
   const { attendance } = savedAttendance;
 
   const formattedDate = new Date(date);
@@ -23,8 +24,8 @@ const saveToInstructor = async (savedAttendance, date, session) => {
 
   const instructors = await mongoose
     .model("Instructor")
-    .find({ _id: { $in: instructorIds } })
-    .session(session);
+    .find({ _id: { $in: instructorIds } });
+  // .session(session);
 
   console.log(instructors);
   for (const instructor of instructors) {
@@ -38,7 +39,6 @@ const saveToInstructor = async (savedAttendance, date, session) => {
               path: "admission",
               select: "referenceNumber",
             });
-            console.log(slot)
             if (
               slot.admission.referenceNumber === refNo &&
               slot.date === formattedDate.toISOString()
@@ -54,15 +54,16 @@ const saveToInstructor = async (savedAttendance, date, session) => {
         );
       }
     }
-    await instructor.save({ session });
+    // await instructor .save({ session });
+    await instructor.save();
   }
 
-  await session.commitTransaction();
-  session.endSession();
+  // await session.commitTransaction();
+  // session.endSession();
 };
 
 router.post("/:branch", async (req, res) => {
-  console.log("/:branch", req);
+  console.log("/:branch", req.params);
   const { branch } = req.params;
   const { date, attendance } = req.body;
 
@@ -74,8 +75,8 @@ router.post("/:branch", async (req, res) => {
     return res.status(400).json({ message: "Set the date" });
   }
 
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  // const session = await mongoose.startSession();
+  // session.startTransaction();
 
   try {
     // Step 1: Map refId → Admission._id
@@ -102,29 +103,30 @@ router.post("/:branch", async (req, res) => {
     });
 
     let savedAttendance;
-    const existingRecord = await Attendance.findOne({ branch, date }).session(
-      session
-    );
+    const existingRecord = await Attendance.findOne({ branch, date });
+    // .session(
+    //   session
+    // );
 
     if (existingRecord) {
       existingRecord.attendance = filteredattendance;
-      savedAttendance = await existingRecord.save({ session });
+      savedAttendance = await existingRecord.save();
     } else {
       const newAttendance = new Attendance({
         date,
         branch,
         attendance: filteredattendance,
       });
-      savedAttendance = await newAttendance.save({ session });
+      savedAttendance = await newAttendance.save();
     }
 
-    await saveToInstructor(savedAttendance, date, session);
-
+    // await saveToInstructor(savedAttendance, date, session);
+    await saveToInstructor(savedAttendance, date);
     res.status(201).json({ msg: "Attendance saved successfully" });
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
-    console.error("Error saving attendance:", error);
+    // await session.abortTransaction();
+    // session.endSession();
+    console.error("Error saving attendance:", error.message);
     res.status(500).json({ msg: "Server error" });
   }
 });
@@ -189,7 +191,7 @@ router.get("/students/:branchid/:date", async (req, res) => {
     const attendees = await getStudentDetailsForDateAndBranch(date, branchid);
     res.status(200).json(attendees);
   } catch (error) {
-    console.error("Error fetching attendance:", error);
+    console.error("Error fetching attendance:", error.message);
     res.status(500).json({ msg: "Server error" });
   }
 });

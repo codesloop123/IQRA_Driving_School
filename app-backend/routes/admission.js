@@ -430,7 +430,6 @@ router.get("/:branch/:instructorId/slots", async (req, res) => {
 router.put("/update/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    console.log(req.body);
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: "Invalid admission ID format" });
     }
@@ -460,31 +459,29 @@ router.put("/update/:id", async (req, res) => {
         return res.status(404).json({ message: "New instructor not found" });
       }
 
-      const refNo = existingAdmission.referenceNumber;
-      const { startDate, endDate, startTime, endTime } = existingAdmission;
+      const { startDate, endDate, refno } = existingAdmission;
 
       // Format date range to string (as in Instructor.bookedSlots)
       const daysToCheck = [];
       const currentDate = new Date(startDate);
 
       while (currentDate <= new Date(endDate)) {
-        const dateStr = currentDate.toISOString().split("T")[0]; // "YYYY-MM-DD"
+        const dateStr = currentDate.toISOString();
 
         if (
           currentDate.getDay() !== 0 && // Not Sunday
-          oldInstructor.bookedSlots.find(
+          oldInstructor.bookedSlots.some(
             (slot) =>
               slot.date === dateStr &&
               slot.admission?.toString() === id &&
               slot.status !== "Completed"
           )
         ) {
-          daysToCheck.push(currentDate.toISOString().split("T")[0]); // "YYYY-MM-DD"
+          daysToCheck.push(currentDate.toISOString()); // "YYYY-MM-DD"
         }
         currentDate.setDate(currentDate.getDate() + 1);
       }
 
-      // Check for conflicts in new instructor's pending slots
       const isOverlapping = (aStart, aEnd, bStart, bEnd) => {
         return aStart < bEnd && aEnd > bStart;
       };
@@ -520,7 +517,8 @@ router.put("/update/:id", async (req, res) => {
       const newSlots = oldInstructor.bookedSlots
         .filter(
           (slot) =>
-            slot.admission?.toString() === id && daysToCheck.includes(slot.date)
+            slot.admission.toString() === id.toString() &&
+            slot.status !== "Completed"
         )
         .map(({ date, admission, startTime, endTime, status }) => ({
           date,
@@ -529,10 +527,21 @@ router.put("/update/:id", async (req, res) => {
           endTime,
           status,
         }));
+
       newInstructor.bookedSlots.push(...newSlots);
       await newInstructor.save();
       oldInstructor.bookedSlots = oldInstructor.bookedSlots.filter(
-        (slot) => slot.admission !== id
+        (slot) =>
+          slot.admission.toString() !== id.toString() ||
+          (slot.admission.toString() === id.toString() &&
+            slot.status === "Completed")
+      );
+
+      console.log(
+        "old",
+        oldInstructor.bookedSlots,
+        "new",
+        newInstructor.bookedSlots
       );
       await oldInstructor.save();
     }
