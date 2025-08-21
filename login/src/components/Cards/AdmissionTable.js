@@ -1,5 +1,9 @@
 import React, { useState } from "react";
-import { fetchAdmissions, updateAdmission } from "store/admission/actions";
+import {
+  fetchAdmissions,
+  updateAdmission,
+  deactivateAdmission,
+} from "store/admission/actions";
 import { fetchInstructors } from "store/instructor/action";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -17,7 +21,7 @@ export default function AdmissionTable({ color = "light", title }) {
   const [refNo, setRefNo] = useState("");
   const [formData, setFormData] = useState({});
   const [idx, setIdx] = useState(null);
- 
+
   useEffect(() => {
     dispatch(fetchInstructors(user.branch._id));
   }, [dispatch]);
@@ -36,6 +40,15 @@ export default function AdmissionTable({ color = "light", title }) {
     address: "",
     instructor: "", // add this
   });
+  const handleDeactivate = (admissionId) => {
+    if (window.confirm("Are you sure you want to deactivate this admission?")) {
+      dispatch(deactivateAdmission(admissionId)).then((result) => {
+        if (deactivateAdmission.fulfilled.match(result)) {
+          dispatch(fetchAdmissions(user?.branch?._id));
+        }
+      });
+    }
+  };
 
   // fetch instructors and admissions when the component mounts
   useEffect(() => {
@@ -363,13 +376,27 @@ export default function AdmissionTable({ color = "light", title }) {
                   >
                     Actions
                   </th>
+                  <th
+                    className={
+                      "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
+                      (color === "light"
+                        ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                        : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
+                    }
+                  >
+                    De-Activate
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {admissions?.length > 0 &&
                   admissions.map((admission, index) => (
                     <React.Fragment key={admission._id || index}>
-                      <tr>
+                      <tr
+                        style={{
+                          backgroundColor: !admission?.status && "#dbdbdb",
+                        }}
+                      >
                         <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                           <button
                             className="p-2 rounded-lg bg-lightBlue-500"
@@ -418,11 +445,32 @@ export default function AdmissionTable({ color = "light", title }) {
                         <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                           <button
                             onClick={handleModal.bind(null, index)}
+                            disabled={!admission?.status}
+                            className={`py-2 px-4 rounded text-white font-bold
+                      bg-lightBlue-600 
+                      `}
+                            style={{
+                              backgroundColor: !admission?.status && "gray",
+                            }}
+                          >
+                            Extension
+                          </button>
+                        </td>
+                        <td className="border-t-0 px-6 text-center align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                          <button
+                            disabled={!admission?.status}
+                            onClick={handleDeactivate.bind(
+                              null,
+                              admission?._id
+                            )}
+                            style={{
+                              backgroundColor: !admission?.status && "gray",
+                            }}
                             className={`py-2 px-4 rounded text-white font-bold
                       bg-lightBlue-600 
                       `}
                           >
-                            Extension
+                            Disable
                           </button>
                         </td>
                       </tr>
@@ -610,41 +658,39 @@ export default function AdmissionTable({ color = "light", title }) {
                                     rows="2"
                                   />
                                 </div>
-                              <div
-                                className="relative mb-3"
-                              >
-                                <label
-                                  className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
-                                  htmlFor="instructor-select"
-                                >
-                                  Instructor
-                                </label>
-                                <select
-                                  required
-                                  id="instructor-select"
-                                  name="instructor"
-                                  value={editForm.instructor}
-                                  onChange={(e) =>
-                                    setEditForm({
-                                      ...editForm,
-                                      instructor: e.target.value,
-                                    })
-                                  }
-                                  className="border-0 px-3 w-full py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none ease-linear transition-all duration-150"
-                                >
-                                  <option value="" disabled>
-                                    Select Instructor
-                                  </option>
-                                  {instructors?.map((instructor) => (
-                                    <option
-                                      key={instructor._id}
-                                      value={instructor._id}
-                                    >
-                                      {instructor.name}
+                                <div className="relative mb-3">
+                                  <label
+                                    className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                                    htmlFor="instructor-select"
+                                  >
+                                    Instructor
+                                  </label>
+                                  <select
+                                    required
+                                    id="instructor-select"
+                                    name="instructor"
+                                    value={editForm.instructor}
+                                    onChange={(e) =>
+                                      setEditForm({
+                                        ...editForm,
+                                        instructor: e.target.value,
+                                      })
+                                    }
+                                    className="border-0 px-3 w-full py-3 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none ease-linear transition-all duration-150"
+                                  >
+                                    <option value="" disabled>
+                                      Select Instructor
                                     </option>
-                                  ))}
-                                </select>
-                              </div>
+                                    {instructors?.map((instructor) => (
+                                      <option
+                                        key={instructor._id}
+                                        value={instructor._id}
+                                      >
+                                        {instructor.name}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
                               </div>
 
                               {/* Action Buttons */}

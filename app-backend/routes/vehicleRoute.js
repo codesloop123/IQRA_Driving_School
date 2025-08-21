@@ -5,6 +5,7 @@ const Vehicle = require("../models/Vehicle");
 const router = express.Router();
 const Notification = require("../models/Notification");
 // POST route to add a new car for a specific branch
+
 router.post("/add_vehicle", async (req, res) => {
   const { name, number, type, branch } = req.body;
 

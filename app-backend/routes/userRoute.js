@@ -3,7 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const Notification = require("../models/Notification");
-require("dotenv").config({ path: '../login/.env' });
+require("dotenv").config({ path: "../login/.env" });
 
 const router = express.Router();
 
@@ -35,6 +35,7 @@ router.post("/add_User", async (req, res) => {
         role: "manager",
       });
       await newNotification.save();
+
       res
         .status(200)
         .json({ status: true, message: "Manager registered successfully" });
@@ -87,7 +88,6 @@ router.post("/login", async (req, res) => {
     }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-          
       return res.status(400).json({ msg: "Invalid email or password" });
     }
     const payload = {

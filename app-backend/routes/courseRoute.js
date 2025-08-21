@@ -2,6 +2,7 @@ const Course = require("../models/Course");
 const express = require("express");
 const router = express.Router();
 const Notification = require("../models/Notification");
+const sendWhatsAppText = require("../whatsapp_endpoint");
 
 router.post("/add", async (req, res) => {
   const { name, duration, pricelist, vehicle } = req.body;

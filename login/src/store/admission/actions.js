@@ -58,6 +58,38 @@ export const fetchAdmissions = createAsyncThunk(
     }
   }
 );
+export const deactivateAdmission = createAsyncThunk(
+  "admission/deactivate",
+  async (id, { dispatch, rejectWithValue }) => {
+    try {
+      dispatch(setRegisterLoader(true));
+
+      const response = await axiosInstance.patch(
+        `/admissions/deactivate/${id}`
+      );
+
+      if (response.status === 200) {
+        toast.success(
+          response.data.message || "Admission deactivated successfully."
+        );
+        return response.data;
+      } else {
+        throw new Error(response.data.message || "Deactivation failed.");
+      }
+    } catch (error) {
+      console.error("Error in deactivateAdmission action:", error);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "An unexpected error occurred.";
+      toast.error(errorMessage);
+      return rejectWithValue(errorMessage);
+    } finally {
+      dispatch(setRegisterLoader(false));
+    }
+  }
+);
+
 export const fetchFinances = createAsyncThunk(
   "finances/get",
   async ({ id = "All", toDate = null, fromDate = null }, { dispatch }) => {
@@ -106,7 +138,7 @@ export const updateAdmission = createAsyncThunk(
         `/admissions/update/${id}`,
         updateData
       );
-      
+
       if (!response || !response.data) {
         throw new Error("Invalid server response");
       }

@@ -4,8 +4,8 @@ const router = express.Router();
 const Notification = require("../models/Notification");
 const mongoose = require("mongoose");
 const ObjectId = mongoose.Types.ObjectId;
+const sendWhatsAppText = require("../whatsapp_endpoint");
 
-// Route to fetch payment alerts for a specific branch
 router.get("/payments/:branch", async (req, res) => {
   const { branch } = req.params;
   const today = new Date();
@@ -87,6 +87,11 @@ router.patch("/complete/:id", async (req, res) => {
         role: "admin",
       });
       await newNotification.save();
+      await sendWhatsAppText("payment_updated", [
+        newAmountReceived,
+        admission?.firstName,
+        admission?.lastName,
+      ]);
       res.status(200).json({
         msg: "Payment completed and balance updated",
         updatedAmountReceived,

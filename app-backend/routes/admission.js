@@ -5,8 +5,8 @@ const Instructor = require("../models/Instructor");
 const Notification = require("../models/Notification");
 const cron = require("node-cron");
 const mongoose = require("mongoose");
+const sendWhatsAppText = require("../whatsapp_endpoint");
 cron.schedule("0 0 * * *", async () => {
-  // This cron job runs every day at midnight
   await checkOverduePayments();
 });
 
@@ -16,6 +16,7 @@ async function checkOverduePayments() {
     const overdueAdmissions = await Admission.find({
       paymentDueDate: { $lt: today.toISOString() },
       remainingPayment: { $gt: 0 },
+      status: true,
     });
 
     for (const admission of overdueAdmissions) {
@@ -23,7 +24,12 @@ async function checkOverduePayments() {
         student: admission._id,
         eventDate: admission.paymentDueDate,
       });
-
+      await sendWhatsAppText("overdue_payment", [
+        admission.firstName,
+        admission.lastName,
+        admission.manager.branch.name,
+      ]);
+      console.log(admission);
       if (!existingNotification) {
         const newNotification = new Notification({
           message: `Payment overdue for student: ${admission.firstName} ${admission.lastName}`,
@@ -35,6 +41,7 @@ async function checkOverduePayments() {
         });
 
         await newNotification.save();
+
         console.log(`Notification created for admission ID: ${admission._id}`);
       } else {
         console.log(
@@ -252,7 +259,11 @@ router.post("/add", async (req, res) => {
     });
 
     await newNotification.save();
-
+    await sendWhatsAppText("admission", [
+      firstName,
+      lastName,
+      savedAdmission.manager.branch.name,
+    ]);
     res.status(200).json({
       status: true,
       message: "Admission booked successfully.",
@@ -646,4 +657,24 @@ router.put("/:branch/:admissionId", async (req, res) => {
   }
 });
 
+router.patch("/deactivate/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const admission = await Admission.findByIdAndUpdate(
+      id,
+      { status: false },
+      { new: true }
+    );
+
+    if (!admission) {
+      return res.status(404).json({ message: "Admission not found" });
+    }
+
+    res.status(200).json({ message: "Admission deactivated", admission });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 module.exports = router;
