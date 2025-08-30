@@ -61,8 +61,6 @@ export default function AdmissionTable({ color = "light", title }) {
     if (editingId === student._id) {
       setEditingId(null);
       setEditForm({
-        firstName: "",
-        lastName: "",
         fatherName: "",
         cnic: "",
         gender: "",
@@ -75,8 +73,6 @@ export default function AdmissionTable({ color = "light", title }) {
       // If clicking a different student's edit button, show their form
       setEditingId(student._id);
       setEditForm({
-        firstName: student.firstName || "",
-        lastName: student.lastName || "",
         fatherName: student.fatherName || "",
         cnic: student.cnic || "",
         gender: student.gender || "",
@@ -93,8 +89,6 @@ export default function AdmissionTable({ color = "light", title }) {
   const handleCancel = () => {
     setEditingId(null);
     setEditForm({
-      firstName: "",
-      lastName: "",
       fatherName: "",
       cnic: "",
       gender: "",
@@ -483,48 +477,6 @@ export default function AdmissionTable({ color = "light", title }) {
                               </h6>
 
                               {/* First Name */}
-                              <div className="w-full lg:w-6/12 px-4">
-                                <div className="relative w-full mb-3">
-                                  <label className="block uppercase text-blueGray-600 text-xs font-bold mb-2">
-                                    First Name
-                                  </label>
-                                  <input
-                                    type="text"
-                                    value={editForm.firstName}
-                                    onChange={(e) =>
-                                      setEditForm({
-                                        ...editForm,
-                                        firstName: e.target.value,
-                                      })
-                                    }
-                                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
-                                    placeholder="Enter First Name"
-                                    required
-                                  />
-                                </div>
-                              </div>
-
-                              {/* Last Name */}
-                              <div className="w-full lg:w-6/12 px-4">
-                                <div className="relative w-full mb-3">
-                                  <label className="block uppercase text-blueGray-600 text-xs font-bold mb-2">
-                                    Last Name
-                                  </label>
-                                  <input
-                                    type="text"
-                                    value={editForm.lastName}
-                                    onChange={(e) =>
-                                      setEditForm({
-                                        ...editForm,
-                                        lastName: e.target.value,
-                                      })
-                                    }
-                                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none w-full ease-linear transition-all duration-150"
-                                    placeholder="Enter Last Name"
-                                    required
-                                  />
-                                </div>
-                              </div>
 
                               {/* Father Name */}
                               <div className="w-full lg:w-6/12 px-4">

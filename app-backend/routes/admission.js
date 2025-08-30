@@ -17,18 +17,25 @@ async function checkOverduePayments() {
       paymentDueDate: { $lt: today.toISOString() },
       remainingPayment: { $gt: 0 },
       status: true,
-    });
+    }).populate("instructor");
 
     for (const admission of overdueAdmissions) {
       const existingNotification = await Notification.findOne({
         student: admission._id,
         eventDate: admission.paymentDueDate,
       });
-      await sendWhatsAppText("overdue_payment", [
-        admission.firstName,
-        admission.lastName,
-        admission.manager.branch.name,
-      ]);
+      console.log(admission.instructor);
+      await sendWhatsAppText(
+        "overdue_payment",
+        [
+          `${admission.firstName} ${admission.lastName}`,
+          admission.manager.branch.name,
+          admission.instructor.name,
+          admission.remainingPayment,
+          admission.paymentDueDate,
+        ],
+        "en"
+      );
       console.log(admission);
       if (!existingNotification) {
         const newNotification = new Notification({
@@ -259,11 +266,18 @@ router.post("/add", async (req, res) => {
     });
 
     await newNotification.save();
-    await sendWhatsAppText("admission", [
-      firstName,
-      lastName,
-      savedAdmission.manager.branch.name,
-    ]);
+    await sendWhatsAppText(
+      "admission",
+      [
+        `${firstName} ${lastName}`,
+        instructorDoc.name,
+        savedAdmission.manager.branch.name,
+        course,
+        totalPayment,
+        paymentReceived,
+      ],
+      "en_GB"
+    );
     res.status(200).json({
       status: true,
       message: "Admission booked successfully.",
